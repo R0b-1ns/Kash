@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     nas_path: str = ""
     sync_interval_minutes: int = 30
 
+    # OCR Microservice
+    ocr_service_url: str = "http://ocr-service:5001" # Default URL for the OCR microservice
+
+
     class Config:
         env_file = ".env"
         extra = "ignore"

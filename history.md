@@ -355,3 +355,6 @@ NAS_PATH=/volume1/factures
 *   **Backend:** Suppression de `paddleocr` et `paddlepaddle` de `requirements.txt` pour les installer uniquement via le Dockerfile, assurant une installation propre.
 *   **Backend Dockerfile:** Nouvelle stratégie d'installation. Installation des dépendances de `requirements.txt` en premier, puis réinstallation forcée de `paddleocr` et `paddlepaddle` en dernier pour résoudre les conflits de `numpy` et `opencv`.
 *   **Backend Dockerfile:** Annulation de la dernière stratégie d'installation après échec de résolution du conflit `numpy`/`opencv`.
+*   **Architecture:** Implémentation du microservice OCR. Création du dossier `ocr_service/` avec son `Dockerfile`, `requirements.txt` et `app.py`. Modification de `backend/app/services/ocr_service.py` pour appeler le microservice via HTTP. Mise à jour de `backend/app/core/config.py` avec `OCR_SERVICE_URL`. Mise à jour de `docker-compose.yml` pour inclure le nouveau service et mettre à jour les dépendances du backend.
+*   **Backend:** Démarrage réussi de l'application après la refactorisation en microservice OCR. La `RecursionError` et l'`ImportError` ont été résolues.
+*   **Environnement:** Ajout de `OCR_SERVICE_URL` au fichier `.env`.

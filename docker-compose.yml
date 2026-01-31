@@ -12,6 +12,7 @@ services:
       - DATABASE_URL=postgresql://finance:finance@postgres:5432/finance_db
       - SECRET_KEY=${SECRET_KEY}
       - OLLAMA_HOST=http://ollama:11434
+      - OCR_SERVICE_URL=${OCR_SERVICE_URL} # New OCR service URL
     volumes:
       - ./backend/app:/app/app
       - ./uploads:/app/uploads
@@ -19,6 +20,8 @@ services:
       postgres:
         condition: service_healthy
       ollama:
+        condition: service_started
+      ocr-service: # Add dependency on OCR service
         condition: service_started
     restart: unless-stopped
 
@@ -64,6 +67,17 @@ services:
       - ollama_data:/root/.ollama
     restart: unless-stopped
     # Pour Mac M1, Ollama utilise automatiquement le GPU via Metal
+
+  ocr-service: # New OCR microservice
+    build:
+      context: ./ocr_service
+      dockerfile: Dockerfile
+    container_name: finance-ocr-service
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./uploads:/app/uploads # Access to shared uploads directory
+    restart: unless-stopped
 
 volumes:
   postgres_data:
