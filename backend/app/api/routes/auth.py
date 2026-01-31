@@ -13,13 +13,14 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db, get_current_user
 from app.core.security import hash_password, verify_password, create_access_token
 from app.models.user import User
-from app.schemas import UserCreate, UserLogin, UserResponse, Token
+from app.schemas import UserCreate, UserLogin, Token
+from app.schemas.converters import user_to_response
 
 router = APIRouter(prefix="/auth", tags=["Authentification"])
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def register(user_data: UserCreate, db: Session = Depends(get_db)):
+@router.post("/register", status_code=status.HTTP_201_CREATED)
+def register(user_data: UserCreate, db: Session = Depends(get_db)) -> dict:
     """
     Inscription d'un nouvel utilisateur.
 
@@ -49,7 +50,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    return user
+    return user_to_response(user)
 
 
 @router.post("/login", response_model=Token)
@@ -80,8 +81,8 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
     return Token(access_token=access_token, token_type="bearer")
 
 
-@router.get("/me", response_model=UserResponse)
-def get_me(current_user: User = Depends(get_current_user)):
+@router.get("/me")
+def get_me(current_user: User = Depends(get_current_user)) -> dict:
     """
     Récupère les informations de l'utilisateur connecté.
 
@@ -90,4 +91,4 @@ def get_me(current_user: User = Depends(get_current_user)):
     Returns:
         Les informations de l'utilisateur (sans le mot de passe)
     """
-    return current_user
+    return user_to_response(current_user)

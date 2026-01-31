@@ -18,16 +18,17 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
 from app.models.currency import Currency
-from app.schemas import CurrencyCreate, CurrencyUpdate, CurrencyResponse
+from app.schemas import CurrencyCreate, CurrencyUpdate
+from app.schemas.converters import currency_to_response
 
 router = APIRouter(prefix="/currencies", tags=["Devises"])
 
 
-@router.get("", response_model=List[CurrencyResponse])
+@router.get("")
 def list_currencies(
     db: Session = Depends(get_db)
     # Note: Pas d'authentification requise pour lister les devises
-):
+) -> List[dict]:
     """
     Liste toutes les devises disponibles.
 
@@ -37,15 +38,15 @@ def list_currencies(
         Liste des devises avec leurs taux de conversion
     """
     currencies = db.query(Currency).order_by(Currency.code).all()
-    return currencies
+    return [currency_to_response(c) for c in currencies]
 
 
-@router.post("", response_model=CurrencyResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 def create_currency(
     currency_data: CurrencyCreate,
     current_user: User = Depends(get_current_user),  # Auth requise pour modifier
     db: Session = Depends(get_db)
-):
+) -> dict:
     """
     Ajoute une nouvelle devise.
 
@@ -74,16 +75,16 @@ def create_currency(
     db.commit()
     db.refresh(currency)
 
-    return currency
+    return currency_to_response(currency)
 
 
-@router.put("/{code}", response_model=CurrencyResponse)
+@router.put("/{code}")
 def update_currency(
     code: str,
     currency_data: CurrencyUpdate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> dict:
     """
     Met à jour le taux de change d'une devise.
 
@@ -108,4 +109,4 @@ def update_currency(
     db.commit()
     db.refresh(currency)
 
-    return currency
+    return currency_to_response(currency)

@@ -28,7 +28,8 @@ from app.models.user import User
 from app.models.document import Document
 from app.models.tag import Tag, DocumentTag
 from app.models.item import Item
-from app.schemas import DocumentUpdate, DocumentResponse, DocumentListResponse
+from app.schemas import DocumentUpdate
+from app.schemas.converters import document_to_response, document_to_list_response
 from app.services.document_processor import process_document, reprocess_document, ProcessingError
 
 # Configuration du logging
@@ -71,7 +72,7 @@ def validate_file(file: UploadFile) -> str:
     return ext
 
 
-@router.get("", response_model=List[DocumentListResponse])
+@router.get("")
 def list_documents(
     # Filtres
     start_date: Optional[date] = Query(None, description="Date de début (incluse)"),
@@ -85,18 +86,9 @@ def list_documents(
     # Auth & DB
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> List[dict]:
     """
     Liste les documents de l'utilisateur avec filtres et pagination.
-
-    Filtres disponibles:
-    - start_date/end_date: Plage de dates
-    - tag_id: Documents ayant ce tag
-    - is_income: Revenus ou dépenses
-    - doc_type: Type de document
-
-    Returns:
-        Liste des documents (version allégée sans OCR raw text)
     """
     query = db.query(Document).filter(Document.user_id == current_user.id)
 
@@ -121,16 +113,17 @@ def list_documents(
     # Pagination
     documents = query.offset(skip).limit(limit).all()
 
-    return documents
+    # Conversion manuelle pour éviter la récursion
+    return [document_to_list_response(doc) for doc in documents]
 
 
-@router.post("/upload", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/upload", status_code=status.HTTP_201_CREATED)
 async def upload_document(
     file: UploadFile = File(..., description="Image ou PDF à analyser"),
     background_tasks: BackgroundTasks = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> dict:
     """
     Upload un nouveau document (image ou PDF).
 
@@ -138,13 +131,6 @@ async def upload_document(
     1. Valide et sauvegarde le fichier
     2. Crée l'entrée en base de données
     3. Déclenche l'OCR et l'analyse IA pour extraire les données
-
-    L'extraction OCR + IA est effectuée de manière synchrone pour retourner
-    directement les données extraites. Cela peut prendre quelques secondes
-    selon la taille du document et la charge du serveur Ollama.
-
-    Returns:
-        Le document créé avec les données extraites (si disponibles)
     """
     # Valider le fichier
     ext = validate_file(file)
@@ -185,36 +171,25 @@ async def upload_document(
         document = await process_document(document.id, db)
         logger.info(f"Document {document.id} traité avec succès")
     except ProcessingError as e:
-        # En cas d'erreur de traitement, on log mais on retourne quand même le document
-        # L'utilisateur pourra relancer le traitement plus tard
         logger.warning(f"Erreur lors du traitement du document {document.id}: {e.message}")
     except Exception as e:
-        # Erreur inattendue - on log et on continue
         logger.error(f"Erreur inattendue lors du traitement du document {document.id}: {str(e)}")
 
     # Recharger le document avec ses relations
     db.refresh(document)
 
-    return document
+    # Conversion manuelle
+    return document_to_response(document)
 
 
-@router.get("/{document_id}", response_model=DocumentResponse)
+@router.get("/{document_id}")
 def get_document(
     document_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> dict:
     """
     Récupère les détails complets d'un document.
-
-    Inclut:
-    - Toutes les métadonnées
-    - Le texte OCR brut
-    - Les tags associés
-    - Les items (articles)
-
-    Returns:
-        Le document complet
     """
     document = db.query(Document).options(
         joinedload(Document.tags),
@@ -230,27 +205,19 @@ def get_document(
             detail="Document non trouvé"
         )
 
-    return document
+    # Conversion manuelle
+    return document_to_response(document)
 
 
-@router.put("/{document_id}", response_model=DocumentResponse)
+@router.put("/{document_id}")
 def update_document(
     document_id: int,
     doc_data: DocumentUpdate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> dict:
     """
     Modifie un document existant.
-
-    Utilisé pour corriger les données extraites automatiquement
-    ou ajouter des informations manuellement.
-
-    Note: Pour modifier les tags, utiliser le champ tag_ids
-    qui remplace tous les tags existants.
-
-    Returns:
-        Le document modifié
     """
     document = db.query(Document).filter(
         Document.id == document_id,
@@ -288,7 +255,8 @@ def update_document(
     db.commit()
     db.refresh(document)
 
-    return document
+    # Conversion manuelle
+    return document_to_response(document)
 
 
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -299,10 +267,6 @@ def delete_document(
 ):
     """
     Supprime un document et son fichier associé.
-
-    Supprime également:
-    - Les items associés (cascade)
-    - Les associations avec les tags
     """
     document = db.query(Document).filter(
         Document.id == document_id,
@@ -320,38 +284,23 @@ def delete_document(
         try:
             os.remove(document.file_path)
         except OSError:
-            pass  # Ignorer si le fichier n'existe plus
+            pass
 
-    # Supprimer le document (cascade sur items et tags)
+    # Supprimer le document
     db.delete(document)
     db.commit()
 
     return None
 
 
-@router.post("/{document_id}/reprocess", response_model=DocumentResponse)
+@router.post("/{document_id}/reprocess")
 async def reprocess_document_endpoint(
     document_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> dict:
     """
     Relance l'extraction OCR + IA sur un document existant.
-
-    Utile dans les cas suivants:
-    - Le traitement initial a échoué (Ollama indisponible, etc.)
-    - Le texte OCR a été mal interprété
-    - On veut mettre à jour avec un nouveau modèle IA
-
-    Note: Cette opération remplace les données extraites précédemment
-    et recrée les items associés.
-
-    Returns:
-        Le document mis à jour avec les nouvelles données extraites
-
-    Raises:
-        404: Document non trouvé
-        500: Erreur lors du retraitement
     """
     # Vérifier que le document existe et appartient à l'utilisateur
     document = db.query(Document).filter(
@@ -392,21 +341,19 @@ async def reprocess_document_endpoint(
     # Recharger le document avec ses relations
     db.refresh(document)
 
-    return document
+    # Conversion manuelle
+    return document_to_response(document)
 
 
-@router.post("/{document_id}/tags/{tag_id}", response_model=DocumentResponse)
+@router.post("/{document_id}/tags/{tag_id}")
 def add_tag_to_document(
     document_id: int,
     tag_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> dict:
     """
     Ajoute un tag à un document.
-
-    Returns:
-        Le document avec ses tags mis à jour
     """
     # Vérifier le document
     document = db.query(Document).filter(
@@ -438,21 +385,19 @@ def add_tag_to_document(
         db.commit()
         db.refresh(document)
 
-    return document
+    # Conversion manuelle
+    return document_to_response(document)
 
 
-@router.delete("/{document_id}/tags/{tag_id}", response_model=DocumentResponse)
+@router.delete("/{document_id}/tags/{tag_id}")
 def remove_tag_from_document(
     document_id: int,
     tag_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> dict:
     """
     Retire un tag d'un document.
-
-    Returns:
-        Le document avec ses tags mis à jour
     """
     document = db.query(Document).options(
         joinedload(Document.tags)
@@ -479,4 +424,5 @@ def remove_tag_from_document(
         db.commit()
         db.refresh(document)
 
-    return document
+    # Conversion manuelle
+    return document_to_response(document)

@@ -12,10 +12,6 @@ alembic==1.13.1
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 
-# OCR
-paddlepaddle==2.6.2
-paddleocr==2.7.3
-
 # AI/LLM
 httpx==0.26.0
 

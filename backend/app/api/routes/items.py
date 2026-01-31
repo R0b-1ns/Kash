@@ -22,12 +22,13 @@ from app.api.deps import get_db, get_current_user
 from app.models.user import User
 from app.models.document import Document
 from app.models.item import Item
-from app.schemas import ItemCreate, ItemUpdate, ItemResponse
+from app.schemas import ItemCreate, ItemUpdate
+from app.schemas.converters import item_to_response
 
 router = APIRouter(prefix="/items", tags=["Items"])
 
 
-@router.get("", response_model=List[ItemResponse])
+@router.get("")
 def list_items(
     # Filtres
     name: Optional[str] = Query(None, description="Recherche par nom (contient)"),
@@ -40,7 +41,7 @@ def list_items(
     # Auth & DB
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> List[dict]:
     """
     Liste les items de tous les documents de l'utilisateur.
 
@@ -67,7 +68,7 @@ def list_items(
 
     items = query.offset(skip).limit(limit).all()
 
-    return items
+    return [item_to_response(i) for i in items]
 
 
 @router.get("/categories", response_model=List[str])
@@ -91,13 +92,13 @@ def list_item_categories(
     return [r[0] for r in result if r[0]]
 
 
-@router.post("/documents/{document_id}", response_model=ItemResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/documents/{document_id}", status_code=status.HTTP_201_CREATED)
 def create_item(
     document_id: int,
     item_data: ItemCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> dict:
     """
     Ajoute un item à un document existant.
 
@@ -133,16 +134,16 @@ def create_item(
     db.commit()
     db.refresh(item)
 
-    return item
+    return item_to_response(item)
 
 
-@router.put("/{item_id}", response_model=ItemResponse)
+@router.put("/{item_id}")
 def update_item(
     item_id: int,
     item_data: ItemUpdate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> dict:
     """
     Modifie un item existant.
 
@@ -169,7 +170,7 @@ def update_item(
     db.commit()
     db.refresh(item)
 
-    return item
+    return item_to_response(item)
 
 
 @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)

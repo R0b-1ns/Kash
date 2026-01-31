@@ -20,16 +20,17 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
 from app.models.tag import Tag
-from app.schemas import TagCreate, TagUpdate, TagResponse
+from app.schemas import TagCreate, TagUpdate
+from app.schemas.converters import tag_to_response
 
 router = APIRouter(prefix="/tags", tags=["Tags"])
 
 
-@router.get("", response_model=List[TagResponse])
+@router.get("")
 def list_tags(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> List[dict]:
     """
     Liste tous les tags de l'utilisateur connecté.
 
@@ -37,15 +38,15 @@ def list_tags(
         Liste des tags triés par nom
     """
     tags = db.query(Tag).filter(Tag.user_id == current_user.id).order_by(Tag.name).all()
-    return tags
+    return [tag_to_response(t) for t in tags]
 
 
-@router.post("", response_model=TagResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 def create_tag(
     tag_data: TagCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> dict:
     """
     Crée un nouveau tag.
 
@@ -77,15 +78,15 @@ def create_tag(
     db.commit()
     db.refresh(tag)
 
-    return tag
+    return tag_to_response(tag)
 
 
-@router.get("/{tag_id}", response_model=TagResponse)
+@router.get("/{tag_id}")
 def get_tag(
     tag_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> dict:
     """
     Récupère les détails d'un tag.
 
@@ -106,16 +107,16 @@ def get_tag(
             detail="Tag non trouvé"
         )
 
-    return tag
+    return tag_to_response(tag)
 
 
-@router.put("/{tag_id}", response_model=TagResponse)
+@router.put("/{tag_id}")
 def update_tag(
     tag_id: int,
     tag_data: TagUpdate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> dict:
     """
     Modifie un tag existant.
 
@@ -156,7 +157,7 @@ def update_tag(
     db.commit()
     db.refresh(tag)
 
-    return tag
+    return tag_to_response(tag)
 
 
 @router.delete("/{tag_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -25,7 +25,8 @@ from app.models.user import User
 from app.models.budget import Budget
 from app.models.tag import Tag, DocumentTag
 from app.models.document import Document
-from app.schemas import BudgetCreate, BudgetUpdate, BudgetResponse, BudgetWithSpending
+from app.schemas import BudgetCreate, BudgetUpdate
+from app.schemas.converters import budget_to_response
 
 router = APIRouter(prefix="/budgets", tags=["Budgets"])
 
@@ -33,26 +34,15 @@ router = APIRouter(prefix="/budgets", tags=["Budgets"])
 def calculate_spending_for_tag(db: Session, user_id: int, tag_id: int, month: str) -> Decimal:
     """
     Calcule le total des dépenses pour un tag sur un mois donné.
-
-    Args:
-        db: Session de base de données
-        user_id: ID de l'utilisateur
-        tag_id: ID du tag
-        month: Mois au format "YYYY-MM"
-
-    Returns:
-        Le montant total dépensé (Decimal)
     """
-    # Extraire année et mois
     year, month_num = map(int, month.split("-"))
 
-    # Requête: somme des montants des documents avec ce tag, pour ce mois, qui sont des dépenses
     result = db.query(func.coalesce(func.sum(Document.total_amount), 0)).join(
         DocumentTag
     ).filter(
         Document.user_id == user_id,
         DocumentTag.tag_id == tag_id,
-        Document.is_income == False,  # Seulement les dépenses
+        Document.is_income == False,
         func.extract("year", Document.date) == year,
         func.extract("month", Document.date) == month_num
     ).scalar()
@@ -60,19 +50,14 @@ def calculate_spending_for_tag(db: Session, user_id: int, tag_id: int, month: st
     return Decimal(str(result))
 
 
-@router.get("", response_model=List[BudgetResponse])
+@router.get("")
 def list_budgets(
     month: Optional[str] = Query(None, pattern=r"^\d{4}-\d{2}$", description="Filtrer par mois (YYYY-MM)"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> List[dict]:
     """
     Liste tous les budgets de l'utilisateur.
-
-    Peut être filtré par mois.
-
-    Returns:
-        Liste des budgets
     """
     query = db.query(Budget).filter(Budget.user_id == current_user.id)
 
@@ -81,37 +66,23 @@ def list_budgets(
 
     budgets = query.order_by(Budget.month.desc()).all()
 
-    return budgets
+    # Conversion manuelle
+    return [budget_to_response(b) for b in budgets]
 
 
-@router.get("/current", response_model=List[BudgetWithSpending])
+@router.get("/current")
 def get_current_budgets(
     month: Optional[str] = Query(None, pattern=r"^\d{4}-\d{2}$", description="Mois (défaut: mois actuel)"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> List[dict]:
     """
     Récupère les budgets du mois avec les dépenses calculées.
-
-    C'est l'endpoint principal pour le dashboard.
-    Retourne pour chaque budget:
-    - Le montant limite
-    - Le montant dépensé
-    - Le montant restant
-    - Le pourcentage consommé
-
-    Args:
-        month: Mois à consulter (défaut: mois actuel)
-
-    Returns:
-        Liste des budgets enrichis avec les données de consommation
     """
-    # Mois par défaut = mois actuel
     if not month:
         today = date.today()
         month = today.strftime("%Y-%m")
 
-    # Récupérer les budgets du mois avec leurs tags
     budgets = db.query(Budget, Tag).join(Tag).filter(
         Budget.user_id == current_user.id,
         Budget.month == month
@@ -119,44 +90,35 @@ def get_current_budgets(
 
     result = []
     for budget, tag in budgets:
-        # Calculer les dépenses pour ce tag ce mois
         spent = calculate_spending_for_tag(db, current_user.id, tag.id, month)
-
-        # Calculer les métriques
         remaining = budget.limit_amount - spent
         percentage = float(spent / budget.limit_amount * 100) if budget.limit_amount > 0 else 0
 
-        result.append(BudgetWithSpending(
-            id=budget.id,
-            tag_id=tag.id,
-            tag_name=tag.name,
-            tag_color=tag.color,
-            month=budget.month,
-            limit_amount=budget.limit_amount,
-            currency=budget.currency,
-            spent_amount=spent,
-            remaining_amount=remaining,
-            percentage_used=round(percentage, 2)
-        ))
+        result.append({
+            "id": budget.id,
+            "tag_id": tag.id,
+            "tag_name": tag.name,
+            "tag_color": tag.color,
+            "month": budget.month,
+            "limit_amount": budget.limit_amount,
+            "currency": budget.currency,
+            "spent_amount": spent,
+            "remaining_amount": remaining,
+            "percentage_used": round(percentage, 2)
+        })
 
     return result
 
 
-@router.post("", response_model=BudgetResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 def create_budget(
     budget_data: BudgetCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> dict:
     """
     Crée un nouveau budget.
-
-    Un seul budget par tag par mois est autorisé.
-
-    Returns:
-        Le budget créé
     """
-    # Vérifier que le tag appartient à l'utilisateur
     tag = db.query(Tag).filter(
         Tag.id == budget_data.tag_id,
         Tag.user_id == current_user.id
@@ -168,7 +130,6 @@ def create_budget(
             detail="Tag non trouvé"
         )
 
-    # Vérifier qu'il n'existe pas déjà un budget pour ce tag/mois
     existing = db.query(Budget).filter(
         Budget.user_id == current_user.id,
         Budget.tag_id == budget_data.tag_id,
@@ -193,23 +154,19 @@ def create_budget(
     db.commit()
     db.refresh(budget)
 
-    return budget
+    # Conversion manuelle
+    return budget_to_response(budget)
 
 
-@router.put("/{budget_id}", response_model=BudgetResponse)
+@router.put("/{budget_id}")
 def update_budget(
     budget_id: int,
     budget_data: BudgetUpdate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> dict:
     """
     Modifie un budget existant.
-
-    Seul le montant limite peut être modifié.
-
-    Returns:
-        Le budget modifié
     """
     budget = db.query(Budget).filter(
         Budget.id == budget_id,
@@ -222,7 +179,6 @@ def update_budget(
             detail="Budget non trouvé"
         )
 
-    # Mettre à jour les champs fournis
     update_data = budget_data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(budget, field, value)
@@ -230,7 +186,8 @@ def update_budget(
     db.commit()
     db.refresh(budget)
 
-    return budget
+    # Conversion manuelle
+    return budget_to_response(budget)
 
 
 @router.delete("/{budget_id}", status_code=status.HTTP_204_NO_CONTENT)
