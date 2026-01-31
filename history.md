@@ -350,3 +350,8 @@ NAS_PATH=/volume1/factures
 *   **Backend:** Désactivation des URLs de documentation OpenAPI (docs_url, redoc_url) dans `main.py` pour tester l'hypothèse que la `RecursionError` est déclenchée lors de la génération du schéma OpenAPI.
 *   **Backend:** Désactivation des URLs de documentation OpenAPI (docs_url, redoc_url) dans `main.py` pour tester l'hypothèse que la `RecursionError` est déclenchée lors de la génération du schéma OpenAPI, même après la suppression de tous les `from_attributes`.
 *   **Backend:** Annulation de la désactivation des URLs de documentation OpenAPI dans `main.py`.
+*   **Backend Dockerfile:** Ajout d'une réinstallation forcée de `numpy` et `opencv-python-headless` pour corriger l'erreur d'importation `numpy.core.multiarray`.
+*   **Backend Dockerfile:** Nouvelle stratégie d'installation. Installation de `paddleocr` et `paddlepaddle` en premier pour assurer une résolution correcte des dépendances `numpy` et `opencv`.
+*   **Backend:** Suppression de `paddleocr` et `paddlepaddle` de `requirements.txt` pour les installer uniquement via le Dockerfile, assurant une installation propre.
+*   **Backend Dockerfile:** Nouvelle stratégie d'installation. Installation des dépendances de `requirements.txt` en premier, puis réinstallation forcée de `paddleocr` et `paddlepaddle` en dernier pour résoudre les conflits de `numpy` et `opencv`.
+*   **Backend Dockerfile:** Annulation de la dernière stratégie d'installation après échec de résolution du conflit `numpy`/`opencv`.
