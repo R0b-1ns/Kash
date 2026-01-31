@@ -362,3 +362,7 @@ NAS_PATH=/volume1/factures
 *   **Backend:** Ajout d'une contrainte de version pour `bcrypt<4.1` dans `requirements.txt` pour corriger une incompatibilité avec `passlib==1.7.4`.
 *   **Backend Debug:** Ajout d'un code de débogage dans `main.py` pour afficher toutes les routes enregistrées au démarrage.
 *   **Backend Debug:** Nettoyage du code de débogage pour l'affichage des routes dans `main.py`.
+*   **Frontend Debug:** Le frontend fait une requête vers `http://localhost:8000/auth/login` au lieu de `http://localhost:8000/api/v1/auth/login`. Malgré la bonne configuration dans `api.ts` et `.env`, le problème semble venir d'un cache de Vite ou d'une mauvaise lecture de la variable d'environnement `VITE_API_URL` par le serveur de développement.
+*   **Frontend Debug:** Ajout d'un `console.log` dans `frontend/src/services/api.ts` pour vérifier la valeur de `API_BASE_URL` utilisée par Axios.
+*   **Frontend Configuration:** Correction de `docker-compose.yml` pour que `VITE_API_URL` du frontend utilise la variable d'environnement du fichier `.env` (``), résolvant le problème de routage.
+*   **Frontend Debug:** Le `console.log` a été retiré de `frontend/src/services/api.ts` après vérification de la configuration.
