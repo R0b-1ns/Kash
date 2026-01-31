@@ -1,79 +1,134 @@
-# Service NAS Sync
+# Service NAS Sync (SMB)
 
-Le service de synchronisation NAS transfère les fichiers vers un NAS distant via rsync.
+Le service de synchronisation NAS transfère les fichiers vers un NAS via un **montage SMB/CIFS**.
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         BACKEND                              │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │              nas_sync_service.py                       │  │
+│  │                                                        │  │
+│  │  def sync_file(document):                             │  │
+│  │      dest = get_destination_path(document)            │  │
+│  │      os.makedirs(dest_dir, exist_ok=True)             │  │
+│  │      shutil.copy2(src, dest)  # Simple copie!         │  │
+│  └────────────────────────┬──────────────────────────────┘  │
+└───────────────────────────┼─────────────────────────────────┘
+                            │ Copie fichier local
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    MONTAGE SMB                               │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  /app/nas_backup (dans le container)                   │  │
+│  │       │                                                │  │
+│  │       └── monté depuis /Volumes/NAS/finance (Mac)     │  │
+│  └───────────────────────────────────────────────────────┘  │
+│                           │                                  │
+│                    ┌──────▼──────┐                          │
+│                    │  NAS Ugreen │                          │
+│                    │    (SMB)    │                          │
+│                    └─────────────┘                          │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ## Fichier source
 
 `backend/app/services/nas_sync_service.py`
 
-## Fonctionnalités
+## Avantages par rapport à SSH/rsync
 
-- Test de connexion SSH
-- Synchronisation fichier par fichier
-- Synchronisation batch
-- Suivi du statut en base de données
+| Critère | SSH/rsync (ancien) | SMB (nouveau) |
+|---------|-------------------|---------------|
+| Configuration | Complexe (clés SSH) | Simple (montage) |
+| Authentification | Clé SSH | Identifiants SMB natifs |
+| Performance | Bonne | Bonne |
+| Compatibilité NAS | Variable | Universelle |
+| Code Python | subprocess + rsync | shutil.copy2 |
 
-## Configuration requise
+## Configuration
 
-### Variables d'environnement
-
-```bash
-# Adresse IP ou hostname du NAS
-NAS_HOST=192.168.1.100
-
-# Utilisateur SSH
-NAS_USER=admin
-
-# Chemin de destination
-NAS_PATH=/volume1/factures
-```
-
-### Prérequis NAS
-
-1. **SSH activé** sur le NAS
-2. **rsync installé** (généralement inclus)
-3. **Clé SSH configurée** pour authentification sans mot de passe
-
-### Configuration de la clé SSH
+### 1. Monter le partage SMB sur le Mac
 
 ```bash
-# Générer une clé (si nécessaire)
-ssh-keygen -t ed25519 -C "finance-manager"
+# Créer le point de montage
+sudo mkdir -p /Volumes/NAS
 
-# Copier sur le NAS
-ssh-copy-id admin@192.168.1.100
+# Monter le partage SMB
+mount -t smbfs //utilisateur:motdepasse@IP-NAS/partage /Volumes/NAS
 
-# Tester
-ssh admin@192.168.1.100 "echo OK"
+# Ou via Finder : Cmd+K → smb://IP-NAS/partage
 ```
+
+### 2. Variables d'environnement (.env)
+
+```bash
+# Chemin sur le Mac (montage SMB)
+NAS_LOCAL_PATH=/Volumes/NAS/finance
+
+# Chemin dans le container Docker
+NAS_MOUNT_PATH=/app/nas_backup
+```
+
+### 3. docker-compose.yml
+
+```yaml
+backend:
+  volumes:
+    - ${NAS_LOCAL_PATH:-./nas_backup}:/app/nas_backup
+  environment:
+    - NAS_MOUNT_PATH=${NAS_MOUNT_PATH:-}
+```
+
+## Structure des fichiers sur le NAS
+
+Les fichiers sont organisés par **année/mois/type** :
+
+```
+/Volumes/NAS/finance/
+├── 2024/
+│   ├── 01/
+│   │   ├── factures/
+│   │   │   └── abc123.pdf
+│   │   ├── tickets/
+│   │   │   └── def456.jpg
+│   │   └── salaires/
+│   │       └── ghi789.pdf
+│   ├── 02/
+│   │   └── ...
+│   └── ...
+├── 2025/
+│   └── ...
+└── 2026/
+    └── 01/
+        ├── factures/
+        └── tickets/
+```
+
+### Mapping des types de documents
+
+| Type (BDD) | Dossier NAS |
+|------------|-------------|
+| receipt | tickets |
+| invoice | factures |
+| payslip | salaires |
+| other | autres |
 
 ## Classes
 
-### NASSyncError
-
-Exception personnalisée pour les erreurs de synchronisation.
-
-```python
-class NASSyncError(Exception):
-    def __init__(self, message: str, details: str | None = None):
-        self.message = message
-        self.details = details
-```
-
 ### NASSyncService
-
-Service principal de synchronisation.
 
 ```python
 class NASSyncService:
     def is_configured(self) -> bool:
-        """Vérifie si le NAS est configuré."""
+        """Vérifie si le montage NAS est accessible."""
 
     def get_config_status(self) -> dict:
         """Retourne le statut de la configuration."""
 
     def test_connection(self) -> tuple[bool, str]:
-        """Teste la connexion SSH."""
+        """Teste l'accès en écriture au montage."""
 
     def sync_file(self, document: Document) -> tuple[bool, str]:
         """Synchronise un fichier spécifique."""
@@ -83,6 +138,29 @@ class NASSyncService:
 
     def get_sync_stats(self, user_id: int) -> dict:
         """Retourne les statistiques de synchronisation."""
+```
+
+### Méthodes internes
+
+```python
+def _get_doc_type_folder(self, doc_type: str) -> str:
+    """Convertit le type de document en nom de dossier."""
+    type_mapping = {
+        "receipt": "tickets",
+        "invoice": "factures",
+        "payslip": "salaires",
+        "other": "autres",
+    }
+    return type_mapping.get(doc_type, "autres")
+
+def _get_destination_path(self, document: Document) -> str:
+    """Construit le chemin: {nas}/{année}/{mois}/{type}/{fichier}"""
+    doc_date = document.date or document.created_at.date()
+    year = str(doc_date.year)
+    month = str(doc_date.month).zfill(2)
+    type_folder = self._get_doc_type_folder(document.doc_type)
+    filename = os.path.basename(document.file_path)
+    return os.path.join(self.nas_mount_path, year, month, type_folder, filename)
 ```
 
 ## Utilisation
@@ -95,10 +173,10 @@ sync_service = get_nas_sync_service(db)
 
 # Vérifier la configuration
 if not sync_service.is_configured():
-    print("NAS non configuré")
+    print("Montage NAS non accessible")
     return
 
-# Tester la connexion
+# Tester l'accès
 success, message = sync_service.test_connection()
 if not success:
     print(f"Erreur: {message}")
@@ -114,25 +192,83 @@ print(f"Synchronisés: {results['synced']}")
 print(f"Échecs: {results['failed']}")
 ```
 
-## Commande rsync
+## API Endpoints
 
-La synchronisation utilise rsync avec les options suivantes :
+### GET /sync/status
 
-```bash
-rsync -avz --progress \
-  -e "ssh -o BatchMode=yes -o ConnectTimeout=30" \
-  /app/uploads/document.jpg \
-  user@nas:/volume1/factures/document.jpg
+Statistiques de synchronisation.
+
+```json
+{
+  "total_documents": 150,
+  "synced": 142,
+  "pending": 8,
+  "sync_percentage": 94.7,
+  "last_sync": "2024-01-15T14:30:00",
+  "nas_configured": true
+}
 ```
 
-| Option | Description |
-|--------|-------------|
-| -a | Mode archive (préserve métadonnées) |
-| -v | Mode verbose |
-| -z | Compression pendant le transfert |
-| --progress | Affiche la progression |
-| BatchMode=yes | Pas de prompt interactif |
-| ConnectTimeout=30 | Timeout de connexion 30s |
+### GET /sync/config
+
+Statut de la configuration.
+
+```json
+{
+  "configured": true,
+  "nas_host": true,
+  "nas_user": true,
+  "nas_path": true,
+  "host": "SMB Mount",
+  "path": "/app/nas_backup",
+  "path_exists": true,
+  "path_writable": true
+}
+```
+
+### POST /sync/test
+
+Tester l'accès au montage.
+
+```json
+{
+  "success": true,
+  "message": "Montage NAS accessible en lecture/écriture"
+}
+```
+
+### POST /sync/run
+
+Lancer la synchronisation de tous les documents en attente.
+
+```json
+{
+  "total": 8,
+  "synced": 7,
+  "failed": 1,
+  "errors": ["Document 42: Permission refusée"]
+}
+```
+
+### POST /sync/document/{id}
+
+Synchroniser un document spécifique.
+
+```json
+{
+  "success": true,
+  "message": "Synchronisé vers /app/nas_backup/2024/01/factures/abc.pdf"
+}
+```
+
+## Gestion des erreurs
+
+| Erreur | Cause | Solution |
+|--------|-------|----------|
+| NAS non configuré | NAS_MOUNT_PATH vide | Définir la variable dans .env |
+| Chemin inexistant | Montage non fait | Monter le partage SMB sur le Mac |
+| Permission refusée | Droits insuffisants | Vérifier les permissions SMB |
+| Espace disque | NAS plein | Libérer de l'espace |
 
 ## Mise à jour en base
 
@@ -144,54 +280,26 @@ document.synced_at = datetime.utcnow()
 db.commit()
 ```
 
-## Gestion des erreurs
+## Bonnes pratiques
 
-### Erreurs courantes
+### Montage automatique (macOS)
 
-| Erreur | Cause | Solution |
-|--------|-------|----------|
-| Permission denied | Clé SSH non configurée | Configurer ssh-copy-id |
-| Connection refused | SSH non activé | Activer SSH sur le NAS |
-| Connection timeout | NAS inaccessible | Vérifier le réseau |
-| No such file | Chemin invalide | Vérifier NAS_PATH |
+Pour monter automatiquement au démarrage, ajouter dans `/etc/fstab` :
 
-### Timeout
-
-- Connexion SSH : 30 secondes
-- Transfert par fichier : 5 minutes
-
-## Statistiques
-
-```python
-stats = sync_service.get_sync_stats(user_id=1)
-
-# Exemple de retour
-{
-    "total_documents": 150,
-    "synced": 142,
-    "pending": 8,
-    "sync_percentage": 94.7,
-    "last_sync": "2024-01-15T14:30:00",
-    "nas_configured": True
-}
+```
+//user:pass@nas-ip/share /Volumes/NAS smbfs 0 0
 ```
 
-## Bonnes pratiques
+Ou utiliser l'app "Automator" pour un script au login.
 
 ### Sécurité
 
-- Utiliser une clé SSH dédiée
-- Limiter les permissions sur le NAS
+- Créer un utilisateur SMB dédié sur le NAS
+- Limiter les permissions au dossier finance uniquement
 - Ne pas exposer le NAS sur Internet
-
-### Performance
-
-- Synchroniser régulièrement (éviter les gros batchs)
-- Utiliser une connexion réseau stable
-- Prévoir suffisamment d'espace sur le NAS
 
 ### Fiabilité
 
-- Vérifier les logs en cas d'échec
-- Implémenter des retries automatiques (à venir)
+- Vérifier que le montage est actif avant de lancer Docker
 - Monitorer l'espace disque NAS
+- Sauvegarder régulièrement le NAS
