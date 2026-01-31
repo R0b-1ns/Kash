@@ -358,3 +358,5 @@ NAS_PATH=/volume1/factures
 *   **Architecture:** Implémentation du microservice OCR. Création du dossier `ocr_service/` avec son `Dockerfile`, `requirements.txt` et `app.py`. Modification de `backend/app/services/ocr_service.py` pour appeler le microservice via HTTP. Mise à jour de `backend/app/core/config.py` avec `OCR_SERVICE_URL`. Mise à jour de `docker-compose.yml` pour inclure le nouveau service et mettre à jour les dépendances du backend.
 *   **Backend:** Démarrage réussi de l'application après la refactorisation en microservice OCR. La `RecursionError` et l'`ImportError` ont été résolues.
 *   **Environnement:** Ajout de `OCR_SERVICE_URL` au fichier `.env`.
+*   **Database:** Les migrations Alembic ont été appliquées avec succès.
+*   **Backend:** Ajout d'une contrainte de version pour `bcrypt<4.1` dans `requirements.txt` pour corriger une incompatibilité avec `passlib==1.7.4`.
