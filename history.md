@@ -345,3 +345,6 @@ NAS_PATH=/volume1/factures
 *   **Backend Refactoring:** Correction de la `RecursionError` en appliquant le pattern 'Forward Reference'. Les schémas Pydantic (`DocumentResponse`, `BudgetResponse`) utilisent maintenant des chaînes de caractères pour les types en référence circulaire, et `model_rebuild()` est appelé de manière centralisée dans `schemas/__init__.py`.
 *   **Backend:** Annulation de la tentative de refactorisation 'Forward Reference' après échec.
 *   **Backend Dependencies Upgrade:** Mise à jour majeure des dépendances clés pour tenter de résoudre la `RecursionError`: FastAPI (0.109.0 -> 0.110.2), Pydantic (2.5.3 -> 2.7.1), Pydantic-Settings (2.1.0 -> 2.2.1), Uvicorn (0.27.0 -> 0.29.0).
+*   **Backend:** Commit des mises à jour des dépendances clés (FastAPI, Pydantic, Uvicorn).
+*   **Backend Refactoring:** Adaptation de la route `/documents/{document_id}` (`get_document`) et `/documents` (`list_documents`) pour construire manuellement les réponses `DocumentResponse` et `DocumentListResponse` afin de résoudre la `RecursionError`.
+*   **Backend:** Désactivation des URLs de documentation OpenAPI (docs_url, redoc_url) dans `main.py` pour tester l'hypothèse que la `RecursionError` est déclenchée lors de la génération du schéma OpenAPI.
