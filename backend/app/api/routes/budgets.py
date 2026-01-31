@@ -1,0 +1,259 @@
+"""
+Routes pour la gestion des budgets mensuels.
+
+Un budget définit une limite de dépenses pour un tag sur un mois donné.
+L'utilisateur peut ainsi suivre sa consommation par catégorie.
+
+Endpoints:
+- GET /budgets : Liste des budgets (filtrable par mois)
+- GET /budgets/current : Budgets du mois en cours avec dépenses calculées
+- POST /budgets : Créer un budget
+- PUT /budgets/{id} : Modifier un budget
+- DELETE /budgets/{id} : Supprimer un budget
+"""
+
+from datetime import date
+from decimal import Decimal
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+
+from app.api.deps import get_db, get_current_user
+from app.models.user import User
+from app.models.budget import Budget
+from app.models.tag import Tag, DocumentTag
+from app.models.document import Document
+from app.schemas import BudgetCreate, BudgetUpdate, BudgetResponse, BudgetWithSpending
+
+router = APIRouter(prefix="/budgets", tags=["Budgets"])
+
+
+def calculate_spending_for_tag(db: Session, user_id: int, tag_id: int, month: str) -> Decimal:
+    """
+    Calcule le total des dépenses pour un tag sur un mois donné.
+
+    Args:
+        db: Session de base de données
+        user_id: ID de l'utilisateur
+        tag_id: ID du tag
+        month: Mois au format "YYYY-MM"
+
+    Returns:
+        Le montant total dépensé (Decimal)
+    """
+    # Extraire année et mois
+    year, month_num = map(int, month.split("-"))
+
+    # Requête: somme des montants des documents avec ce tag, pour ce mois, qui sont des dépenses
+    result = db.query(func.coalesce(func.sum(Document.total_amount), 0)).join(
+        DocumentTag
+    ).filter(
+        Document.user_id == user_id,
+        DocumentTag.tag_id == tag_id,
+        Document.is_income == False,  # Seulement les dépenses
+        func.extract("year", Document.date) == year,
+        func.extract("month", Document.date) == month_num
+    ).scalar()
+
+    return Decimal(str(result))
+
+
+@router.get("", response_model=List[BudgetResponse])
+def list_budgets(
+    month: Optional[str] = Query(None, pattern=r"^\d{4}-\d{2}$", description="Filtrer par mois (YYYY-MM)"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Liste tous les budgets de l'utilisateur.
+
+    Peut être filtré par mois.
+
+    Returns:
+        Liste des budgets
+    """
+    query = db.query(Budget).filter(Budget.user_id == current_user.id)
+
+    if month:
+        query = query.filter(Budget.month == month)
+
+    budgets = query.order_by(Budget.month.desc()).all()
+
+    return budgets
+
+
+@router.get("/current", response_model=List[BudgetWithSpending])
+def get_current_budgets(
+    month: Optional[str] = Query(None, pattern=r"^\d{4}-\d{2}$", description="Mois (défaut: mois actuel)"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Récupère les budgets du mois avec les dépenses calculées.
+
+    C'est l'endpoint principal pour le dashboard.
+    Retourne pour chaque budget:
+    - Le montant limite
+    - Le montant dépensé
+    - Le montant restant
+    - Le pourcentage consommé
+
+    Args:
+        month: Mois à consulter (défaut: mois actuel)
+
+    Returns:
+        Liste des budgets enrichis avec les données de consommation
+    """
+    # Mois par défaut = mois actuel
+    if not month:
+        today = date.today()
+        month = today.strftime("%Y-%m")
+
+    # Récupérer les budgets du mois avec leurs tags
+    budgets = db.query(Budget, Tag).join(Tag).filter(
+        Budget.user_id == current_user.id,
+        Budget.month == month
+    ).all()
+
+    result = []
+    for budget, tag in budgets:
+        # Calculer les dépenses pour ce tag ce mois
+        spent = calculate_spending_for_tag(db, current_user.id, tag.id, month)
+
+        # Calculer les métriques
+        remaining = budget.limit_amount - spent
+        percentage = float(spent / budget.limit_amount * 100) if budget.limit_amount > 0 else 0
+
+        result.append(BudgetWithSpending(
+            id=budget.id,
+            tag_id=tag.id,
+            tag_name=tag.name,
+            tag_color=tag.color,
+            month=budget.month,
+            limit_amount=budget.limit_amount,
+            currency=budget.currency,
+            spent_amount=spent,
+            remaining_amount=remaining,
+            percentage_used=round(percentage, 2)
+        ))
+
+    return result
+
+
+@router.post("", response_model=BudgetResponse, status_code=status.HTTP_201_CREATED)
+def create_budget(
+    budget_data: BudgetCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Crée un nouveau budget.
+
+    Un seul budget par tag par mois est autorisé.
+
+    Returns:
+        Le budget créé
+    """
+    # Vérifier que le tag appartient à l'utilisateur
+    tag = db.query(Tag).filter(
+        Tag.id == budget_data.tag_id,
+        Tag.user_id == current_user.id
+    ).first()
+
+    if not tag:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tag non trouvé"
+        )
+
+    # Vérifier qu'il n'existe pas déjà un budget pour ce tag/mois
+    existing = db.query(Budget).filter(
+        Budget.user_id == current_user.id,
+        Budget.tag_id == budget_data.tag_id,
+        Budget.month == budget_data.month
+    ).first()
+
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Un budget existe déjà pour ce tag en {budget_data.month}"
+        )
+
+    budget = Budget(
+        user_id=current_user.id,
+        tag_id=budget_data.tag_id,
+        month=budget_data.month,
+        limit_amount=budget_data.limit_amount,
+        currency=budget_data.currency
+    )
+
+    db.add(budget)
+    db.commit()
+    db.refresh(budget)
+
+    return budget
+
+
+@router.put("/{budget_id}", response_model=BudgetResponse)
+def update_budget(
+    budget_id: int,
+    budget_data: BudgetUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Modifie un budget existant.
+
+    Seul le montant limite peut être modifié.
+
+    Returns:
+        Le budget modifié
+    """
+    budget = db.query(Budget).filter(
+        Budget.id == budget_id,
+        Budget.user_id == current_user.id
+    ).first()
+
+    if not budget:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Budget non trouvé"
+        )
+
+    # Mettre à jour les champs fournis
+    update_data = budget_data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(budget, field, value)
+
+    db.commit()
+    db.refresh(budget)
+
+    return budget
+
+
+@router.delete("/{budget_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_budget(
+    budget_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Supprime un budget.
+    """
+    budget = db.query(Budget).filter(
+        Budget.id == budget_id,
+        Budget.user_id == current_user.id
+    ).first()
+
+    if not budget:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Budget non trouvé"
+        )
+
+    db.delete(budget)
+    db.commit()
+
+    return None

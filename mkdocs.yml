@@ -1,0 +1,80 @@
+# Configuration MkDocs pour Finance Manager
+# Documentation générée avec mkdocs-material
+
+site_name: Finance Manager - Documentation
+site_description: Documentation technique du gestionnaire de finances personnel
+site_author: Finance Manager Team
+
+# Theme Material
+theme:
+  name: material
+  language: fr
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Mode sombre
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Mode clair
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - content.code.copy
+  icon:
+    repo: fontawesome/brands/github
+
+# Extensions Markdown
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
+  - tables
+  - toc:
+      permalink: true
+
+# Dossier source de la documentation
+docs_dir: docs_src
+
+# Dossier de sortie
+site_dir: docs
+
+# Plugins
+plugins:
+  - search
+
+# Navigation
+nav:
+  - Accueil: index.md
+  - Guide de démarrage:
+    - Installation: getting-started/installation.md
+    - Configuration: getting-started/configuration.md
+  - Architecture:
+    - Vue d'ensemble: architecture/overview.md
+    - Backend: architecture/backend.md
+    - Frontend: architecture/frontend.md
+  - API Reference:
+    - Authentification: api/auth.md
+    - Documents: api/documents.md
+    - Tags: api/tags.md
+    - Budgets: api/budgets.md
+    - Statistiques: api/stats.md
+    - Export: api/export.md
+    - Synchronisation: api/sync.md
+  - Services:
+    - OCR: services/ocr.md
+    - IA: services/ai.md
+    - Export: services/export.md
+    - NAS Sync: services/nas-sync.md
