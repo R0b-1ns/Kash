@@ -1,23 +1,22 @@
 """
 Service de synchronisation vers le NAS.
 
-Synchronise les fichiers uploadés vers un NAS distant via rsync.
-La synchronisation peut être :
-- Manuelle : déclenchée par l'utilisateur
-- Automatique : via un job planifié (cron)
+Synchronise les fichiers uploadés vers un NAS via un montage SMB/CIFS.
+Le partage NAS doit être monté localement (dans le container Docker).
 
 Configuration requise :
-- NAS_HOST : Adresse IP ou hostname du NAS
-- NAS_USER : Utilisateur SSH sur le NAS
-- NAS_PATH : Chemin de destination sur le NAS
-- Clé SSH configurée pour l'authentification sans mot de passe
+- NAS_MOUNT_PATH : Chemin local du montage SMB (ex: /app/nas_backup)
+
+Structure de destination :
+    {nas_mount_path}/{année}/{mois}/{type}/{fichier}
+    Exemple: /app/nas_backup/2024/01/factures/abc123.pdf
 """
 
 import os
-import subprocess
+import shutil
 import logging
 from datetime import datetime
-from typing import Optional, List, Tuple
+from typing import Optional, Tuple
 
 from sqlalchemy.orm import Session
 
@@ -41,8 +40,8 @@ class NASSyncService:
     """
     Service de synchronisation des fichiers vers le NAS.
 
-    Utilise rsync pour transférer les fichiers de manière incrémentale.
-    Seuls les fichiers non synchronisés sont transférés.
+    Utilise une simple copie de fichiers vers un partage SMB monté.
+    Les fichiers sont organisés par année/mois/type.
     """
 
     def __init__(self, db: Session):
@@ -53,9 +52,7 @@ class NASSyncService:
             db: Session de base de données pour mettre à jour le statut
         """
         self.db = db
-        self.nas_host = settings.nas_host
-        self.nas_user = settings.nas_user
-        self.nas_path = settings.nas_path
+        self.nas_mount_path = settings.nas_mount_path
         self.upload_dir = settings.upload_dir
 
     def is_configured(self) -> bool:
@@ -63,9 +60,11 @@ class NASSyncService:
         Vérifie si la synchronisation NAS est configurée.
 
         Returns:
-            True si tous les paramètres sont définis
+            True si le chemin de montage est défini et accessible
         """
-        return bool(self.nas_host and self.nas_user and self.nas_path)
+        if not self.nas_mount_path:
+            return False
+        return os.path.isdir(self.nas_mount_path)
 
     def get_config_status(self) -> dict:
         """
@@ -74,55 +73,95 @@ class NASSyncService:
         Returns:
             Dictionnaire avec le statut de chaque paramètre
         """
+        path_exists = os.path.isdir(self.nas_mount_path) if self.nas_mount_path else False
+        path_writable = os.access(self.nas_mount_path, os.W_OK) if path_exists else False
+
         return {
             "configured": self.is_configured(),
-            "nas_host": bool(self.nas_host),
-            "nas_user": bool(self.nas_user),
-            "nas_path": bool(self.nas_path),
-            "host": self.nas_host if self.nas_host else None,
-            "path": self.nas_path if self.nas_path else None,
+            "nas_host": bool(self.nas_mount_path),  # Compat avec l'ancien format
+            "nas_user": True,  # Plus besoin avec SMB
+            "nas_path": bool(self.nas_mount_path),
+            "host": "SMB Mount",
+            "path": self.nas_mount_path if self.nas_mount_path else None,
+            "path_exists": path_exists,
+            "path_writable": path_writable,
         }
 
     def test_connection(self) -> Tuple[bool, str]:
         """
-        Teste la connexion SSH vers le NAS.
+        Teste l'accès au montage NAS.
 
         Returns:
             Tuple (succès, message)
         """
-        if not self.is_configured():
-            return False, "Synchronisation NAS non configurée"
+        if not self.nas_mount_path:
+            return False, "NAS_MOUNT_PATH non configuré"
 
+        if not os.path.isdir(self.nas_mount_path):
+            return False, f"Le chemin {self.nas_mount_path} n'existe pas ou n'est pas monté"
+
+        if not os.access(self.nas_mount_path, os.W_OK):
+            return False, f"Le chemin {self.nas_mount_path} n'est pas accessible en écriture"
+
+        # Test d'écriture
         try:
-            # Test de connexion SSH simple
-            result = subprocess.run(
-                [
-                    "ssh",
-                    "-o", "BatchMode=yes",
-                    "-o", "ConnectTimeout=10",
-                    f"{self.nas_user}@{self.nas_host}",
-                    "echo", "OK"
-                ],
-                capture_output=True,
-                text=True,
-                timeout=15
-            )
-
-            if result.returncode == 0:
-                return True, "Connexion réussie"
-            else:
-                return False, f"Échec de connexion : {result.stderr}"
-
-        except subprocess.TimeoutExpired:
-            return False, "Timeout de connexion (15s)"
-        except FileNotFoundError:
-            return False, "SSH non disponible sur le système"
+            test_file = os.path.join(self.nas_mount_path, ".sync_test")
+            with open(test_file, "w") as f:
+                f.write("test")
+            os.remove(test_file)
+            return True, "Montage NAS accessible en lecture/écriture"
         except Exception as e:
-            return False, f"Erreur : {str(e)}"
+            return False, f"Erreur d'écriture : {str(e)}"
+
+    def _get_doc_type_folder(self, doc_type: Optional[str]) -> str:
+        """
+        Retourne le nom du dossier pour un type de document.
+
+        Args:
+            doc_type: Type de document (receipt, invoice, payslip, other)
+
+        Returns:
+            Nom du dossier en français
+        """
+        type_mapping = {
+            "receipt": "tickets",
+            "invoice": "factures",
+            "payslip": "salaires",
+            "other": "autres",
+        }
+        return type_mapping.get(doc_type, "autres")
+
+    def _get_destination_path(self, document: Document) -> str:
+        """
+        Construit le chemin de destination organisé par année/mois/type.
+
+        Structure: {nas_mount_path}/{année}/{mois}/{type}/{fichier}
+        Exemple: /app/nas_backup/2024/01/factures/abc123.pdf
+
+        Args:
+            document: Le document à synchroniser
+
+        Returns:
+            Chemin complet de destination
+        """
+        # Utiliser la date du document, ou created_at comme fallback
+        doc_date = document.date
+        if doc_date is None:
+            doc_date = document.created_at.date() if document.created_at else datetime.utcnow().date()
+
+        year = str(doc_date.year)
+        month = str(doc_date.month).zfill(2)  # 01, 02, ..., 12
+        doc_type_folder = self._get_doc_type_folder(document.doc_type)
+        filename = os.path.basename(document.file_path)
+
+        return os.path.join(self.nas_mount_path, year, month, doc_type_folder, filename)
 
     def sync_file(self, document: Document) -> Tuple[bool, str]:
         """
         Synchronise un fichier spécifique vers le NAS.
+
+        Les fichiers sont organisés par année/mois/type :
+        {nas_mount_path}/{année}/{mois}/{type}/{fichier}
 
         Args:
             document: Le document à synchroniser
@@ -133,44 +172,37 @@ class NASSyncService:
         if not self.is_configured():
             return False, "Synchronisation NAS non configurée"
 
-        if not os.path.exists(document.file_path):
+        if not document.file_path or not os.path.exists(document.file_path):
             return False, f"Fichier source introuvable : {document.file_path}"
 
         try:
             # Construire le chemin de destination
-            # On conserve le nom unique généré pour éviter les conflits
-            filename = os.path.basename(document.file_path)
-            dest = f"{self.nas_user}@{self.nas_host}:{self.nas_path}/{filename}"
+            dest_path = self._get_destination_path(document)
+            dest_dir = os.path.dirname(dest_path)
 
-            # Exécuter rsync
-            result = subprocess.run(
-                [
-                    "rsync",
-                    "-avz",                    # Archive, verbose, compression
-                    "--progress",              # Afficher la progression
-                    "-e", "ssh -o BatchMode=yes -o ConnectTimeout=30",
-                    document.file_path,
-                    dest
-                ],
-                capture_output=True,
-                text=True,
-                timeout=300  # 5 minutes max par fichier
-            )
+            # Créer les répertoires si nécessaire
+            os.makedirs(dest_dir, exist_ok=True)
 
-            if result.returncode == 0:
-                # Mettre à jour le statut en BDD
-                document.synced_to_nas = True
-                document.synced_at = datetime.utcnow()
-                self.db.commit()
+            # Copier le fichier
+            shutil.copy2(document.file_path, dest_path)
 
-                logger.info(f"Document {document.id} synchronisé vers {dest}")
-                return True, f"Synchronisé vers {self.nas_host}"
-            else:
-                logger.error(f"Échec rsync pour document {document.id}: {result.stderr}")
-                return False, f"Erreur rsync : {result.stderr}"
+            # Vérifier que la copie a réussi
+            if not os.path.exists(dest_path):
+                return False, "La copie a échoué (fichier non trouvé après copie)"
 
-        except subprocess.TimeoutExpired:
-            return False, "Timeout de synchronisation (5 min)"
+            # Mettre à jour le statut en BDD
+            document.synced_to_nas = True
+            document.synced_at = datetime.utcnow()
+            self.db.commit()
+
+            logger.info(f"Document {document.id} synchronisé vers {dest_path}")
+            return True, f"Synchronisé vers {dest_path}"
+
+        except PermissionError:
+            return False, "Permission refusée sur le NAS"
+        except OSError as e:
+            logger.error(f"Erreur OS sync document {document.id}: {str(e)}")
+            return False, f"Erreur système : {str(e)}"
         except Exception as e:
             logger.error(f"Erreur sync document {document.id}: {str(e)}")
             return False, f"Erreur : {str(e)}"
@@ -199,10 +231,11 @@ class NASSyncService:
                 "errors": ["Synchronisation NAS non configurée"]
             }
 
-        # Récupérer les documents non synchronisés
+        # Récupérer les documents non synchronisés (avec un fichier)
         pending_docs = self.db.query(Document).filter(
             Document.user_id == user_id,
-            Document.synced_to_nas == False
+            Document.synced_to_nas == False,
+            Document.file_path.isnot(None)
         ).all()
 
         results = {
@@ -233,7 +266,8 @@ class NASSyncService:
             Dictionnaire avec les statistiques
         """
         total = self.db.query(Document).filter(
-            Document.user_id == user_id
+            Document.user_id == user_id,
+            Document.file_path.isnot(None)
         ).count()
 
         synced = self.db.query(Document).filter(

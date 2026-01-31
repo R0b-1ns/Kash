@@ -18,9 +18,11 @@ import {
   File,
   Image,
   FileSpreadsheet,
+  Pencil,
+  Save,
 } from 'lucide-react';
 import { documents as documentsApi, tags as tagsApi } from '../services/api';
-import { Document, Tag } from '../types';
+import { DocumentListItem, Tag } from '../types';
 import clsx from 'clsx';
 
 // ============================================
@@ -29,7 +31,7 @@ import clsx from 'clsx';
 
 const DocumentsPage: React.FC = () => {
   // État des documents
-  const [documentsList, setDocumentsList] = useState<Document[]>([]);
+  const [documentsList, setDocumentsList] = useState<DocumentListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,6 +45,19 @@ const DocumentsPage: React.FC = () => {
 
   // Document en cours de suppression
   const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  // État du modal d'édition
+  const [editingDoc, setEditingDoc] = useState<DocumentListItem | null>(null);
+  const [editForm, setEditForm] = useState({
+    merchant: '',
+    date: '',
+    total_amount: '',
+    currency: 'EUR',
+    doc_type: 'receipt' as 'receipt' | 'invoice' | 'payslip' | 'other',
+    is_income: false,
+    tag_ids: [] as number[],
+  });
+  const [isSaving, setIsSaving] = useState(false);
 
   /**
    * Charge la liste des documents
@@ -109,8 +124,7 @@ const DocumentsPage: React.FC = () => {
 
       if (successCount > 0) {
         setUploadSuccess(
-          `${successCount} fichier(s) uploadé(s) avec succès${
-            errorCount > 0 ? ` (${errorCount} erreur(s))` : ''
+          `${successCount} fichier(s) uploadé(s) avec succès${errorCount > 0 ? ` (${errorCount} erreur(s))` : ''
           }`
         );
         // Recharge la liste
@@ -140,6 +154,105 @@ const DocumentsPage: React.FC = () => {
   });
 
   /**
+   * Ouvre le modal d'édition pour un document
+   */
+  const handleEdit = (doc: DocumentListItem) => {
+    setEditingDoc(doc);
+    setEditForm({
+      merchant: doc.merchant || '',
+      date: doc.date || '',
+      total_amount: doc.total_amount?.toString() || '',
+      currency: doc.currency || 'EUR',
+      doc_type: (doc.doc_type as 'receipt' | 'invoice' | 'payslip' | 'other') || 'receipt',
+      is_income: doc.is_income || false,
+      tag_ids: doc.tags?.map((t) => t.id) || [],
+    });
+  };
+
+  /**
+   * Ferme le modal d'édition
+   */
+  const handleCloseEdit = () => {
+    setEditingDoc(null);
+    setEditForm({
+      merchant: '',
+      date: '',
+      total_amount: '',
+      currency: 'EUR',
+      doc_type: 'receipt',
+      is_income: false,
+      tag_ids: [],
+    });
+  };
+
+  /**
+   * Sauvegarde les modifications du document
+   */
+  const handleSaveEdit = async () => {
+    if (!editingDoc) return;
+
+    try {
+      setIsSaving(true);
+      setError(null);
+
+      // Construire les données de mise à jour (exclure les valeurs vides)
+      const updateData: Record<string, any> = {
+        is_income: editForm.is_income,
+        tag_ids: editForm.tag_ids,
+      };
+
+      // Ajouter les champs optionnels seulement s'ils ont une valeur
+      if (editForm.merchant.trim()) {
+        updateData.merchant = editForm.merchant.trim();
+      }
+      if (editForm.date) {
+        updateData.date = editForm.date; // Format YYYY-MM-DD du input date
+      }
+      if (editForm.total_amount) {
+        updateData.total_amount = parseFloat(editForm.total_amount);
+      }
+      if (editForm.currency) {
+        updateData.currency = editForm.currency;
+      }
+      if (editForm.doc_type) {
+        updateData.doc_type = editForm.doc_type;
+      }
+
+      await documentsApi.update(editingDoc.id, updateData);
+
+      // Recharger les documents
+      await loadDocuments();
+      handleCloseEdit();
+    } catch (err: any) {
+      // Gérer les erreurs Pydantic (qui sont des tableaux d'objets)
+      const detail = err.response?.data?.detail;
+      if (Array.isArray(detail)) {
+        // Erreurs de validation Pydantic
+        const messages = detail.map((e: any) => e.msg || JSON.stringify(e)).join(', ');
+        setError(`Erreur de validation: ${messages}`);
+      } else if (typeof detail === 'string') {
+        setError(detail);
+      } else {
+        setError('Erreur lors de la sauvegarde');
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  /**
+   * Toggle un tag dans le formulaire d'édition
+   */
+  const toggleTag = (tagId: number) => {
+    setEditForm((prev) => ({
+      ...prev,
+      tag_ids: prev.tag_ids.includes(tagId)
+        ? prev.tag_ids.filter((id) => id !== tagId)
+        : [...prev.tag_ids, tagId],
+    }));
+  };
+
+  /**
    * Supprime un document
    */
   const handleDelete = async (id: number) => {
@@ -162,7 +275,8 @@ const DocumentsPage: React.FC = () => {
   /**
    * Retourne l'icône appropriée selon le type de fichier
    */
-  const getFileIcon = (fileType: string) => {
+  const getFileIcon = (fileType: string | undefined | null) => {
+    if (!fileType) return FileText;
     if (fileType.includes('pdf')) return FileText;
     if (fileType.includes('image')) return Image;
     if (fileType.includes('sheet') || fileType.includes('excel') || fileType.includes('csv'))
@@ -182,13 +296,13 @@ const DocumentsPage: React.FC = () => {
   };
 
   /**
-   * Formate le montant
+   * Formate le montant avec la devise
    */
-  const formatAmount = (amount: number | undefined): string => {
+  const formatAmount = (amount: number | undefined | null, currency: string = 'EUR'): string => {
     if (amount === undefined || amount === null) return '--';
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
-      currency: 'EUR',
+      currency: currency,
     }).format(amount);
   };
 
@@ -339,10 +453,10 @@ const DocumentsPage: React.FC = () => {
                       </div>
                       <div className="ml-3 min-w-0">
                         <p className="text-sm font-medium text-slate-800 truncate">
-                          {doc.original_filename}
+                          {doc.original_name}
                         </p>
                         <p className="text-xs text-slate-500">
-                          {formatFileSize(doc.file_size)}
+                          {doc.doc_type || 'Document'}
                         </p>
                       </div>
                     </div>
@@ -350,13 +464,13 @@ const DocumentsPage: React.FC = () => {
                     {/* Date */}
                     <div className="col-span-2 mt-2 sm:mt-0">
                       <p className="text-sm text-slate-600">
-                        {doc.document_date
-                          ? format(new Date(doc.document_date), 'dd MMM yyyy', {
-                              locale: fr,
-                            })
-                          : format(new Date(doc.upload_date), 'dd MMM yyyy', {
-                              locale: fr,
-                            })}
+                        {doc.date
+                          ? format(new Date(doc.date), 'dd MMM yyyy', {
+                            locale: fr,
+                          })
+                          : format(new Date(doc.created_at), 'dd MMM yyyy', {
+                            locale: fr,
+                          })}
                       </p>
                       <p className="text-xs text-slate-400 sm:hidden">Date</p>
                     </div>
@@ -366,10 +480,10 @@ const DocumentsPage: React.FC = () => {
                       <p
                         className={clsx(
                           'text-sm font-medium',
-                          doc.amount ? 'text-slate-800' : 'text-slate-400'
+                          doc.total_amount ? 'text-slate-800' : 'text-slate-400'
                         )}
                       >
-                        {formatAmount(doc.amount)}
+                        {formatAmount(doc.total_amount, doc.currency)}
                       </p>
                       <p className="text-xs text-slate-400 sm:hidden">Montant</p>
                     </div>
@@ -399,7 +513,14 @@ const DocumentsPage: React.FC = () => {
                     </div>
 
                     {/* Actions */}
-                    <div className="col-span-1 mt-3 sm:mt-0 flex justify-end">
+                    <div className="col-span-1 mt-3 sm:mt-0 flex justify-end gap-1">
+                      <button
+                        onClick={() => handleEdit(doc)}
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Modifier"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => handleDelete(doc.id)}
                         disabled={isDeleting}
@@ -417,6 +538,227 @@ const DocumentsPage: React.FC = () => {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* ============================================ */}
+      {/* Modal d'édition */}
+      {/* ============================================ */}
+      {editingDoc && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            {/* Header du modal */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+              <h2 className="text-lg font-semibold text-slate-800">
+                Modifier le document
+              </h2>
+              <button
+                onClick={handleCloseEdit}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Contenu du formulaire */}
+            <div className="px-6 py-4 space-y-4">
+              {/* Nom du fichier (lecture seule) */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Fichier
+                </label>
+                <p className="text-sm text-slate-500 bg-slate-50 px-3 py-2 rounded-lg">
+                  {editingDoc.original_name}
+                </p>
+              </div>
+
+              {/* Marchand */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Marchand
+                </label>
+                <input
+                  type="text"
+                  value={editForm.merchant}
+                  onChange={(e) =>
+                    setEditForm((prev) => ({ ...prev, merchant: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Nom du marchand"
+                />
+              </div>
+
+              {/* Date */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={editForm.date}
+                  onChange={(e) =>
+                    setEditForm((prev) => ({ ...prev, date: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Montant et Devise */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Montant total
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editForm.total_amount}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({ ...prev, total_amount: e.target.value }))
+                    }
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Devise
+                  </label>
+                  <select
+                    value={editForm.currency}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({ ...prev, currency: e.target.value }))
+                    }
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                    <option value="GBP">GBP</option>
+                    <option value="CHF">CHF</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Type de document */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Type de document
+                </label>
+                <select
+                  value={editForm.doc_type}
+                  onChange={(e) =>
+                    setEditForm((prev) => ({
+                      ...prev,
+                      doc_type: e.target.value as 'receipt' | 'invoice' | 'payslip' | 'other',
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="receipt">Ticket de caisse</option>
+                  <option value="invoice">Facture</option>
+                  <option value="payslip">Fiche de paie</option>
+                  <option value="other">Autre</option>
+                </select>
+              </div>
+
+              {/* Revenu ou Dépense */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Type de transaction
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="is_income"
+                      checked={!editForm.is_income}
+                      onChange={() =>
+                        setEditForm((prev) => ({ ...prev, is_income: false }))
+                      }
+                      className="w-4 h-4 text-blue-600 border-slate-300 focus:ring-blue-500"
+                    />
+                    <span className="ml-2 text-sm text-slate-700">Dépense</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="is_income"
+                      checked={editForm.is_income}
+                      onChange={() =>
+                        setEditForm((prev) => ({ ...prev, is_income: true }))
+                      }
+                      className="w-4 h-4 text-blue-600 border-slate-300 focus:ring-blue-500"
+                    />
+                    <span className="ml-2 text-sm text-slate-700">Revenu</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Tags */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Tags
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {tagsList.map((tag) => (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => toggleTag(tag.id)}
+                      className={clsx(
+                        'px-3 py-1 rounded-full text-sm font-medium transition-all',
+                        editForm.tag_ids.includes(tag.id)
+                          ? 'ring-2 ring-offset-1'
+                          : 'opacity-60 hover:opacity-100'
+                      )}
+                      style={{
+                        backgroundColor: `${tag.color}20`,
+                        color: tag.color,
+                        ...(editForm.tag_ids.includes(tag.id)
+                          ? { ringColor: tag.color }
+                          : {}),
+                      }}
+                    >
+                      {tag.name}
+                    </button>
+                  ))}
+                  {tagsList.length === 0 && (
+                    <p className="text-sm text-slate-400">
+                      Aucun tag disponible. Créez des tags dans la page Tags.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer du modal */}
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl">
+              <button
+                onClick={handleCloseEdit}
+                disabled={isSaving}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                disabled={isSaving}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Sauvegarde...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Sauvegarder
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -35,20 +35,24 @@ interface TopItemsProps {
 // Helpers
 // ============================================
 
-const formatCurrency = (value: number): string => {
+const formatCurrency = (value: number | string): string => {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num)) return '0,00 €';
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'EUR',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(value);
+  }).format(num);
 };
 
-const formatQuantity = (qty: number): string => {
-  if (qty === Math.floor(qty)) {
-    return qty.toString();
+const formatQuantity = (qty: number | string): string => {
+  const num = typeof qty === 'string' ? parseFloat(qty) : qty;
+  if (isNaN(num)) return '0';
+  if (num === Math.floor(num)) {
+    return num.toString();
   }
-  return qty.toFixed(2);
+  return num.toFixed(2);
 };
 
 // ============================================
@@ -97,7 +101,9 @@ export default function TopItems({
 
   // Limiter et calculer le max pour les barres
   const displayedItems = items.slice(0, limit);
-  const maxSpent = Math.max(...displayedItems.map((i) => i.total_spent));
+  const maxSpent = Math.max(...displayedItems.map((i) =>
+    typeof i.total_spent === 'string' ? parseFloat(i.total_spent) : i.total_spent
+  ));
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
@@ -107,7 +113,8 @@ export default function TopItems({
 
       <div className="space-y-3">
         {displayedItems.map((item, index) => {
-          const barWidth = (item.total_spent / maxSpent) * 100;
+          const spent = typeof item.total_spent === 'string' ? parseFloat(item.total_spent) : item.total_spent;
+          const barWidth = (spent / maxSpent) * 100;
 
           return (
             <div key={index} className="relative">

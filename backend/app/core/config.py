@@ -23,7 +23,9 @@ class Settings(BaseSettings):
     upload_dir: str = "/app/uploads"
     max_upload_size: int = 50 * 1024 * 1024  # 50MB
 
-    # NAS Sync
+    # NAS Sync (SMB mount)
+    nas_mount_path: str = ""  # Chemin local du montage SMB (ex: /app/nas_backup)
+    # Legacy SSH (deprecated)
     nas_host: str = ""
     nas_user: str = ""
     nas_path: str = ""

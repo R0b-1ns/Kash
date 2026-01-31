@@ -172,8 +172,27 @@ async def upload_document(
         logger.info(f"Document {document.id} traité avec succès")
     except ProcessingError as e:
         logger.warning(f"Erreur lors du traitement du document {document.id}: {e.message}")
+        # Rollback: suppression du document et du fichier
+        logger.info(f"Rollback: suppression du document {document.id} après échec {e.step}")
+        db.delete(document)
+        db.commit()
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Échec de l'extraction ({e.step}): {e.message}"
+        )
     except Exception as e:
         logger.error(f"Erreur inattendue lors du traitement du document {document.id}: {str(e)}")
+        # En cas d'erreur inattendue, on supprime aussi
+        db.delete(document)
+        db.commit()
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur lors du traitement: {str(e)}"
+        )
 
     # Recharger le document avec ses relations
     db.refresh(document)

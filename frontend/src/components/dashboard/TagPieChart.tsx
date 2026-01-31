@@ -45,13 +45,18 @@ interface TagPieChartProps {
 // Helpers
 // ============================================
 
-const formatCurrency = (value: number): string => {
+const toNumber = (val: number | string): number => {
+  const num = typeof val === 'string' ? parseFloat(val) : val;
+  return isNaN(num) ? 0 : num;
+};
+
+const formatCurrency = (value: number | string): string => {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'EUR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(value);
+  }).format(toNumber(value));
 };
 
 // ============================================
@@ -72,7 +77,7 @@ const CustomTooltip = ({ active, payload }: any) => {
         <span className="font-medium text-slate-700">{data.tag_name}</span>
       </div>
       <p className="text-sm text-slate-600">
-        {formatCurrency(data.total_amount)} ({data.percentage.toFixed(1)}%)
+        {formatCurrency(data.total_amount)} ({toNumber(data.percentage).toFixed(1)}%)
       </p>
     </div>
   );
@@ -118,7 +123,7 @@ export default function TagPieChart({ data, isLoading = false }: TagPieChartProp
   }
 
   // Calculer le total
-  const total = data.reduce((sum, item) => sum + item.total_amount, 0);
+  const total = data.reduce((sum, item) => sum + toNumber(item.total_amount), 0);
 
   // Message si pas de données
   if (data.length === 0) {
@@ -138,7 +143,7 @@ export default function TagPieChart({ data, isLoading = false }: TagPieChartProp
   const chartData = data.map((item) => ({
     ...item,
     name: item.tag_name,
-    value: item.total_amount,
+    value: toNumber(item.total_amount),
   }));
 
   return (

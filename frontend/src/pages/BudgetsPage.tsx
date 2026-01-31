@@ -156,7 +156,7 @@ function BudgetCard({ budget, onDelete, onEdit }: BudgetCardProps) {
               onChange={(e) => setEditValue(e.target.value)}
               className="w-24 px-2 py-1 text-right border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               min="1"
-              step="10"
+              step="1"
               autoFocus
             />
             <span className="text-slate-400">€</span>
@@ -423,9 +423,8 @@ export default function BudgetsPage() {
                 onChange={(e) => setNewLimit(e.target.value)}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="400"
-                min="1"
-                step="10"
-                required
+                              min="1"
+                              step="1"                required
               />
             </div>
 

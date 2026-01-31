@@ -18,7 +18,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, cast, Date
 
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
@@ -31,11 +31,20 @@ from app.schemas.converters import budget_to_response
 router = APIRouter(prefix="/budgets", tags=["Budgets"])
 
 
+def get_effective_date():
+    """
+    Retourne une expression SQL pour la date effective du document.
+    Utilise Document.date si disponible, sinon Document.created_at.
+    """
+    return func.coalesce(Document.date, cast(Document.created_at, Date))
+
+
 def calculate_spending_for_tag(db: Session, user_id: int, tag_id: int, month: str) -> Decimal:
     """
     Calcule le total des dépenses pour un tag sur un mois donné.
     """
     year, month_num = map(int, month.split("-"))
+    effective_date = get_effective_date()
 
     result = db.query(func.coalesce(func.sum(Document.total_amount), 0)).join(
         DocumentTag
@@ -43,8 +52,8 @@ def calculate_spending_for_tag(db: Session, user_id: int, tag_id: int, month: st
         Document.user_id == user_id,
         DocumentTag.tag_id == tag_id,
         Document.is_income == False,
-        func.extract("year", Document.date) == year,
-        func.extract("month", Document.date) == month_num
+        func.extract("year", effective_date) == year,
+        func.extract("month", effective_date) == month_num
     ).scalar()
 
     return Decimal(str(result))
@@ -100,10 +109,10 @@ def get_current_budgets(
             "tag_name": tag.name,
             "tag_color": tag.color,
             "month": budget.month,
-            "limit_amount": budget.limit_amount,
+            "limit_amount": float(budget.limit_amount),
             "currency": budget.currency,
-            "spent_amount": spent,
-            "remaining_amount": remaining,
+            "spent_amount": float(spent),
+            "remaining_amount": float(remaining),
             "percentage_used": round(percentage, 2)
         })
 

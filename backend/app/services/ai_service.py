@@ -62,6 +62,7 @@ class ExtractionResult:
         total_amount: Montant total
         currency: Code devise (EUR, USD, etc.)
         is_income: True si c'est un revenu, False si c'est une dépense
+        suggested_tags: Liste des noms de tags suggérés par l'IA
         success: Indique si l'extraction a réussi
         error: Message d'erreur en cas d'échec
         raw_response: Réponse brute du LLM (pour debug)
@@ -75,26 +76,31 @@ class ExtractionResult:
     total_amount: Optional[float] = None
     currency: str = "EUR"
     is_income: bool = False
+    suggested_tags: List[str] = field(default_factory=list)
     success: bool = False
     error: Optional[str] = None
     raw_response: Optional[str] = None
 
 
 # Prompt système pour l'extraction de données
-EXTRACTION_PROMPT = """Tu es un assistant spécialisé dans l'extraction de données de factures et tickets de caisse.
+EXTRACTION_PROMPT_BASE = """Tu es un assistant spécialisé dans l'extraction de données de factures et tickets de caisse.
 
-Analyse le texte suivant extrait par OCR d'un document financier et retourne UNIQUEMENT un objet JSON valide avec les informations extraites.
+Analyse le texte suivant extrait par OCR d'un document financier et retourne UNIQUEMENT un objet JSON valide.
 
-IMPORTANT:
+RÈGLES STRICTES:
 - Retourne UNIQUEMENT le JSON, sans texte avant ou après
+- PAS de commentaires (// ou /* */) dans le JSON
+- PAS d'explications, PAS de texte additionnel
 - Si une information n'est pas trouvée, utilise null
-- Pour les montants, utilise des nombres décimaux (ex: 12.50)
+- Pour les montants, utilise le montant TTC (total avec taxes)
 - Pour les quantités non spécifiées, utilise 1
 - La devise par défaut est EUR si non spécifiée
 - Un ticket de caisse ou une facture est généralement une dépense (is_income: false)
 - Une fiche de paie est un revenu (is_income: true)
+- Inclus TOUS les articles trouvés dans le document
+- Pour suggested_tags, choisis parmi les tags disponibles ceux qui correspondent le mieux au document
 
-Format JSON attendu:
+Format JSON attendu (SANS commentaires):
 {
     "doc_type": "receipt|invoice|payslip|other",
     "date": "YYYY-MM-DD",
@@ -111,11 +117,25 @@ Format JSON attendu:
     ],
     "total_amount": 0.00,
     "currency": "EUR",
-    "is_income": false
+    "is_income": false,
+    "suggested_tags": ["tag1", "tag2"]
 }
-
-Texte OCR à analyser:
 """
+
+
+def build_extraction_prompt(ocr_text: str, available_tags: List[str] = None) -> str:
+    """
+    Construit le prompt complet avec les tags disponibles.
+    """
+    prompt = EXTRACTION_PROMPT_BASE
+
+    if available_tags and len(available_tags) > 0:
+        prompt += f"\nTags disponibles (choisis parmi ceux-ci uniquement): {', '.join(available_tags)}\n"
+    else:
+        prompt += "\nAucun tag disponible, laisse suggested_tags vide [].\n"
+
+    prompt += f"\nTexte OCR à analyser:\n{ocr_text}"
+    return prompt
 
 
 class AIService:
@@ -171,7 +191,7 @@ class AIService:
             logger.warning(f"Ollama non accessible: {e}")
             return False
 
-    async def extract_data(self, ocr_text: str) -> ExtractionResult:
+    async def extract_data(self, ocr_text: str, available_tags: List[str] = None) -> ExtractionResult:
         """
         Extrait les données structurées du texte OCR.
 
@@ -180,15 +200,16 @@ class AIService:
 
         Args:
             ocr_text: Texte brut extrait par OCR
+            available_tags: Liste des noms de tags disponibles pour suggestion
 
         Returns:
             ExtractionResult contenant les données extraites
 
         Example:
             >>> service = AIService()
-            >>> result = await service.extract_data("CARREFOUR\\n01/01/2024\\nPain 1.20€")
+            >>> result = await service.extract_data("CARREFOUR\\n01/01/2024\\nPain 1.20€", ["Courses", "Restaurant"])
             >>> print(f"Marchand: {result.merchant}")
-            >>> print(f"Total: {result.total_amount}")
+            >>> print(f"Tags suggérés: {result.suggested_tags}")
         """
         if not ocr_text or not ocr_text.strip():
             return ExtractionResult(
@@ -196,8 +217,8 @@ class AIService:
                 error="Texte OCR vide ou invalide"
             )
 
-        # Construire le prompt complet
-        full_prompt = EXTRACTION_PROMPT + ocr_text
+        # Construire le prompt complet avec les tags disponibles
+        full_prompt = build_extraction_prompt(ocr_text, available_tags)
 
         try:
             # Appeler Ollama
@@ -261,7 +282,12 @@ class AIService:
         response.raise_for_status()
 
         data = response.json()
-        return data.get("response", "")
+        raw_response = data.get("response", "")
+
+        # Log de debug pour voir la réponse brute
+        logger.debug(f"Réponse brute Ollama:\n{raw_response}")
+
+        return raw_response
 
     def _parse_response(self, response_text: str) -> ExtractionResult:
         """
@@ -295,6 +321,9 @@ class AIService:
         try:
             data = json.loads(json_str)
         except json.JSONDecodeError as e:
+            logger.error(f"JSON invalide. Erreur: {str(e)}")
+            logger.error(f"JSON extrait:\n{json_str}")
+            logger.error(f"Réponse brute complète:\n{raw_response}")
             return ExtractionResult(
                 success=False,
                 error=f"JSON invalide: {str(e)}",
@@ -330,7 +359,30 @@ class AIService:
                     )
                     result.items.append(item)
 
+        # Extraire les tags suggérés
+        suggested_tags = data.get("suggested_tags", [])
+        if isinstance(suggested_tags, list):
+            result.suggested_tags = [tag for tag in suggested_tags if isinstance(tag, str)]
+
         return result
+
+    def _remove_comments(self, json_str: str) -> str:
+        """
+        Supprime les commentaires JavaScript d'un JSON.
+
+        Args:
+            json_str: JSON potentiellement avec commentaires
+
+        Returns:
+            JSON nettoyé sans commentaires
+        """
+        # Supprimer les commentaires // ... jusqu'à la fin de ligne
+        json_str = re.sub(r'//[^\n]*', '', json_str)
+        # Supprimer les commentaires /* ... */
+        json_str = re.sub(r'/\*.*?\*/', '', json_str, flags=re.DOTALL)
+        # Supprimer les virgules trailing avant ] ou }
+        json_str = re.sub(r',\s*([\]}])', r'\1', json_str)
+        return json_str
 
     def _extract_json(self, text: str) -> Optional[str]:
         """
@@ -340,6 +392,7 @@ class AIService:
         - JSON pur
         - JSON dans un bloc ```json ... ```
         - JSON mélangé avec du texte
+        - JSON avec commentaires JavaScript
 
         Args:
             text: Texte contenant potentiellement du JSON
@@ -350,7 +403,8 @@ class AIService:
         # Cas 1: Bloc de code markdown
         code_block_match = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', text, re.DOTALL)
         if code_block_match:
-            return code_block_match.group(1).strip()
+            json_str = code_block_match.group(1).strip()
+            return self._remove_comments(json_str)
 
         # Cas 2: Trouver les accolades ouvrantes et fermantes
         start_idx = text.find('{')
@@ -372,7 +426,8 @@ class AIService:
         if depth != 0:
             return None
 
-        return text[start_idx:end_idx + 1]
+        json_str = text[start_idx:end_idx + 1]
+        return self._remove_comments(json_str)
 
     def _safe_get(self, data: dict, key: str, expected_type) -> Optional:
         """

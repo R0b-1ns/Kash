@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Numeric, ForeignKey, func, DateTime
+from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 
@@ -16,3 +17,5 @@ class Budget(Base):
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    tag = relationship("Tag")

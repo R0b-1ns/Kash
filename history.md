@@ -366,3 +366,46 @@ NAS_PATH=/volume1/factures
 *   **Frontend Debug:** Ajout d'un `console.log` dans `frontend/src/services/api.ts` pour vérifier la valeur de `API_BASE_URL` utilisée par Axios.
 *   **Frontend Configuration:** Correction de `docker-compose.yml` pour que `VITE_API_URL` du frontend utilise la variable d'environnement du fichier `.env` (``), résolvant le problème de routage.
 *   **Frontend Debug:** Le `console.log` a été retiré de `frontend/src/services/api.ts` après vérification de la configuration.
+*   **Backend:** L'erreur CORS est identifiée comme masquant une erreur 500 due à une syntaxe `func.case` incorrecte dans `api/routes/stats.py`.
+*   **Backend Fix:** Correction de la syntaxe `func.case` en `case` dans `api/routes/stats.py` pour résoudre la `TypeError` de SQLAlchemy et l'erreur 500.
+*   **Backend:** L'erreur CORS sur la création de budget est identifiée comme masquant une erreur 500 due à une `AttributeError: 'Budget' object has no attribute 'tag'`.
+*   **Backend Fix:** Ajout de la `relationship` manquante pour 'tag' dans le modèle SQLAlchemy `Budget` (`models/budget.py`) pour corriger l'`AttributeError`.
+*   **Frontend Fix:** Correction des champs de saisie de limite de budget dans `frontend/src/pages/BudgetsPage.tsx` en changeant l'attribut `step` de `10` à `1` pour permettre des valeurs plus flexibles.
+*   **Backend Bug:** Le résumé des budgets affiche `NaN` car les montants de type `Decimal` sont sérialisés en chaînes de caractères dans la réponse de l'API `/budgets/current`.
+*   **Backend Fix:** Conversion des montants de type `Decimal` en `float` dans la réponse de l'API `/budgets/current` pour corriger le bug d'affichage `NaN` sur le frontend.
+
+## 2026-01-31 - Session 2
+
+### Corrections de bugs
+
+*   **Backend Schemas:** Correction de l'erreur Pydantic `none_required` en renommant les imports `date` → `date_type` et `time` → `time_type` pour éviter les conflits avec les noms de champs, et utilisation de `Union[X, None]` au lieu de `Optional[X]`.
+*   **Frontend DocumentsPage:** Ajout du bouton "Modifier" avec modal d'édition pour corriger manuellement les données extraites (marchand, date, montant, devise, type, tags).
+*   **Frontend TopItems:** Correction de l'erreur `qty.toFixed is not a function` - les valeurs Decimal du backend arrivent comme chaînes, ajout de conversion automatique.
+*   **Frontend TagPieChart:** Même correction pour le graphique de répartition par catégorie (NaN → conversion string→number).
+*   **Backend Stats:** Correction du calcul des revenus dans le dashboard - utilisation de `COALESCE(date, created_at)` pour inclure les documents sans date extraite.
+*   **Backend Budgets:** Même correction pour le calcul des dépenses par tag.
+
+### Nouvelles fonctionnalités
+
+*   **Backend AI Service:** L'IA suggère maintenant des tags parmi les tags existants de l'utilisateur lors de l'extraction.
+*   **Backend Document Processor:** Assignation automatique des tags suggérés par l'IA au document.
+
+### Synchronisation NAS - Refonte complète
+
+*   **Abandon SSH/rsync** au profit d'un **montage SMB/CIFS** plus simple à configurer.
+*   **Nouvelle config:** `NAS_MOUNT_PATH` (chemin dans le container) + `NAS_LOCAL_PATH` (chemin sur le Mac).
+*   **Organisation des fichiers:** Structure `année/mois/type/` sur le NAS (ex: `2024/01/factures/`).
+*   **Types de dossiers:** tickets, factures, salaires, autres.
+
+### Documentation
+
+*   **Création de `AMELIORATIONS.md`** - Liste des améliorations futures avec priorités :
+    1. Visionneuse PDF/images intégrée
+    2. Gestion des articles (modifier/supprimer les items)
+    3. Upload asynchrone avec file d'attente et notifications toast
+    4. Documents récurrents pour les abonnements
+    5. Entrées financières manuelles (sans document)
+    6. Amélioration du dashboard
+    7. Export et rapports PDF
+    8. Recherche avancée
+    9. Notifications et alertes budget

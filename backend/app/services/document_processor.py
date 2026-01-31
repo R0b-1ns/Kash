@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 
 from app.models.document import Document
 from app.models.item import Item
+from app.models.tag import Tag
 from app.services.ocr_service import get_ocr_service, OCRResult
 from app.services.ai_service import get_ai_service, ExtractionResult
 
@@ -103,7 +104,7 @@ class DocumentProcessor:
 
         # 2. Lancer l'OCR
         logger.info(f"OCR du fichier: {document.file_path}")
-        ocr_result = self.ocr_service.extract_text(document.file_path)
+        ocr_result = await self.ocr_service.extract_text(document.file_path)
 
         if not ocr_result.success:
             logger.error(f"Échec OCR: {ocr_result.error}")
@@ -124,20 +125,33 @@ class DocumentProcessor:
 
         logger.info(f"OCR réussi - Confiance: {ocr_result.confidence}%")
 
-        # 3. Extraction IA des données structurées
+        # 3. Récupérer les tags disponibles de l'utilisateur
+        user_tags = db.query(Tag).filter(Tag.user_id == document.user_id).all()
+        available_tag_names = [tag.name for tag in user_tags]
+        logger.info(f"Tags disponibles pour suggestion: {available_tag_names}")
+
+        # 4. Extraction IA des données structurées
         logger.info("Extraction IA des données structurées...")
-        ai_result = await self.ai_service.extract_data(ocr_result.text)
+        ai_result = await self.ai_service.extract_data(ocr_result.text, available_tag_names)
 
         if not ai_result.success:
-            logger.warning(f"Extraction IA partielle ou échouée: {ai_result.error}")
-            # On continue quand même avec les données partielles
+            logger.error(f"Échec extraction IA: {ai_result.error}")
+            raise ProcessingError(
+                ai_result.error or "Erreur IA inconnue",
+                step="ai",
+                recoverable=True
+            )
 
-        # 4. Mettre à jour le document avec les données extraites
+        # 5. Mettre à jour le document avec les données extraites
         self._update_document(document, ai_result)
         db.commit()
 
-        # 5. Créer les items associés
+        # 6. Créer les items associés
         self._create_items(document, ai_result, db)
+        db.commit()
+
+        # 7. Associer les tags suggérés par l'IA
+        self._assign_suggested_tags(document, ai_result, user_tags, db)
         db.commit()
 
         # Rafraîchir pour avoir les relations
@@ -220,6 +234,38 @@ class DocumentProcessor:
             db.add(item)
 
         logger.info(f"Créé {len(ai_result.items)} items pour le document {document.id}")
+
+    def _assign_suggested_tags(self, document: Document, ai_result: ExtractionResult, user_tags: list, db: Session):
+        """
+        Associe les tags suggérés par l'IA au document.
+
+        Args:
+            document: Le document à tagger
+            ai_result: Les données extraites contenant les tags suggérés
+            user_tags: Liste des objets Tag de l'utilisateur
+            db: Session SQLAlchemy
+        """
+        if not ai_result.suggested_tags:
+            logger.debug("Aucun tag suggéré par l'IA")
+            return
+
+        # Créer un mapping nom -> Tag pour recherche rapide (insensible à la casse)
+        tag_map = {tag.name.lower(): tag for tag in user_tags}
+
+        tags_to_add = []
+        for suggested_name in ai_result.suggested_tags:
+            tag = tag_map.get(suggested_name.lower())
+            if tag:
+                tags_to_add.append(tag)
+            else:
+                logger.debug(f"Tag suggéré '{suggested_name}' non trouvé dans les tags utilisateur")
+
+        if tags_to_add:
+            # Ajouter les tags au document (évite les doublons)
+            for tag in tags_to_add:
+                if tag not in document.tags:
+                    document.tags.append(tag)
+            logger.info(f"Associé {len(tags_to_add)} tags au document {document.id}: {[t.name for t in tags_to_add]}")
 
     def _parse_date(self, date_str: str) -> Optional[date]:
         """

@@ -12,16 +12,18 @@ services:
       - DATABASE_URL=postgresql://finance:finance@postgres:5432/finance_db
       - SECRET_KEY=${SECRET_KEY}
       - OLLAMA_HOST=http://ollama:11434
-      - OCR_SERVICE_URL=${OCR_SERVICE_URL} # New OCR service URL
+      - OCR_SERVICE_URL=${OCR_SERVICE_URL}
+      - NAS_MOUNT_PATH=${NAS_MOUNT_PATH:-}  # Chemin du montage SMB dans le container
     volumes:
       - ./backend/app:/app/app
       - ./uploads:/app/uploads
+      - ${NAS_LOCAL_PATH:-./nas_backup}:/app/nas_backup  # Montage NAS (ou dossier local par défaut)
     depends_on:
       postgres:
         condition: service_healthy
       ollama:
-        condition: service_started
-      ocr-service: # Add dependency on OCR service
+        condition: service_healthy
+      ocr-service:
         condition: service_started
     restart: unless-stopped
 
@@ -63,8 +65,18 @@ services:
     container_name: finance-ollama
     ports:
       - "11434:11434"
+    environment:
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-mistral}
     volumes:
       - ollama_data:/root/.ollama
+      - ./ollama/entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/bash", "/entrypoint.sh"]
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 120s
     restart: unless-stopped
     # Pour Mac M1, Ollama utilise automatiquement le GPU via Metal
 

@@ -21,7 +21,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from sqlalchemy import func, extract
+from sqlalchemy import func, extract, case, cast, Date
 
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
@@ -30,6 +30,14 @@ from app.models.item import Item
 from app.models.tag import Tag, DocumentTag
 
 router = APIRouter(prefix="/stats", tags=["Statistiques"])
+
+
+def get_effective_date():
+    """
+    Retourne une expression SQL pour la date effective du document.
+    Utilise Document.date si disponible, sinon Document.created_at.
+    """
+    return func.coalesce(Document.date, cast(Document.created_at, Date))
 
 
 # =============================================================================
@@ -96,11 +104,14 @@ def get_monthly_summary(
 
     year, month_num = map(int, month.split("-"))
 
+    # Date effective (date du document ou date de création)
+    effective_date = get_effective_date()
+
     # Sous-requête pour filtrer les documents du mois
     base_query = db.query(Document).filter(
         Document.user_id == current_user.id,
-        extract("year", Document.date) == year,
-        extract("month", Document.date) == month_num
+        extract("year", effective_date) == year,
+        extract("month", effective_date) == month_num
     )
 
     # Total des dépenses
@@ -147,6 +158,9 @@ def get_spending_by_tag(
 
     year, month_num = map(int, month.split("-"))
 
+    # Date effective (date du document ou date de création)
+    effective_date = get_effective_date()
+
     # Requête: dépenses groupées par tag
     results = db.query(
         Tag.id,
@@ -161,8 +175,8 @@ def get_spending_by_tag(
     ).filter(
         Tag.user_id == current_user.id,
         Document.is_income == False,
-        extract("year", Document.date) == year,
-        extract("month", Document.date) == month_num
+        extract("year", effective_date) == year,
+        extract("month", effective_date) == month_num
     ).group_by(
         Tag.id, Tag.name, Tag.color
     ).order_by(
@@ -202,28 +216,30 @@ def get_monthly_evolution(
     Returns:
         Liste des mois avec dépenses et revenus
     """
+    # Date effective (date du document ou date de création)
+    effective_date = get_effective_date()
+
     # Requête: agrégation par mois
     results = db.query(
-        func.to_char(Document.date, 'YYYY-MM').label("month"),
+        func.to_char(effective_date, 'YYYY-MM').label("month"),
         func.sum(
-            func.case(
+            case(
                 (Document.is_income == False, Document.total_amount),
                 else_=0
             )
         ).label("expenses"),
         func.sum(
-            func.case(
+            case(
                 (Document.is_income == True, Document.total_amount),
                 else_=0
             )
         ).label("income")
     ).filter(
-        Document.user_id == current_user.id,
-        Document.date.isnot(None)
+        Document.user_id == current_user.id
     ).group_by(
-        func.to_char(Document.date, 'YYYY-MM')
+        func.to_char(effective_date, 'YYYY-MM')
     ).order_by(
-        func.to_char(Document.date, 'YYYY-MM').desc()
+        func.to_char(effective_date, 'YYYY-MM').desc()
     ).limit(months).all()
 
     # Inverser pour avoir l'ordre chronologique
@@ -270,9 +286,10 @@ def get_top_items(
     # Filtre par mois si spécifié
     if month:
         year, month_num = map(int, month.split("-"))
+        effective_date = get_effective_date()
         query = query.filter(
-            extract("year", Document.date) == year,
-            extract("month", Document.date) == month_num
+            extract("year", effective_date) == year,
+            extract("month", effective_date) == month_num
         )
 
     results = query.group_by(

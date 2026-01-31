@@ -5,9 +5,9 @@ Seuls les schémas d'entrée sont définis ici.
 Les réponses utilisent document_to_response() qui retourne un dict.
 """
 
-from datetime import date, time
+from datetime import date as date_type, time as time_type
 from decimal import Decimal
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from pydantic import BaseModel, Field
 
@@ -25,8 +25,8 @@ class ItemCreate(BaseModel):
 class DocumentCreate(BaseModel):
     """Schéma pour la création manuelle d'un document."""
     doc_type: Optional[str] = Field(None, description="Type: receipt, invoice, payslip, other")
-    date: Optional[date] = None
-    time: Optional[time] = None
+    date: Union[date_type, None] = None
+    time: Union[time_type, None] = None
     merchant: Optional[str] = Field(None, max_length=255)
     location: Optional[str] = Field(None, max_length=255)
     total_amount: Optional[Decimal] = Field(None, ge=0)
@@ -38,12 +38,12 @@ class DocumentCreate(BaseModel):
 
 class DocumentUpdate(BaseModel):
     """Schéma pour la mise à jour d'un document."""
-    doc_type: Optional[str] = None
-    date: Optional[date] = None
-    time: Optional[time] = None
-    merchant: Optional[str] = Field(None, max_length=255)
-    location: Optional[str] = Field(None, max_length=255)
-    total_amount: Optional[Decimal] = Field(None, ge=0)
-    currency: Optional[str] = Field(None, max_length=3)
-    is_income: Optional[bool] = None
-    tag_ids: Optional[List[int]] = None
+    doc_type: Union[str, None] = None
+    date: Union[date_type, None] = None
+    time: Union[time_type, None] = None
+    merchant: Union[str, None] = Field(None, max_length=255)
+    location: Union[str, None] = Field(None, max_length=255)
+    total_amount: Union[Decimal, None] = Field(None, ge=0)
+    currency: Union[str, None] = Field(None, max_length=3)
+    is_income: Union[bool, None] = None
+    tag_ids: Union[List[int], None] = None
