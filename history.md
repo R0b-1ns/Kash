@@ -360,3 +360,5 @@ NAS_PATH=/volume1/factures
 *   **Environnement:** Ajout de `OCR_SERVICE_URL` au fichier `.env`.
 *   **Database:** Les migrations Alembic ont été appliquées avec succès.
 *   **Backend:** Ajout d'une contrainte de version pour `bcrypt<4.1` dans `requirements.txt` pour corriger une incompatibilité avec `passlib==1.7.4`.
+*   **Backend Debug:** Ajout d'un code de débogage dans `main.py` pour afficher toutes les routes enregistrées au démarrage.
+*   **Backend Debug:** Nettoyage du code de débogage pour l'affichage des routes dans `main.py`.
