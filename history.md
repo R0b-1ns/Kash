@@ -348,3 +348,5 @@ NAS_PATH=/volume1/factures
 *   **Backend:** Commit des mises à jour des dépendances clés (FastAPI, Pydantic, Uvicorn).
 *   **Backend Refactoring:** Adaptation de la route `/documents/{document_id}` (`get_document`) et `/documents` (`list_documents`) pour construire manuellement les réponses `DocumentResponse` et `DocumentListResponse` afin de résoudre la `RecursionError`.
 *   **Backend:** Désactivation des URLs de documentation OpenAPI (docs_url, redoc_url) dans `main.py` pour tester l'hypothèse que la `RecursionError` est déclenchée lors de la génération du schéma OpenAPI.
+*   **Backend:** Désactivation des URLs de documentation OpenAPI (docs_url, redoc_url) dans `main.py` pour tester l'hypothèse que la `RecursionError` est déclenchée lors de la génération du schéma OpenAPI, même après la suppression de tous les `from_attributes`.
+*   **Backend:** Annulation de la désactivation des URLs de documentation OpenAPI dans `main.py`.
