@@ -105,7 +105,7 @@ const RegisterPage: React.FC = () => {
           Créer un compte
         </h2>
         <p className="mt-2 text-center text-sm text-slate-600">
-          Rejoignez Finance Manager pour gérer vos documents
+          Rejoignez Kash pour gérer vos finances
         </p>
       </div>
 

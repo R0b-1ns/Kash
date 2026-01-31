@@ -1,5 +1,5 @@
 /**
- * Application principale Finance Manager
+ * Application principale Kash
  * Configuration du routeur et des providers
  */
 

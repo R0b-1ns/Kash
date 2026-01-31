@@ -101,7 +101,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="flex items-center justify-between h-16 px-6 border-b border-slate-200">
           <Link to="/" className="flex items-center space-x-2">
             <PiggyBank className="w-8 h-8 text-blue-600" />
-            <span className="text-xl font-bold text-slate-800">Finance</span>
+            <span className="text-xl font-bold text-slate-800">Kash</span>
           </Link>
           {/* Bouton fermer sur mobile */}
           <button
@@ -185,7 +185,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Titre de la page */}
             <div className="flex-1 lg:flex-none">
               <h1 className="text-lg sm:text-xl font-semibold text-slate-800 lg:ml-0 ml-4">
-                {navigation.find((item) => isActiveLink(item.href))?.name || 'Finance Manager'}
+                {navigation.find((item) => isActiveLink(item.href))?.name || 'Kash'}
               </h1>
             </div>
 

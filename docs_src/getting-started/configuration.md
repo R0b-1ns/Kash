@@ -38,49 +38,72 @@ OLLAMA_MODEL=mistral
 # Synchronisation NAS (optionnel)
 # ===========================================
 
-# Adresse IP ou hostname du NAS
-NAS_HOST=192.168.1.100
+# Chemin du montage SMB sur le Mac hôte
+NAS_LOCAL_PATH=/Volumes/NAS/finance
 
-# Utilisateur SSH sur le NAS
-NAS_USER=your-nas-user
-
-# Chemin de destination sur le NAS
-NAS_PATH=/volume1/factures
-
-# Intervalle de sync automatique (minutes)
-SYNC_INTERVAL_MINUTES=30
+# Chemin dans le container Docker (monté via volume)
+NAS_MOUNT_PATH=/app/nas_backup
 ```
 
 ## Configuration du NAS
 
 ### Prérequis
 
-1. **SSH activé** sur votre NAS
-2. **Clé SSH** configurée pour l'authentification sans mot de passe
-3. **rsync** installé sur le NAS
+1. **Partage SMB/CIFS** activé sur votre NAS
+2. **Utilisateur dédié** avec droits d'écriture sur le dossier finance
 
-### Configuration SSH
+### Montage SMB sur macOS
 
 ```bash
-# Générer une clé SSH (si pas déjà fait)
-ssh-keygen -t ed25519 -C "finance-manager"
+# Créer le point de montage
+sudo mkdir -p /Volumes/NAS
 
-# Copier la clé sur le NAS
-ssh-copy-id your-user@192.168.1.100
+# Monter le partage SMB
+mount -t smbfs //utilisateur:motdepasse@IP-NAS/partage /Volumes/NAS
 
-# Tester la connexion
-ssh your-user@192.168.1.100 "echo OK"
+# Ou via Finder : Cmd+K → smb://IP-NAS/partage
+```
+
+### Configuration Docker
+
+Le montage SMB doit être accessible par Docker. Dans `docker-compose.yml` :
+
+```yaml
+backend:
+  volumes:
+    - ${NAS_LOCAL_PATH:-./nas_backup}:/app/nas_backup
+  environment:
+    - NAS_MOUNT_PATH=${NAS_MOUNT_PATH:-}
 ```
 
 ### Structure des dossiers NAS
 
-Les fichiers sont synchronisés avec leur nom unique généré :
+Les fichiers sont organisés par **année/mois/type** :
 
 ```
-/volume1/factures/
-├── 2024-01-15_abc123_ticket-supermarche.jpg
-├── 2024-01-20_def456_facture-electricite.pdf
-└── ...
+/Volumes/NAS/finance/
+├── 2024/
+│   ├── 01/
+│   │   ├── factures/
+│   │   │   └── abc123.pdf
+│   │   ├── tickets/
+│   │   │   └── def456.jpg
+│   │   └── salaires/
+│   │       └── ghi789.pdf
+│   └── 02/
+│       └── ...
+├── 2025/
+│   └── ...
+└── 2026/
+    └── ...
+```
+
+### Montage automatique (optionnel)
+
+Pour monter automatiquement au démarrage du Mac, ajoutez dans `/etc/fstab` :
+
+```
+//user:pass@nas-ip/share /Volumes/NAS smbfs 0 0
 ```
 
 ## Configuration des budgets

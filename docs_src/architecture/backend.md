@@ -117,24 +117,39 @@ class Item(Base):
 
 ## Services
 
-### OCRService
+### OCRService (Client HTTP)
 
-Extraction de texte depuis images et PDFs.
+Client HTTP vers le **microservice OCR** séparé (PaddleOCR dans un container dédié).
 
 ```python
 class OCRService:
-    def extract_text(self, file_path: str) -> OCRResult:
+    async def extract_text(self, file_path: str) -> OCRResult:
         """
-        Extrait le texte d'un fichier image ou PDF.
+        Appelle le microservice OCR via HTTP.
+
+        Le microservice est accessible sur http://ocr-service:5001
+        et utilise PaddleOCR pour l'extraction.
 
         Retourne:
             OCRResult avec texte brut et score de confiance
         """
+        response = await self._client.post(
+            f"{self.service_url}/ocr",
+            json={"file_path": file_path}
+        )
+        return OCRResult(**response.json())
 ```
 
 Formats supportés :
 - Images : JPG, JPEG, PNG, WEBP, BMP
 - Documents : PDF (converti en images)
+
+!!! note "Architecture"
+    L'OCR est isolé dans un microservice séparé (`ocr_service/`) pour :
+
+    - Isolation des dépendances lourdes (PaddleOCR, OpenCV)
+    - Scalabilité indépendante
+    - Gestion mémoire séparée
 
 ### AIService
 

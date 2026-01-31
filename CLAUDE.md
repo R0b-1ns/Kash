@@ -1,7 +1,7 @@
-# Instructions pour Claude - Gestionnaire de Finance
+# Instructions pour Claude - Kash
 
 ## Contexte du projet
-Application web personnelle de gestion financière qui :
+**Kash** est une application web personnelle de gestion financière qui :
 - Centralise les factures, tickets de caisse et fiches de paie
 - Extrait automatiquement les données via OCR + IA
 - Génère des dashboards et bilans mensuels

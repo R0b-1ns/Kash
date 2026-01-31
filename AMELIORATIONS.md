@@ -1,6 +1,6 @@
-# Améliorations futures
+# Kash - Améliorations futures
 
-Liste des améliorations à implémenter une fois les bugs corrigés.
+Roadmap des fonctionnalités à implémenter.
 
 ---
 
@@ -200,18 +200,66 @@ Améliorer les options d'export.
 
 ---
 
-## 8. Recherche avancée
+## 8. Recherche et filtres avancés
 
-**Priorité:** Basse
+**Priorité:** Haute
 
 **Description:**
-Ajouter une recherche full-text sur les documents.
+Ajouter une barre de recherche et des filtres avancés sur la page Documents pour retrouver rapidement un document ou une plage de documents.
+
+**Cas d'usage:**
+- Retrouver tous les tickets Carrefour de l'année
+- Chercher une facture par son montant approximatif
+- Filtrer les fiches de paie d'une période donnée
+- Trouver un document dont on se souvient vaguement du contenu
 
 **Fonctionnalités:**
-- Recherche dans le texte OCR
-- Recherche par marchand
-- Recherche par montant (fourchette)
-- Filtres combinés
+
+*Barre de recherche textuelle:*
+- Recherche par marchand/nom
+- Recherche dans le texte OCR brut
+- Recherche dans les noms d'articles
+- Recherche instantanée (debounce 300ms)
+
+*Filtres combinables:*
+- **Type de document** : Ticket, Facture, Fiche de paie, Autre (multi-sélection)
+- **Plage de dates** : Date de début / Date de fin
+- **Plage de montants** : Montant min / Montant max
+- **Tags** : Filtrer par un ou plusieurs tags
+- **Statut** : Revenu / Dépense / Tous
+- **Sync NAS** : Synchronisé / Non synchronisé / Tous
+
+*Interface:*
+- Barre de recherche toujours visible en haut de la liste
+- Bouton "Filtres" qui ouvre un panneau dépliable
+- Chips/badges pour les filtres actifs (cliquables pour les retirer)
+- Bouton "Réinitialiser les filtres"
+- Compteur de résultats ("X documents trouvés")
+
+*Backend:*
+```python
+# Endpoint existant à enrichir
+GET /documents?search=carrefour&type=receipt,invoice&date_from=2024-01-01&date_to=2024-12-31&amount_min=10&amount_max=100&tags=1,5&is_income=false
+```
+
+*Frontend:*
+```typescript
+interface DocumentFilters {
+  search?: string;           // Recherche textuelle
+  types?: string[];          // receipt, invoice, payslip, other
+  dateFrom?: string;         // YYYY-MM-DD
+  dateTo?: string;           // YYYY-MM-DD
+  amountMin?: number;
+  amountMax?: number;
+  tagIds?: number[];
+  isIncome?: boolean | null; // true, false, ou null (tous)
+  syncedToNas?: boolean | null;
+}
+```
+
+**Persistance:**
+- Sauvegarder les filtres dans l'URL (query params) pour pouvoir partager/bookmarker
+- Option : sauvegarder les filtres favoris
 
 ---
 
@@ -220,11 +268,43 @@ Ajouter une recherche full-text sur les documents.
 **Priorité:** Basse
 
 **Description:**
-Alertes pour le suivi budgétaire.
+Alertes pour le suivi budgétaire via différents canaux de communication.
 
-**Fonctionnalités:**
+**Types d'alertes:**
 - Alerte quand un budget approche la limite (80%, 100%)
-- Récapitulatif hebdomadaire/mensuel par email (optionnel)
+- Récapitulatif hebdomadaire des dépenses
+- Récapitulatif mensuel avec bilan
+
+**Canaux de notification:**
+
+| Canal | Implémentation |
+|-------|----------------|
+| **Discord** | Webhook vers un channel privé |
+| **Telegram** | Bot Telegram avec chat ID |
+| **Email** | SMTP (Gmail, etc.) |
+
+*Configuration dans les paramètres:*
+- Choix du canal préféré (un ou plusieurs)
+- Discord : URL du webhook
+- Telegram : Token du bot + Chat ID
+- Email : Adresse email de destination
+- Fréquence : Temps réel / Quotidien / Hebdomadaire
+
+*Format des messages:*
+```
+🚨 Alerte Budget - Kash
+
+Le budget "Courses" a atteint 85% de sa limite.
+- Dépensé : 425€ / 500€
+- Restant : 75€
+
+📊 Voir les détails : http://localhost:3000/budgets
+```
+
+*Backend:*
+- Service `notification_service.py` avec adaptateurs par canal
+- Job CRON pour les récapitulatifs périodiques
+- Table `notification_settings` pour stocker les préférences utilisateur
 
 ---
 

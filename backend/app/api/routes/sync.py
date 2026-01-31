@@ -1,9 +1,13 @@
 """
 Routes pour la synchronisation NAS.
 
+La synchronisation utilise un montage SMB/CIFS.
+Les fichiers sont organisés par année/mois/type sur le NAS.
+
 Endpoints:
 - GET /sync/status : Statut de la synchronisation
-- POST /sync/test : Tester la connexion au NAS
+- GET /sync/config : Configuration du montage NAS
+- POST /sync/test : Tester l'accès au montage
 - POST /sync/run : Lancer la synchronisation
 - POST /sync/document/{id} : Synchroniser un document spécifique
 """
@@ -11,6 +15,7 @@ Endpoints:
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
@@ -30,22 +35,24 @@ class SyncStatus(BaseModel):
     synced: int
     pending: int
     sync_percentage: float
-    last_sync: str | None
+    last_sync: Optional[str]
     nas_configured: bool
 
 
 class SyncConfigStatus(BaseModel):
-    """Statut de la configuration NAS."""
+    """Statut de la configuration NAS (montage SMB)."""
     configured: bool
-    nas_host: bool
-    nas_user: bool
+    nas_host: bool  # Compat legacy
+    nas_user: bool  # Compat legacy
     nas_path: bool
-    host: str | None
-    path: str | None
+    host: Optional[str]
+    path: Optional[str]
+    path_exists: Optional[bool] = None
+    path_writable: Optional[bool] = None
 
 
 class TestConnectionResponse(BaseModel):
-    """Résultat du test de connexion."""
+    """Résultat du test d'accès au montage."""
     success: bool
     message: str
 
@@ -89,7 +96,7 @@ def get_sync_config(
     """
     Récupère le statut de la configuration NAS.
 
-    Indique si le NAS est correctement configuré.
+    Vérifie que le montage SMB est accessible.
     """
     sync_service = get_nas_sync_service(db)
     return sync_service.get_config_status()
@@ -101,19 +108,19 @@ def test_nas_connection(
     db: Session = Depends(get_db)
 ):
     """
-    Teste la connexion SSH vers le NAS.
+    Teste l'accès au montage NAS.
 
     Vérifie que :
-    - La configuration est complète
-    - La connexion SSH fonctionne
-    - Le chemin de destination est accessible
+    - Le chemin de montage est configuré (NAS_MOUNT_PATH)
+    - Le répertoire existe et est accessible
+    - L'écriture est possible
     """
     sync_service = get_nas_sync_service(db)
 
     if not sync_service.is_configured():
         return TestConnectionResponse(
             success=False,
-            message="Synchronisation NAS non configurée. Définissez NAS_HOST, NAS_USER et NAS_PATH dans le fichier .env"
+            message="Montage NAS non configuré. Définissez NAS_MOUNT_PATH et montez le partage SMB."
         )
 
     success, message = sync_service.test_connection()
@@ -128,8 +135,8 @@ def run_sync(
     """
     Lance la synchronisation de tous les documents en attente.
 
-    Transfère tous les fichiers non synchronisés vers le NAS.
-    Peut prendre du temps selon le nombre de fichiers.
+    Copie tous les fichiers non synchronisés vers le NAS.
+    Les fichiers sont organisés par année/mois/type.
 
     Returns:
         Résultats de la synchronisation (succès, échecs, erreurs)
@@ -139,7 +146,7 @@ def run_sync(
     if not sync_service.is_configured():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Synchronisation NAS non configurée"
+            detail="Montage NAS non configuré ou inaccessible"
         )
 
     results = sync_service.sync_all_pending(current_user.id)
@@ -155,18 +162,20 @@ def sync_single_document(
     """
     Synchronise un document spécifique vers le NAS.
 
+    Le fichier est copié dans la structure année/mois/type/.
+
     Args:
         document_id: ID du document à synchroniser
 
     Returns:
-        Succès ou échec avec message
+        Succès ou échec avec message (inclut le chemin de destination)
     """
     sync_service = get_nas_sync_service(db)
 
     if not sync_service.is_configured():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Synchronisation NAS non configurée"
+            detail="Montage NAS non configuré ou inaccessible"
         )
 
     # Vérifier que le document existe et appartient à l'utilisateur
@@ -179,6 +188,12 @@ def sync_single_document(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Document non trouvé"
+        )
+
+    if not document.file_path:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ce document n'a pas de fichier associé"
         )
 
     success, message = sync_service.sync_file(document)

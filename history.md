@@ -1,4 +1,6 @@
-# Historique des décisions - Gestionnaire de Finance
+# Historique des décisions - Kash
+
+> **Kash** : Gestionnaire de finances personnelles avec OCR et IA locale.
 
 ## 2026-01-30 - Initialisation du projet
 
@@ -38,8 +40,8 @@
 
 ### Architecture stockage
 - Fichiers uploadés traités localement (temporaire)
-- Synchronisation vers NAS via rsync (choix validé)
-- NAS: Ugreen (Linux compatible rsync)
+- Synchronisation vers NAS via montage SMB/CIFS
+- NAS: Ugreen (compatible SMB/Samba)
 
 ---
 
@@ -266,24 +268,25 @@ src/
 
 ### Synchronisation NAS (`backend/app/services/nas_sync_service.py`)
 
+**Architecture:** Utilise un montage SMB/CIFS (pas SSH/rsync).
+
 **Fonctionnalités:**
-- Test de connexion SSH
-- Synchronisation fichier par fichier via rsync
-- Synchronisation batch de tous les documents en attente
+- Test d'accès au montage SMB
+- Copie de fichiers via `shutil.copy2`
+- Organisation par année/mois/type sur le NAS
 - Suivi du statut (synced_to_nas, synced_at dans Document)
 
 **Routes API (`backend/app/api/routes/sync.py`):**
 - `GET /sync/status` - Statistiques de synchronisation
 - `GET /sync/config` - Statut de la configuration NAS
-- `POST /sync/test` - Tester la connexion SSH
+- `POST /sync/test` - Tester l'accès au montage
 - `POST /sync/run` - Lancer la synchronisation
 - `POST /sync/document/{id}` - Synchroniser un document
 
 **Configuration requise (.env):**
 ```env
-NAS_HOST=192.168.1.100
-NAS_USER=your-nas-user
-NAS_PATH=/volume1/factures
+NAS_LOCAL_PATH=/Volumes/NAS/finance
+NAS_MOUNT_PATH=/app/nas_backup
 ```
 
 ### Gestion des devises (`backend/app/services/currency_service.py`)
@@ -409,3 +412,16 @@ NAS_PATH=/volume1/factures
     7. Export et rapports PDF
     8. Recherche avancée
     9. Notifications et alertes budget
+
+*   **Mise à jour de la documentation technique** :
+    - `docs_src/architecture/overview.md` - Architecture microservices avec OCR séparé
+    - `docs_src/services/ocr.md` - Documentation du microservice OCR (PaddleOCR)
+    - `docs_src/services/nas-sync.md` - Documentation SMB au lieu de SSH/rsync
+    - `docs_src/api/sync.md` - Endpoints sync avec configuration SMB
+    - `docs_src/getting-started/configuration.md` - Instructions de montage SMB
+    - `docs_src/architecture/backend.md` - OCRService comme client HTTP
+
+### Naming du projet
+
+*   **Nom choisi : Kash** - Version stylisée de "Cash", évoque la gestion d'argent de façon moderne.
+*   **Création du README.md** - Présentation du projet avec architecture, installation, utilisation.

@@ -2,19 +2,43 @@
 
 Base URL: `/api/v1/sync`
 
-Endpoints pour la synchronisation des fichiers vers le NAS.
+Endpoints pour la synchronisation des fichiers vers le NAS via montage SMB.
 
 ## Prérequis
 
-La synchronisation nécessite une configuration préalable dans le fichier `.env` :
+La synchronisation utilise un **montage SMB/CIFS** (pas SSH/rsync).
+
+### 1. Monter le partage SMB sur le Mac
 
 ```bash
-NAS_HOST=192.168.1.100    # IP ou hostname du NAS
-NAS_USER=your-user         # Utilisateur SSH
-NAS_PATH=/volume1/factures # Chemin de destination
+# Créer le point de montage
+sudo mkdir -p /Volumes/NAS
+
+# Monter le partage SMB
+mount -t smbfs //utilisateur:motdepasse@IP-NAS/partage /Volumes/NAS
+
+# Ou via Finder : Cmd+K → smb://IP-NAS/partage
 ```
 
-Une clé SSH doit être configurée pour l'authentification sans mot de passe.
+### 2. Configuration dans `.env`
+
+```bash
+# Chemin sur le Mac (montage SMB)
+NAS_LOCAL_PATH=/Volumes/NAS/finance
+
+# Chemin dans le container Docker
+NAS_MOUNT_PATH=/app/nas_backup
+```
+
+### 3. Configuration docker-compose
+
+```yaml
+backend:
+  volumes:
+    - ${NAS_LOCAL_PATH:-./nas_backup}:/app/nas_backup
+  environment:
+    - NAS_MOUNT_PATH=${NAS_MOUNT_PATH:-}
+```
 
 ## Endpoints
 
@@ -41,7 +65,7 @@ Récupère les statistiques de synchronisation.
 | pending | Documents en attente de sync |
 | sync_percentage | Pourcentage de synchronisation |
 | last_sync | Date de dernière synchronisation |
-| nas_configured | Configuration NAS complète |
+| nas_configured | Montage NAS accessible |
 
 ---
 
@@ -56,25 +80,35 @@ Récupère le statut de la configuration NAS.
   "nas_host": true,
   "nas_user": true,
   "nas_path": true,
-  "host": "192.168.1.100",
-  "path": "/volume1/factures"
+  "host": "SMB Mount",
+  "path": "/app/nas_backup",
+  "path_exists": true,
+  "path_writable": true
 }
 ```
 
-!!! warning "Mot de passe masqué"
-    Le mot de passe/clé SSH n'est jamais retourné pour des raisons de sécurité.
+| Champ | Description |
+|-------|-------------|
+| configured | Configuration complète et fonctionnelle |
+| nas_host | Compatibilité legacy (toujours true si configuré) |
+| nas_user | Compatibilité legacy (toujours true si configuré) |
+| nas_path | Chemin de montage défini |
+| host | "SMB Mount" (indication du type) |
+| path | Chemin du montage dans le container |
+| path_exists | Le répertoire existe |
+| path_writable | Permissions d'écriture OK |
 
 ---
 
 ### POST /test
 
-Teste la connexion SSH vers le NAS.
+Teste l'accès au montage NAS.
 
 **Response (200):**
 ```json
 {
   "success": true,
-  "message": "Connexion réussie"
+  "message": "Montage NAS accessible en lecture/écriture"
 }
 ```
 
@@ -83,21 +117,21 @@ Teste la connexion SSH vers le NAS.
 ```json
 {
   "success": false,
-  "message": "Synchronisation NAS non configurée. Définissez NAS_HOST, NAS_USER et NAS_PATH dans le fichier .env"
+  "message": "Montage NAS non configuré. Définissez NAS_MOUNT_PATH et montez le partage SMB."
 }
 ```
 
 ```json
 {
   "success": false,
-  "message": "Échec de connexion : Permission denied (publickey)"
+  "message": "Le chemin de montage n'existe pas: /app/nas_backup"
 }
 ```
 
 ```json
 {
   "success": false,
-  "message": "Timeout de connexion (15s)"
+  "message": "Le montage n'est pas accessible en écriture"
 }
 ```
 
@@ -106,9 +140,6 @@ Teste la connexion SSH vers le NAS.
 ### POST /run
 
 Lance la synchronisation de tous les documents en attente.
-
-!!! note "Durée"
-    Cette opération peut prendre du temps selon le nombre de fichiers à synchroniser.
 
 **Response (200):**
 ```json
@@ -133,7 +164,7 @@ Lance la synchronisation de tous les documents en attente.
 
 | Code | Description |
 |------|-------------|
-| 400 | NAS non configuré |
+| 400 | Montage NAS non configuré ou inaccessible |
 
 ---
 
@@ -151,7 +182,7 @@ Synchronise un document spécifique.
 ```json
 {
   "success": true,
-  "message": "Synchronisé vers 192.168.1.100"
+  "message": "Synchronisé vers /app/nas_backup/2024/01/factures/abc.pdf"
 }
 ```
 
@@ -159,29 +190,72 @@ Synchronise un document spécifique.
 
 | Code | Description |
 |------|-------------|
-| 400 | NAS non configuré |
+| 400 | Montage NAS non configuré ou document sans fichier |
 | 404 | Document non trouvé |
+
+---
+
+## Structure des fichiers sur le NAS
+
+Les fichiers sont organisés par **année/mois/type** :
+
+```
+/Volumes/NAS/finance/
+├── 2024/
+│   ├── 01/
+│   │   ├── factures/
+│   │   │   └── abc123.pdf
+│   │   ├── tickets/
+│   │   │   └── def456.jpg
+│   │   └── salaires/
+│   │       └── ghi789.pdf
+│   ├── 02/
+│   │   └── ...
+│   └── ...
+├── 2025/
+│   └── ...
+└── 2026/
+    └── 01/
+        ├── factures/
+        └── tickets/
+```
+
+### Mapping des types de documents
+
+| Type (BDD) | Dossier NAS |
+|------------|-------------|
+| receipt | tickets |
+| invoice | factures |
+| payslip | salaires |
+| other | autres |
 
 ---
 
 ## Fonctionnement technique
 
-### rsync
+### Copie via shutil
 
-La synchronisation utilise `rsync` via SSH :
+La synchronisation utilise une simple copie de fichiers Python :
 
-```bash
-rsync -avz --progress \
-  -e "ssh -o BatchMode=yes -o ConnectTimeout=30" \
-  /app/uploads/document.jpg \
-  user@nas:/volume1/factures/document.jpg
+```python
+import shutil
+import os
+
+# Créer le répertoire de destination
+os.makedirs(dest_dir, exist_ok=True)
+
+# Copier le fichier (préserve les métadonnées)
+shutil.copy2(source_path, dest_path)
 ```
 
-Options utilisées :
-- `-a` : Mode archive (préserve permissions, dates...)
-- `-v` : Verbose
-- `-z` : Compression pendant le transfert
-- `--progress` : Affiche la progression
+Avantages par rapport à rsync/SSH :
+
+| Critère | SSH/rsync | SMB (shutil) |
+|---------|-----------|--------------|
+| Configuration | Complexe (clés SSH) | Simple (montage) |
+| Authentification | Clé SSH | Identifiants SMB natifs |
+| Code Python | subprocess + rsync | shutil.copy2 |
+| Compatibilité NAS | Variable | Universelle |
 
 ### Marquage en base
 
@@ -202,11 +276,11 @@ WHERE id = ?;
 // Vérifier la configuration
 const config = await sync.getConfig();
 if (!config.configured) {
-  console.log("NAS non configuré");
+  console.log("Montage NAS non accessible");
   return;
 }
 
-// Tester la connexion
+// Tester l'accès
 const test = await sync.testConnection();
 if (!test.success) {
   console.error("Échec:", test.message);
@@ -223,3 +297,14 @@ if (status.pending > 0) {
   console.log(`${result.synced} synchronisés, ${result.failed} échecs`);
 }
 ```
+
+---
+
+## Dépannage
+
+| Problème | Cause | Solution |
+|----------|-------|----------|
+| NAS non configuré | NAS_MOUNT_PATH vide | Définir la variable dans .env |
+| Chemin inexistant | Montage non fait | Monter le partage SMB sur le Mac |
+| Permission refusée | Droits insuffisants | Vérifier les permissions SMB |
+| Espace disque | NAS plein | Libérer de l'espace |
