@@ -20,6 +20,7 @@ import {
   FileSpreadsheet,
   Pencil,
   Save,
+  Plus,
 } from 'lucide-react';
 import { documents as documentsApi, tags as tagsApi } from '../services/api';
 import { DocumentListItem, Tag } from '../types';
@@ -45,6 +46,20 @@ const DocumentsPage: React.FC = () => {
 
   // Document en cours de suppression
   const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  // État du modal d'entrée manuelle
+  const [showManualModal, setShowManualModal] = useState(false);
+  const [manualForm, setManualForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    merchant: '',
+    total_amount: '',
+    currency: 'EUR',
+    is_income: false,
+    doc_type: 'other' as 'receipt' | 'invoice' | 'payslip' | 'other',
+    tag_ids: [] as number[],
+    notes: '',
+  });
+  const [isCreatingManual, setIsCreatingManual] = useState(false);
 
   // État du modal d'édition
   const [editingDoc, setEditingDoc] = useState<DocumentListItem | null>(null);
@@ -253,6 +268,88 @@ const DocumentsPage: React.FC = () => {
   };
 
   /**
+   * Toggle un tag dans le formulaire d'entrée manuelle
+   */
+  const toggleManualTag = (tagId: number) => {
+    setManualForm((prev) => ({
+      ...prev,
+      tag_ids: prev.tag_ids.includes(tagId)
+        ? prev.tag_ids.filter((id) => id !== tagId)
+        : [...prev.tag_ids, tagId],
+    }));
+  };
+
+  /**
+   * Ferme le modal d'entrée manuelle
+   */
+  const handleCloseManual = () => {
+    setShowManualModal(false);
+    setManualForm({
+      date: new Date().toISOString().split('T')[0],
+      merchant: '',
+      total_amount: '',
+      currency: 'EUR',
+      is_income: false,
+      doc_type: 'other',
+      tag_ids: [],
+      notes: '',
+    });
+  };
+
+  /**
+   * Crée une entrée manuelle
+   */
+  const handleCreateManual = async () => {
+    // Validation basique
+    if (!manualForm.merchant.trim()) {
+      setError('Le marchand/description est obligatoire');
+      return;
+    }
+    if (!manualForm.total_amount || parseFloat(manualForm.total_amount) <= 0) {
+      setError('Le montant doit être supérieur à 0');
+      return;
+    }
+    if (!manualForm.date) {
+      setError('La date est obligatoire');
+      return;
+    }
+
+    try {
+      setIsCreatingManual(true);
+      setError(null);
+
+      await documentsApi.createManual({
+        date: manualForm.date,
+        merchant: manualForm.merchant.trim(),
+        total_amount: parseFloat(manualForm.total_amount),
+        currency: manualForm.currency,
+        is_income: manualForm.is_income,
+        doc_type: manualForm.doc_type,
+        tag_ids: manualForm.tag_ids,
+        notes: manualForm.notes.trim() || undefined,
+      });
+
+      // Recharger la liste et fermer le modal
+      await loadDocuments();
+      handleCloseManual();
+      setUploadSuccess('Entrée manuelle créée avec succès');
+      setTimeout(() => setUploadSuccess(null), 3000);
+    } catch (err: any) {
+      const detail = err.response?.data?.detail;
+      if (Array.isArray(detail)) {
+        const messages = detail.map((e: any) => e.msg || JSON.stringify(e)).join(', ');
+        setError(`Erreur de validation: ${messages}`);
+      } else if (typeof detail === 'string') {
+        setError(detail);
+      } else {
+        setError('Erreur lors de la création');
+      }
+    } finally {
+      setIsCreatingManual(false);
+    }
+  };
+
+  /**
    * Supprime un document
    */
   const handleDelete = async (id: number) => {
@@ -324,18 +421,20 @@ const DocumentsPage: React.FC = () => {
       </div>
 
       {/* ============================================ */}
-      {/* Zone de Drag & Drop */}
+      {/* Zone de Drag & Drop + Bouton entrée manuelle */}
       {/* ============================================ */}
-      <div
-        {...getRootProps()}
-        className={clsx(
-          'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors',
-          isDragActive
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50',
-          isUploading && 'opacity-50 cursor-not-allowed'
-        )}
-      >
+      <div className="flex gap-4">
+        {/* Zone d'upload */}
+        <div
+          {...getRootProps()}
+          className={clsx(
+            'flex-1 border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors',
+            isDragActive
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50',
+            isUploading && 'opacity-50 cursor-not-allowed'
+          )}
+        >
         <input {...getInputProps()} />
         <div className="flex flex-col items-center">
           {isUploading ? (
@@ -371,6 +470,18 @@ const DocumentsPage: React.FC = () => {
             </>
           )}
         </div>
+        </div>
+
+        {/* Bouton entrée manuelle */}
+        <button
+          onClick={() => setShowManualModal(true)}
+          className="flex flex-col items-center justify-center w-32 border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer transition-colors hover:border-green-400 hover:bg-green-50"
+        >
+          <Plus className="w-8 h-8 text-green-500" />
+          <span className="mt-2 text-sm font-medium text-slate-600">
+            Entrée manuelle
+          </span>
+        </button>
       </div>
 
       {/* ============================================ */}
@@ -446,18 +557,32 @@ const DocumentsPage: React.FC = () => {
                   )}
                 >
                   <div className="sm:grid sm:grid-cols-12 gap-4 items-center">
-                    {/* Nom du fichier */}
+                    {/* Nom du fichier ou entrée manuelle */}
                     <div className="col-span-4 flex items-center min-w-0">
-                      <div className="flex-shrink-0 w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
-                        <FileIcon className="w-5 h-5 text-slate-500" />
+                      <div className={clsx(
+                        "flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center",
+                        doc.original_name ? "bg-slate-100" : "bg-green-100"
+                      )}>
+                        {doc.original_name ? (
+                          <FileIcon className="w-5 h-5 text-slate-500" />
+                        ) : (
+                          <Pencil className="w-5 h-5 text-green-600" />
+                        )}
                       </div>
                       <div className="ml-3 min-w-0">
                         <p className="text-sm font-medium text-slate-800 truncate">
-                          {doc.original_name}
+                          {doc.original_name || doc.merchant || 'Entrée manuelle'}
                         </p>
-                        <p className="text-xs text-slate-500">
-                          {doc.doc_type || 'Document'}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs text-slate-500">
+                            {doc.doc_type || 'Document'}
+                          </p>
+                          {!doc.original_name && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+                              Manuel
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -755,6 +880,234 @@ const DocumentsPage: React.FC = () => {
                   <>
                     <Save className="w-4 h-4" />
                     Sauvegarder
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================ */}
+      {/* Modal d'entrée manuelle */}
+      {/* ============================================ */}
+      {showManualModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            {/* Header du modal */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+              <h2 className="text-lg font-semibold text-slate-800">
+                Nouvelle entrée manuelle
+              </h2>
+              <button
+                onClick={handleCloseManual}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Contenu du formulaire */}
+            <div className="px-6 py-4 space-y-4">
+              {/* Marchand / Description */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Marchand / Description <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={manualForm.merchant}
+                  onChange={(e) =>
+                    setManualForm((prev) => ({ ...prev, merchant: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  placeholder="Ex: Parking, Restaurant, Virement..."
+                />
+              </div>
+
+              {/* Date */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={manualForm.date}
+                  onChange={(e) =>
+                    setManualForm((prev) => ({ ...prev, date: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                />
+              </div>
+
+              {/* Montant et Devise */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Montant <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={manualForm.total_amount}
+                    onChange={(e) =>
+                      setManualForm((prev) => ({ ...prev, total_amount: e.target.value }))
+                    }
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Devise
+                  </label>
+                  <select
+                    value={manualForm.currency}
+                    onChange={(e) =>
+                      setManualForm((prev) => ({ ...prev, currency: e.target.value }))
+                    }
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  >
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                    <option value="GBP">GBP</option>
+                    <option value="CHF">CHF</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Type de transaction */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Type de transaction
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="manual_is_income"
+                      checked={!manualForm.is_income}
+                      onChange={() =>
+                        setManualForm((prev) => ({ ...prev, is_income: false }))
+                      }
+                      className="w-4 h-4 text-green-600 border-slate-300 focus:ring-green-500"
+                    />
+                    <span className="ml-2 text-sm text-slate-700">Dépense</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="manual_is_income"
+                      checked={manualForm.is_income}
+                      onChange={() =>
+                        setManualForm((prev) => ({ ...prev, is_income: true }))
+                      }
+                      className="w-4 h-4 text-green-600 border-slate-300 focus:ring-green-500"
+                    />
+                    <span className="ml-2 text-sm text-slate-700">Revenu</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Type de document */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Catégorie
+                </label>
+                <select
+                  value={manualForm.doc_type}
+                  onChange={(e) =>
+                    setManualForm((prev) => ({
+                      ...prev,
+                      doc_type: e.target.value as 'receipt' | 'invoice' | 'payslip' | 'other',
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="other">Autre</option>
+                  <option value="receipt">Ticket de caisse</option>
+                  <option value="invoice">Facture</option>
+                  <option value="payslip">Fiche de paie</option>
+                </select>
+              </div>
+
+              {/* Tags */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Tags
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {tagsList.map((tag) => (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => toggleManualTag(tag.id)}
+                      className={clsx(
+                        'px-3 py-1 rounded-full text-sm font-medium transition-all',
+                        manualForm.tag_ids.includes(tag.id)
+                          ? 'ring-2 ring-offset-1'
+                          : 'opacity-60 hover:opacity-100'
+                      )}
+                      style={{
+                        backgroundColor: `${tag.color}20`,
+                        color: tag.color,
+                        ...(manualForm.tag_ids.includes(tag.id)
+                          ? { ringColor: tag.color }
+                          : {}),
+                      }}
+                    >
+                      {tag.name}
+                    </button>
+                  ))}
+                  {tagsList.length === 0 && (
+                    <p className="text-sm text-slate-400">
+                      Aucun tag disponible.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Notes (optionnel)
+                </label>
+                <textarea
+                  value={manualForm.notes}
+                  onChange={(e) =>
+                    setManualForm((prev) => ({ ...prev, notes: e.target.value }))
+                  }
+                  rows={3}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  placeholder="Informations complémentaires..."
+                />
+              </div>
+            </div>
+
+            {/* Footer du modal */}
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl">
+              <button
+                onClick={handleCloseManual}
+                disabled={isCreatingManual}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleCreateManual}
+                disabled={isCreatingManual}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+              >
+                {isCreatingManual ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Création...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    Créer l'entrée
                   </>
                 )}
               </button>

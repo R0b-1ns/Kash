@@ -27,6 +27,7 @@ import {
   SyncResult,
   SyncRunResult,
   ExportParams,
+  ManualEntryCreate,
 } from '../types';
 
 // URL de base de l'API (configurée via variables d'environnement)
@@ -221,6 +222,14 @@ export const documents = {
    */
   removeTag: async (documentId: number, tagId: number): Promise<Document> => {
     const response = await apiClient.delete<Document>(`/documents/${documentId}/tags/${tagId}`);
+    return response.data;
+  },
+
+  /**
+   * Crée une entrée financière manuelle (sans fichier)
+   */
+  createManual: async (data: ManualEntryCreate): Promise<Document> => {
+    const response = await apiClient.post<Document>('/documents/manual', data);
     return response.data;
   },
 };

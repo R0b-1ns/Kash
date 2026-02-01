@@ -4,6 +4,7 @@ Routes pour la gestion des documents (factures, tickets, fiches de paie).
 Endpoints:
 - GET /documents : Liste des documents avec filtres et pagination
 - POST /documents/upload : Upload d'un nouveau document (déclenche OCR + IA)
+- POST /documents/manual : Créer une entrée manuelle (sans fichier)
 - GET /documents/{id} : Détails d'un document
 - PUT /documents/{id} : Modifier un document (correction manuelle)
 - DELETE /documents/{id} : Supprimer un document
@@ -28,7 +29,7 @@ from app.models.user import User
 from app.models.document import Document
 from app.models.tag import Tag, DocumentTag
 from app.models.item import Item
-from app.schemas import DocumentUpdate
+from app.schemas import DocumentUpdate, DocumentManualCreate
 from app.schemas.converters import document_to_response, document_to_list_response
 from app.services.document_processor import process_document, reprocess_document, ProcessingError
 
@@ -201,6 +202,63 @@ async def upload_document(
     return document_to_response(document)
 
 
+@router.post("/manual", status_code=status.HTTP_201_CREATED)
+def create_manual_entry(
+    data: DocumentManualCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+) -> dict:
+    """
+    Crée une entrée financière manuelle (sans fichier).
+
+    Utile pour:
+    - Dépenses sans ticket (parking, pourboire...)
+    - Paiements en ligne sans facture
+    - Virements, remboursements
+    """
+    # Vérifier que les tags appartiennent à l'utilisateur
+    tags = []
+    if data.tag_ids:
+        tags = db.query(Tag).filter(
+            Tag.id.in_(data.tag_ids),
+            Tag.user_id == current_user.id
+        ).all()
+
+        if len(tags) != len(data.tag_ids):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Un ou plusieurs tags sont invalides"
+            )
+
+    # Créer le document sans fichier
+    document = Document(
+        user_id=current_user.id,
+        file_path=None,
+        original_name=None,
+        file_type=None,
+        date=data.date,
+        merchant=data.merchant,
+        total_amount=data.total_amount,
+        currency=data.currency,
+        is_income=data.is_income,
+        doc_type=data.doc_type,
+        # Pas d'OCR pour les entrées manuelles
+        ocr_raw_text=data.notes,  # On utilise notes comme texte brut
+        ocr_confidence=None,
+    )
+
+    # Ajouter les tags
+    document.tags = tags
+
+    db.add(document)
+    db.commit()
+    db.refresh(document)
+
+    logger.info(f"Entrée manuelle créée: {document.id} - {data.merchant}")
+
+    return document_to_response(document)
+
+
 @router.get("/{document_id}")
 def get_document(
     document_id: int,
@@ -298,8 +356,8 @@ def delete_document(
             detail="Document non trouvé"
         )
 
-    # Supprimer le fichier physique
-    if os.path.exists(document.file_path):
+    # Supprimer le fichier physique (si présent)
+    if document.file_path and os.path.exists(document.file_path):
         try:
             os.remove(document.file_path)
         except OSError:
@@ -331,6 +389,13 @@ async def reprocess_document_endpoint(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Document non trouvé"
+        )
+
+    # Vérifier que le document a un fichier (pas une entrée manuelle)
+    if not document.file_path:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Impossible de retraiter une entrée manuelle (pas de fichier)"
         )
 
     # Vérifier que le fichier existe toujours

@@ -32,6 +32,7 @@ from app.schemas.item import (
 from app.schemas.document import (
     DocumentCreate,
     DocumentUpdate,
+    DocumentManualCreate,
 )
 
 from app.schemas.budget import (
@@ -76,6 +77,7 @@ __all__ = [
     # Document
     "DocumentCreate",
     "DocumentUpdate",
+    "DocumentManualCreate",
     # Budget
     "BudgetCreate",
     "BudgetUpdate",

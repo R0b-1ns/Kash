@@ -47,3 +47,15 @@ class DocumentUpdate(BaseModel):
     currency: Union[str, None] = Field(None, max_length=3)
     is_income: Union[bool, None] = None
     tag_ids: Union[List[int], None] = None
+
+
+class DocumentManualCreate(BaseModel):
+    """Schéma pour créer une entrée financière manuelle (sans fichier)."""
+    date: date_type = Field(..., description="Date de la transaction")
+    merchant: str = Field(..., min_length=1, max_length=255, description="Marchand ou description")
+    total_amount: Decimal = Field(..., ge=0, description="Montant total")
+    currency: str = Field(default="EUR", max_length=3)
+    is_income: bool = Field(default=False, description="True si c'est un revenu")
+    doc_type: str = Field(default="other", description="Type: receipt, invoice, payslip, other")
+    tag_ids: List[int] = Field(default=[], description="Liste des IDs de tags")
+    notes: Optional[str] = Field(None, max_length=1000, description="Notes optionnelles")

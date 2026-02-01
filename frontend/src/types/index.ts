@@ -99,7 +99,8 @@ export interface Document {
 
 export interface DocumentListItem {
   id: number;
-  original_name: string;
+  original_name?: string;
+  file_path?: string;
   doc_type?: string;
   date?: string;
   merchant?: string;
@@ -108,6 +109,17 @@ export interface DocumentListItem {
   is_income: boolean;
   created_at: string;
   tags: Tag[];
+}
+
+export interface ManualEntryCreate {
+  date: string;
+  merchant: string;
+  total_amount: number;
+  currency?: string;
+  is_income?: boolean;
+  doc_type?: string;
+  tag_ids?: number[];
+  notes?: string;
 }
 
 // ============================================
