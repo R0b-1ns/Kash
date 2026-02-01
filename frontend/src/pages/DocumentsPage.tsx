@@ -1247,6 +1247,24 @@ const DocumentsPage: React.FC = () => {
         <DocumentViewer
           document={viewingDocument}
           onClose={() => setViewingDocument(null)}
+          onUpdate={(updatedDoc) => {
+            // Mettre à jour le document dans la liste
+            setDocumentsList((prev) =>
+              prev.map((d) =>
+                d.id === updatedDoc.id
+                  ? {
+                      ...d,
+                      merchant: updatedDoc.merchant,
+                      date: updatedDoc.date,
+                      total_amount: updatedDoc.total_amount,
+                      doc_type: updatedDoc.doc_type,
+                      is_income: updatedDoc.is_income,
+                      tags: updatedDoc.tags,
+                    }
+                  : d
+              )
+            );
+          }}
         />
       )}
     </div>
