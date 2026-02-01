@@ -18,6 +18,9 @@ import {
   BudgetCreate,
   BudgetUpdate,
   BudgetWithSpending,
+  BudgetTemplate,
+  BudgetTemplateCreate,
+  BudgetTemplateApplyResult,
   StatsSummary,
   StatsByTag,
   MonthlyStats,
@@ -337,6 +340,46 @@ export const budgets = {
 };
 
 // ============================================
+// API des templates de budget
+// ============================================
+
+export const budgetTemplates = {
+  /**
+   * Liste tous les templates de l'utilisateur
+   */
+  list: async (): Promise<BudgetTemplate[]> => {
+    const response = await apiClient.get<BudgetTemplate[]>('/budget-templates');
+    return response.data;
+  },
+
+  /**
+   * Crée un template depuis les budgets d'un mois
+   */
+  create: async (data: BudgetTemplateCreate): Promise<BudgetTemplate> => {
+    const response = await apiClient.post<BudgetTemplate>('/budget-templates', data);
+    return response.data;
+  },
+
+  /**
+   * Supprime un template
+   */
+  delete: async (id: number): Promise<void> => {
+    await apiClient.delete(`/budget-templates/${id}`);
+  },
+
+  /**
+   * Applique un template à un mois
+   */
+  apply: async (id: number, month: string): Promise<BudgetTemplateApplyResult> => {
+    const response = await apiClient.post<BudgetTemplateApplyResult>(
+      `/budget-templates/${id}/apply`,
+      { month, skip_existing: true }
+    );
+    return response.data;
+  },
+};
+
+// ============================================
 // API des statistiques
 // ============================================
 
@@ -505,6 +548,7 @@ export default {
   documents,
   tags,
   budgets,
+  budgetTemplates,
   stats,
   sync,
   exportApi,

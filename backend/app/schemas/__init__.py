@@ -40,6 +40,11 @@ from app.schemas.budget import (
     BudgetUpdate,
 )
 
+from app.schemas.budget_template import (
+    BudgetTemplateCreate,
+    BudgetTemplateApply,
+)
+
 from app.schemas.currency import (
     CurrencyCreate,
     CurrencyUpdate,
@@ -81,6 +86,9 @@ __all__ = [
     # Budget
     "BudgetCreate",
     "BudgetUpdate",
+    # Budget Template
+    "BudgetTemplateCreate",
+    "BudgetTemplateApply",
     # Currency
     "CurrencyCreate",
     "CurrencyUpdate",

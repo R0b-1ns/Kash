@@ -6,6 +6,7 @@
  * - Créer de nouveaux budgets par tag
  * - Modifier les limites de budget
  * - Supprimer des budgets
+ * - Sauvegarder/charger des templates de budget
  */
 
 import React, { useState, useEffect } from 'react';
@@ -18,16 +19,19 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
+  Save,
+  Download,
+  Loader2,
 } from 'lucide-react';
 import { format, subMonths, addMonths, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { clsx } from 'clsx';
 
 // Services
-import { budgets, tags } from '../services/api';
+import { budgets, tags, budgetTemplates } from '../services/api';
 
 // Types
-import type { BudgetWithSpending, Tag } from '../types';
+import type { BudgetWithSpending, Tag, BudgetTemplate } from '../types';
 
 // ============================================
 // Helpers
@@ -233,6 +237,15 @@ export default function BudgetsPage() {
   const [newLimit, setNewLimit] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
+  // Templates
+  const [templateList, setTemplateList] = useState<BudgetTemplate[]>([]);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showLoadModal, setShowLoadModal] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false);
+  const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
+  const [templateSuccess, setTemplateSuccess] = useState<string | null>(null);
+
   // ============================================
   // Chargement des données
   // ============================================
@@ -242,13 +255,15 @@ export default function BudgetsPage() {
     setError(null);
 
     try {
-      const [budgetsRes, tagsRes] = await Promise.all([
+      const [budgetsRes, tagsRes, templatesRes] = await Promise.all([
         budgets.getCurrent(monthString),
         tags.list(),
+        budgetTemplates.list(),
       ]);
 
       setBudgetList(budgetsRes);
       setTagList(tagsRes);
+      setTemplateList(templatesRes);
     } catch (err) {
       console.error('Erreur lors du chargement:', err);
       setError('Erreur lors du chargement des budgets');
@@ -315,6 +330,68 @@ export default function BudgetsPage() {
   };
 
   // ============================================
+  // Gestion des templates
+  // ============================================
+
+  const handleSaveTemplate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!templateName.trim() || budgetList.length === 0) return;
+
+    setIsSavingTemplate(true);
+    try {
+      await budgetTemplates.create({
+        name: templateName.trim(),
+        from_month: monthString,
+      });
+
+      // Recharger les templates
+      const templates = await budgetTemplates.list();
+      setTemplateList(templates);
+
+      setTemplateName('');
+      setShowSaveModal(false);
+      setTemplateSuccess('Template sauvegardé avec succès');
+      setTimeout(() => setTemplateSuccess(null), 3000);
+    } catch (err: any) {
+      console.error('Erreur lors de la sauvegarde du template:', err);
+      setError(err.response?.data?.detail || 'Erreur lors de la sauvegarde du template');
+    } finally {
+      setIsSavingTemplate(false);
+    }
+  };
+
+  const handleLoadTemplate = async (templateId: number) => {
+    setIsLoadingTemplate(true);
+    try {
+      const result = await budgetTemplates.apply(templateId, monthString);
+
+      // Recharger les budgets
+      await loadData();
+
+      setShowLoadModal(false);
+      setTemplateSuccess(result.message);
+      setTimeout(() => setTemplateSuccess(null), 3000);
+    } catch (err: any) {
+      console.error('Erreur lors du chargement du template:', err);
+      setError(err.response?.data?.detail || 'Erreur lors du chargement du template');
+    } finally {
+      setIsLoadingTemplate(false);
+    }
+  };
+
+  const handleDeleteTemplate = async (templateId: number) => {
+    if (!confirm('Supprimer ce template ?')) return;
+
+    try {
+      await budgetTemplates.delete(templateId);
+      setTemplateList((prev) => prev.filter((t) => t.id !== templateId));
+    } catch (err) {
+      console.error('Erreur lors de la suppression du template:', err);
+      setError('Erreur lors de la suppression du template');
+    }
+  };
+
+  // ============================================
   // Navigation entre les mois
   // ============================================
 
@@ -364,6 +441,28 @@ export default function BudgetsPage() {
             </button>
           </div>
 
+          {/* Boutons templates */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowLoadModal(true)}
+              disabled={templateList.length === 0}
+              className="flex items-center gap-2 px-3 py-2 text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Charger un template"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Charger</span>
+            </button>
+            <button
+              onClick={() => setShowSaveModal(true)}
+              disabled={budgetList.length === 0}
+              className="flex items-center gap-2 px-3 py-2 text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Sauvegarder comme template"
+            >
+              <Save className="w-4 h-4" />
+              <span className="hidden sm:inline">Sauvegarder</span>
+            </button>
+          </div>
+
           {/* Bouton créer */}
           <button
             onClick={() => setShowForm(true)}
@@ -375,6 +474,17 @@ export default function BudgetsPage() {
           </button>
         </div>
       </div>
+
+      {/* Message de succès template */}
+      {templateSuccess && (
+        <div className="bg-green-50 text-green-600 px-4 py-3 rounded-lg flex items-center gap-2">
+          <Check className="w-5 h-5" />
+          <span>{templateSuccess}</span>
+          <button onClick={() => setTemplateSuccess(null)} className="ml-auto">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Message d'erreur */}
       {error && (
@@ -525,6 +635,164 @@ export default function BudgetsPage() {
               <p className="text-2xl font-bold text-green-600">
                 {formatCurrency(budgetList.reduce((sum, b) => sum + b.remaining_amount, 0))}
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Sauvegarder comme template */}
+      {showSaveModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-slate-800">
+                Sauvegarder comme template
+              </h2>
+              <button
+                onClick={() => setShowSaveModal(false)}
+                className="p-1 hover:bg-slate-100 rounded transition-colors"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+
+            <p className="text-sm text-slate-500 mb-4">
+              Les {budgetList.length} budget(s) du mois de{' '}
+              <span className="font-medium capitalize">{formatMonthDisplay(monthString)}</span>{' '}
+              seront sauvegardés comme template.
+            </p>
+
+            <form onSubmit={handleSaveTemplate}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-600 mb-1">
+                  Nom du template
+                </label>
+                <input
+                  type="text"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  placeholder="Ex: Budget mensuel standard"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSaveModal(false)}
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingTemplate || !templateName.trim()}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  {isSavingTemplate && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Sauvegarder
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Charger un template */}
+      {showLoadModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-slate-800">
+                Charger un template
+              </h2>
+              <button
+                onClick={() => setShowLoadModal(false)}
+                className="p-1 hover:bg-slate-100 rounded transition-colors"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+
+            <p className="text-sm text-slate-500 mb-4">
+              Choisissez un template à appliquer pour{' '}
+              <span className="font-medium capitalize">{formatMonthDisplay(monthString)}</span>.
+              Les budgets existants ne seront pas modifiés.
+            </p>
+
+            {templateList.length === 0 ? (
+              <p className="text-center text-slate-500 py-8">
+                Aucun template disponible
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {templateList.map((template) => (
+                  <div
+                    key={template.id}
+                    className="border border-slate-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-slate-800">{template.name}</h3>
+                        <p className="text-sm text-slate-500">
+                          {template.item_count} catégorie(s)
+                        </p>
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {template.items.slice(0, 5).map((item, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-slate-100"
+                            >
+                              <span
+                                className="w-2 h-2 rounded-full"
+                                style={{ backgroundColor: item.tag_color }}
+                              />
+                              {item.tag_name}
+                            </span>
+                          ))}
+                          {template.items.length > 5 && (
+                            <span className="text-xs text-slate-400 px-2 py-0.5">
+                              +{template.items.length - 5}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 ml-3">
+                        <button
+                          onClick={() => handleLoadTemplate(template.id)}
+                          disabled={isLoadingTemplate}
+                          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                        >
+                          {isLoadingTemplate ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Download className="w-4 h-4" />
+                          )}
+                          Appliquer
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTemplate(template.id)}
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex justify-end mt-4 pt-4 border-t border-slate-200">
+              <button
+                onClick={() => setShowLoadModal(false)}
+                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                Fermer
+              </button>
             </div>
           </div>
         </div>

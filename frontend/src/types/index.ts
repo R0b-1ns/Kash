@@ -164,6 +164,39 @@ export interface BudgetWithSpending {
 }
 
 // ============================================
+// Types de templates de budget
+// ============================================
+
+export interface BudgetTemplateItem {
+  tag_id: number;
+  tag_name: string;
+  tag_color: string;
+  limit_amount: number;
+  currency: string;
+}
+
+export interface BudgetTemplate {
+  id: number;
+  name: string;
+  created_at: string;
+  items: BudgetTemplateItem[];
+  item_count: number;
+}
+
+export interface BudgetTemplateCreate {
+  name: string;
+  from_month: string;
+}
+
+export interface BudgetTemplateApplyResult {
+  success: boolean;
+  message: string;
+  created: number;
+  skipped: number;
+  month: string;
+}
+
+// ============================================
 // Types de statistiques
 // ============================================
 

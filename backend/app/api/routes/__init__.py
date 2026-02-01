@@ -9,6 +9,7 @@ Structure des routes:
 - /documents : Gestion des factures/tickets
 - /tags : Gestion des tags personnalisés
 - /budgets : Gestion des budgets mensuels
+- /budget-templates : Templates de budget réutilisables
 - /items : Gestion des articles
 - /stats : Statistiques et dashboard
 - /currencies : Gestion des devises
@@ -22,6 +23,7 @@ from app.api.routes.auth import router as auth_router
 from app.api.routes.documents import router as documents_router
 from app.api.routes.tags import router as tags_router
 from app.api.routes.budgets import router as budgets_router
+from app.api.routes.budget_templates import router as budget_templates_router
 from app.api.routes.items import router as items_router
 from app.api.routes.stats import router as stats_router
 from app.api.routes.currencies import router as currencies_router
@@ -36,6 +38,7 @@ api_router.include_router(auth_router)
 api_router.include_router(documents_router)
 api_router.include_router(tags_router)
 api_router.include_router(budgets_router)
+api_router.include_router(budget_templates_router)
 api_router.include_router(items_router)
 api_router.include_router(stats_router)
 api_router.include_router(currencies_router)
