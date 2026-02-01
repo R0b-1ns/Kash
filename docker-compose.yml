@@ -16,6 +16,7 @@ services:
       - NAS_MOUNT_PATH=${NAS_MOUNT_PATH:-}  # Chemin du montage SMB dans le container
     volumes:
       - ./backend/app:/app/app
+      - ./backend/alembic:/app/alembic  # Migrations Alembic
       - ./uploads:/app/uploads
       - ${NAS_LOCAL_PATH:-./nas_backup}:/app/nas_backup  # Montage NAS (ou dossier local par défaut)
     depends_on:
