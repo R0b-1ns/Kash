@@ -8,7 +8,7 @@ class Budget(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    tag_id = Column(Integer, ForeignKey("tags.id"), nullable=False, index=True)
+    tag_id = Column(Integer, ForeignKey("tags.id", ondelete="CASCADE"), nullable=False, index=True)
 
     # Month format: "2026-01"
     month = Column(String(7), nullable=False, index=True)

@@ -22,6 +22,6 @@ class Tag(Base):
 class DocumentTag(Base):
     __tablename__ = "document_tags"
 
-    document_id = Column(Integer, ForeignKey("documents.id"), primary_key=True)
-    tag_id = Column(Integer, ForeignKey("tags.id"), primary_key=True)
+    document_id = Column(Integer, ForeignKey("documents.id", ondelete="CASCADE"), primary_key=True)
+    tag_id = Column(Integer, ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
