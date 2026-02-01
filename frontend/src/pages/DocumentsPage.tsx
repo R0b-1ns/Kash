@@ -21,6 +21,10 @@ import {
   Pencil,
   Save,
   Plus,
+  Copy,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from 'lucide-react';
 import { documents as documentsApi, tags as tagsApi } from '../services/api';
 import { DocumentListItem, Tag } from '../types';
@@ -44,8 +48,13 @@ const DocumentsPage: React.FC = () => {
   // État des tags (pour affichage)
   const [tagsList, setTagsList] = useState<Tag[]>([]);
 
-  // Document en cours de suppression
+  // Document en cours de suppression ou duplication
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [duplicatingId, setDuplicatingId] = useState<number | null>(null);
+
+  // État du tri
+  const [sortBy, setSortBy] = useState<'date' | 'total_amount' | 'merchant' | 'created_at'>('date');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   // État du modal d'entrée manuelle
   const [showManualModal, setShowManualModal] = useState(false);
@@ -81,14 +90,17 @@ const DocumentsPage: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await documentsApi.list();
+      const data = await documentsApi.list({
+        order_by: sortBy,
+        order_dir: sortDir,
+      });
       setDocumentsList(data);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Erreur lors du chargement des documents');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [sortBy, sortDir]);
 
   /**
    * Charge la liste des tags
@@ -370,6 +382,50 @@ const DocumentsPage: React.FC = () => {
   };
 
   /**
+   * Duplique un document
+   */
+  const handleDuplicate = async (id: number) => {
+    try {
+      setDuplicatingId(id);
+      await documentsApi.duplicate(id);
+      // Recharger la liste
+      await loadDocuments();
+      setUploadSuccess('Document dupliqué avec succès');
+      setTimeout(() => setUploadSuccess(null), 3000);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Erreur lors de la duplication');
+    } finally {
+      setDuplicatingId(null);
+    }
+  };
+
+  /**
+   * Change le tri
+   */
+  const handleSort = (column: 'date' | 'total_amount' | 'merchant' | 'created_at') => {
+    if (sortBy === column) {
+      // Inverse la direction si on clique sur la même colonne
+      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      // Nouvelle colonne, tri descendant par défaut
+      setSortBy(column);
+      setSortDir('desc');
+    }
+  };
+
+  /**
+   * Icône de tri pour une colonne
+   */
+  const SortIcon: React.FC<{ column: 'date' | 'total_amount' | 'merchant' | 'created_at' }> = ({ column }) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-slate-400" />;
+    }
+    return sortDir === 'asc'
+      ? <ArrowUp className="w-4 h-4 text-blue-600" />
+      : <ArrowDown className="w-4 h-4 text-blue-600" />;
+  };
+
+  /**
    * Retourne l'icône appropriée selon le type de fichier
    */
   const getFileIcon = (fileType: string | undefined | null) => {
@@ -535,9 +591,27 @@ const DocumentsPage: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           {/* En-tête du tableau */}
           <div className="hidden sm:grid sm:grid-cols-12 gap-4 px-6 py-3 bg-slate-50 border-b border-slate-200 text-xs font-medium text-slate-500 uppercase tracking-wider">
-            <div className="col-span-4">Document</div>
-            <div className="col-span-2">Date</div>
-            <div className="col-span-2">Montant</div>
+            <button
+              onClick={() => handleSort('merchant')}
+              className="col-span-4 flex items-center gap-1 hover:text-slate-700 transition-colors text-left"
+            >
+              Document
+              <SortIcon column="merchant" />
+            </button>
+            <button
+              onClick={() => handleSort('date')}
+              className="col-span-2 flex items-center gap-1 hover:text-slate-700 transition-colors text-left"
+            >
+              Date
+              <SortIcon column="date" />
+            </button>
+            <button
+              onClick={() => handleSort('total_amount')}
+              className="col-span-2 flex items-center gap-1 hover:text-slate-700 transition-colors text-left"
+            >
+              Montant
+              <SortIcon column="total_amount" />
+            </button>
             <div className="col-span-3">Tags</div>
             <div className="col-span-1">Actions</div>
           </div>
@@ -639,6 +713,18 @@ const DocumentsPage: React.FC = () => {
 
                     {/* Actions */}
                     <div className="col-span-1 mt-3 sm:mt-0 flex justify-end gap-1">
+                      <button
+                        onClick={() => handleDuplicate(doc.id)}
+                        disabled={duplicatingId === doc.id}
+                        className="p-2 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                        title="Dupliquer"
+                      >
+                        {duplicatingId === doc.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </button>
                       <button
                         onClick={() => handleEdit(doc)}
                         className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

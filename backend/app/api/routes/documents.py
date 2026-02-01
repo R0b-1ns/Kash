@@ -2,13 +2,14 @@
 Routes pour la gestion des documents (factures, tickets, fiches de paie).
 
 Endpoints:
-- GET /documents : Liste des documents avec filtres et pagination
+- GET /documents : Liste des documents avec filtres, tri et pagination
 - POST /documents/upload : Upload d'un nouveau document (déclenche OCR + IA)
 - POST /documents/manual : Créer une entrée manuelle (sans fichier)
 - GET /documents/{id} : Détails d'un document
 - PUT /documents/{id} : Modifier un document (correction manuelle)
 - DELETE /documents/{id} : Supprimer un document
 - POST /documents/{id}/reprocess : Relancer l'extraction OCR + IA
+- POST /documents/{id}/duplicate : Dupliquer un document
 - POST /documents/{id}/tags : Ajouter des tags à un document
 - DELETE /documents/{id}/tags/{tag_id} : Retirer un tag
 """
@@ -21,7 +22,8 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query, BackgroundTasks
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import desc
+from sqlalchemy import desc, asc
+from typing import Literal
 
 from app.api.deps import get_db, get_current_user
 from app.core.config import get_settings
@@ -81,6 +83,9 @@ def list_documents(
     tag_id: Optional[int] = Query(None, description="Filtrer par tag"),
     is_income: Optional[bool] = Query(None, description="True=revenus, False=dépenses"),
     doc_type: Optional[str] = Query(None, description="Type: receipt, invoice, payslip, other"),
+    # Tri
+    order_by: str = Query("date", description="Champ de tri: date, total_amount, merchant, created_at"),
+    order_dir: str = Query("desc", description="Direction: asc ou desc"),
     # Pagination
     skip: int = Query(0, ge=0, description="Nombre d'éléments à sauter"),
     limit: int = Query(50, ge=1, le=100, description="Nombre max d'éléments à retourner"),
@@ -89,7 +94,7 @@ def list_documents(
     db: Session = Depends(get_db)
 ) -> List[dict]:
     """
-    Liste les documents de l'utilisateur avec filtres et pagination.
+    Liste les documents de l'utilisateur avec filtres, tri et pagination.
     """
     query = db.query(Document).filter(Document.user_id == current_user.id)
 
@@ -108,8 +113,20 @@ def list_documents(
     # Charger les tags en une seule requête (évite N+1)
     query = query.options(joinedload(Document.tags))
 
-    # Trier par date décroissante puis par ID
-    query = query.order_by(desc(Document.date), desc(Document.id))
+    # Déterminer le champ de tri
+    sort_columns = {
+        "date": Document.date,
+        "total_amount": Document.total_amount,
+        "merchant": Document.merchant,
+        "created_at": Document.created_at,
+    }
+    sort_column = sort_columns.get(order_by, Document.date)
+
+    # Appliquer le tri
+    if order_dir.lower() == "asc":
+        query = query.order_by(asc(sort_column), asc(Document.id))
+    else:
+        query = query.order_by(desc(sort_column), desc(Document.id))
 
     # Pagination
     documents = query.offset(skip).limit(limit).all()
@@ -427,6 +444,80 @@ async def reprocess_document_endpoint(
 
     # Conversion manuelle
     return document_to_response(document)
+
+
+@router.post("/{document_id}/duplicate", status_code=status.HTTP_201_CREATED)
+def duplicate_document(
+    document_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+) -> dict:
+    """
+    Duplique un document (utile pour les entrées manuelles récurrentes).
+
+    Copie tous les champs sauf: id, created_at, updated_at, synced_to_nas, synced_at.
+    Le fichier n'est pas copié (la copie devient une entrée manuelle).
+    """
+    # Récupérer le document original avec ses relations
+    original = db.query(Document).options(
+        joinedload(Document.tags),
+        joinedload(Document.items)
+    ).filter(
+        Document.id == document_id,
+        Document.user_id == current_user.id
+    ).first()
+
+    if not original:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document non trouvé"
+        )
+
+    # Créer la copie (sans fichier = entrée manuelle)
+    # Si l'original n'a pas de date, on utilise aujourd'hui comme fallback
+    duplicate_date = original.date if original.date else date.today()
+
+    duplicate = Document(
+        user_id=current_user.id,
+        file_path=None,  # Pas de copie du fichier
+        original_name=None,
+        file_type=None,
+        doc_type=original.doc_type,
+        date=duplicate_date,
+        time=original.time,
+        merchant=original.merchant,
+        location=original.location,
+        total_amount=original.total_amount,
+        currency=original.currency,
+        is_income=original.is_income,
+        ocr_raw_text=f"Dupliqué depuis #{original.id}",
+        ocr_confidence=None,
+        synced_to_nas=False,
+        synced_at=None,
+    )
+
+    # Copier les tags
+    duplicate.tags = list(original.tags)
+
+    # Copier les items
+    for item in original.items:
+        new_item = Item(
+            name=item.name,
+            quantity=item.quantity,
+            unit=item.unit,
+            unit_price=item.unit_price,
+            total_price=item.total_price,
+            category=item.category,
+        )
+        duplicate.items.append(new_item)
+
+    db.add(duplicate)
+    db.commit()
+    db.refresh(duplicate)
+
+    logger.info(f"Document {original.id} dupliqué vers {duplicate.id}")
+
+    return document_to_response(duplicate)
 
 
 @router.post("/{document_id}/tags/{tag_id}")

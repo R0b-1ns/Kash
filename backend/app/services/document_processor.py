@@ -144,6 +144,12 @@ class DocumentProcessor:
 
         # 5. Mettre à jour le document avec les données extraites
         self._update_document(document, ai_result)
+
+        # 5b. Fallback: si aucune date n'a été extraite, utiliser created_at
+        if document.date is None and document.created_at:
+            document.date = document.created_at.date()
+            logger.info(f"Aucune date extraite, utilisation de created_at: {document.date}")
+
         db.commit()
 
         # 6. Créer les items associés

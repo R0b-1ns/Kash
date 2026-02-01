@@ -101,6 +101,7 @@ export interface DocumentListItem {
   id: number;
   original_name?: string;
   file_path?: string;
+  file_type?: string;
   doc_type?: string;
   date?: string;
   merchant?: string;

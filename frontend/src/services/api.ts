@@ -157,6 +157,8 @@ export const documents = {
     tag_id?: number;
     is_income?: boolean;
     doc_type?: string;
+    order_by?: 'date' | 'total_amount' | 'merchant' | 'created_at';
+    order_dir?: 'asc' | 'desc';
   }): Promise<DocumentListItem[]> => {
     const response = await apiClient.get<DocumentListItem[]>('/documents', { params });
     return response.data;
@@ -230,6 +232,14 @@ export const documents = {
    */
   createManual: async (data: ManualEntryCreate): Promise<Document> => {
     const response = await apiClient.post<Document>('/documents/manual', data);
+    return response.data;
+  },
+
+  /**
+   * Duplique un document (utile pour les entrées récurrentes)
+   */
+  duplicate: async (id: number): Promise<Document> => {
+    const response = await apiClient.post<Document>(`/documents/${id}/duplicate`);
     return response.data;
   },
 };
