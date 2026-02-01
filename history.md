@@ -490,3 +490,16 @@ NAS_MOUNT_PATH=/app/nas_backup
 *   Nouveau lien "Articles" dans la sidebar (icône ShoppingCart)
 *   `/items` : page principale des articles avec stats
 *   `/item-aliases` : accessible depuis la page Articles ("Gérer les regroupements")
+
+---
+
+## 2026-02-01 - Recherche avancée de documents
+
+*   **Backend API:** Amélioration de la route `GET /documents` pour inclure une recherche avancée.
+    - Ajout des paramètres de requête : `search`, `ocr_search`, `min_amount`, `max_amount`, `tag_ids`.
+    - Implémentation de la logique de filtrage dans SQLAlchemy pour rechercher dans les champs `merchant`, `location`, `original_name`, et `ocr_raw_text` avec `ILIKE`, et filtrer par plage de montants et tags multiples.
+*   **Frontend Types:** Ajout de l'interface `DocumentFilters` à `frontend/src/types/index.ts` pour définir la structure des paramètres de recherche avancée.
+*   **Frontend API Service:** Mise à jour de la fonction `documents.list` dans `frontend/src/services/api.ts` pour accepter un objet `DocumentFilters` et le sérialiser correctement en paramètres de requête pour l'API.
+*   **Frontend Hook:** Création du hook `useDebounce` pour optimiser les champs de recherche textuelle.
+*   **Frontend Component:** Création du composant `DocumentFilters.tsx`, contenant l'interface utilisateur pour tous les nouveaux filtres (recherche, dates, montants, tags, etc.).
+*   **Frontend Page:** Intégration de `DocumentFilters` dans `DocumentsPage.tsx`, ajout de la gestion de l'état des filtres et liaison avec l'appel API mis à jour. La page gère désormais le rafraîchissement dynamique de la liste en fonction des filtres appliqués.

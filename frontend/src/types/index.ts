@@ -186,6 +186,18 @@ export interface ManualEntryCreate {
   notes?: string;
 }
 
+export interface DocumentFilters {
+  search?: string;
+  ocr_search?: string;
+  start_date?: string;
+  end_date?: string;
+  min_amount?: number | string;
+  max_amount?: number | string;
+  tag_ids?: number[];
+  is_income?: boolean | null;
+  doc_type?: string;
+}
+
 // ============================================
 // Types de budgets
 // ============================================

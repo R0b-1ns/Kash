@@ -11,6 +11,7 @@ import {
   AuthResponse,
   Document,
   DocumentListItem,
+  DocumentFilters,
   Item,
   ItemCreate,
   ItemUpdate,
@@ -161,17 +162,27 @@ export const documents = {
   /**
    * Liste tous les documents de l'utilisateur
    */
-  list: async (params?: {
-    skip?: number;
-    limit?: number;
-    start_date?: string;
-    end_date?: string;
-    tag_id?: number;
-    is_income?: boolean;
-    doc_type?: string;
-    order_by?: 'date' | 'total_amount' | 'merchant' | 'created_at';
-    order_dir?: 'asc' | 'desc';
-  }): Promise<DocumentListItem[]> => {
+  list: async (filters?: DocumentFilters): Promise<DocumentListItem[]> => {
+    // Nettoyer les filtres pour ne pas envoyer de valeurs vides ou nulles
+    const params: Record<string, any> = {};
+
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        // Gérer le cas spécifique de is_income qui peut être `false`
+        if (key === 'is_income' && value === false) {
+          params[key] = false;
+        }
+        // Pour les autres clés, ne pas envoyer si null, undefined ou chaîne vide
+        else if (value !== null && value !== undefined && value !== '') {
+          if (key === 'tag_ids' && Array.isArray(value) && value.length > 0) {
+            params[key] = value.join(',');
+          } else if (key !== 'tag_ids') {
+            params[key] = value;
+          }
+        }
+      });
+    }
+
     const response = await apiClient.get<DocumentListItem[]>('/documents', { params });
     return response.data;
   },

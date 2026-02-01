@@ -24,8 +24,9 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query, BackgroundTasks
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import desc, asc
-from typing import Literal
+from sqlalchemy import desc, asc, or_
+from decimal import Decimal
+
 
 from app.api.deps import get_db, get_current_user
 from app.core.config import get_settings
@@ -79,10 +80,16 @@ def validate_file(file: UploadFile) -> str:
 
 @router.get("")
 def list_documents(
-    # Filtres
+    # Filtres avancés
+    search: Optional[str] = Query(None, description="Recherche dans le marchand, le lieu ou le nom du fichier"),
+    ocr_search: Optional[str] = Query(None, description="Recherche dans le texte brut de l'OCR"),
+    min_amount: Optional[Decimal] = Query(None, description="Montant total minimum"),
+    max_amount: Optional[Decimal] = Query(None, description="Montant total maximum"),
+    tag_ids: Optional[str] = Query(None, description="IDs de tags séparés par des virgules"),
+    min_confidence: Optional[float] = Query(None, description="Score de confiance OCR minimum (0-100)"),
+    # Filtres de base
     start_date: Optional[date] = Query(None, description="Date de début (incluse)"),
     end_date: Optional[date] = Query(None, description="Date de fin (incluse)"),
-    tag_id: Optional[int] = Query(None, description="Filtrer par tag"),
     is_income: Optional[bool] = Query(None, description="True=revenus, False=dépenses"),
     doc_type: Optional[str] = Query(None, description="Type: receipt, invoice, payslip, other"),
     # Tri
@@ -101,16 +108,37 @@ def list_documents(
     query = db.query(Document).filter(Document.user_id == current_user.id)
 
     # Appliquer les filtres
+    if search:
+        pattern = f"%{search}%"
+        query = query.filter(or_(
+            Document.merchant.ilike(pattern),
+            Document.location.ilike(pattern),
+            Document.original_name.ilike(pattern)
+        ))
+    if ocr_search:
+        query = query.filter(Document.ocr_raw_text.ilike(f"%{ocr_search}%"))
     if start_date:
         query = query.filter(Document.date >= start_date)
     if end_date:
         query = query.filter(Document.date <= end_date)
+    if min_amount is not None:
+        query = query.filter(Document.total_amount >= min_amount)
+    if max_amount is not None:
+        query = query.filter(Document.total_amount <= max_amount)
     if is_income is not None:
         query = query.filter(Document.is_income == is_income)
     if doc_type:
         query = query.filter(Document.doc_type == doc_type)
-    if tag_id:
-        query = query.join(DocumentTag).filter(DocumentTag.tag_id == tag_id)
+    if min_confidence is not None:
+        query = query.filter(Document.ocr_confidence >= min_confidence)
+    if tag_ids:
+        try:
+            ids = [int(x) for x in tag_ids.split(",")]
+            if ids:
+                query = query.join(DocumentTag).filter(DocumentTag.tag_id.in_(ids)).distinct()
+        except (ValueError, TypeError):
+            # Ignorer si le format est invalide
+            pass
 
     # Charger les tags en une seule requête (évite N+1)
     query = query.options(joinedload(Document.tags))

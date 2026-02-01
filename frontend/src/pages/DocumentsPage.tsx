@@ -1,8 +1,3 @@
-/**
- * Page Documents
- * Liste des documents avec zone de drag & drop pour upload
- */
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { format } from 'date-fns';
@@ -19,51 +14,41 @@ import {
   Image,
   FileSpreadsheet,
   Pencil,
-  Save,
-  Plus,
   Copy,
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
   Eye,
+  Plus,
+  Search,
 } from 'lucide-react';
 import { documents as documentsApi, tags as tagsApi } from '../services/api';
-import { DocumentListItem, Tag, Document } from '../types';
+import { DocumentListItem, Tag, Document, DocumentFilters as DocumentFiltersType } from '../types';
 import clsx from 'clsx';
 import DocumentViewer from '../components/DocumentViewer';
-
-// ============================================
-// Composant DocumentsPage
-// ============================================
+import DocumentFilters from '../components/DocumentFilters';
+import { useDebounce } from '../hooks/useDebounce';
 
 const DocumentsPage: React.FC = () => {
-  // État des documents
   const [documentsList, setDocumentsList] = useState<DocumentListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // État de l'upload
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
-
-  // État des tags (pour affichage)
-  const [tagsList, setTagsList] = useState<Tag[]>([]);
-
-  // Document en cours de suppression ou duplication
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [duplicatingId, setDuplicatingId] = useState<number | null>(null);
 
-  // État du tri
   const [sortBy, setSortBy] = useState<'date' | 'total_amount' | 'merchant' | 'created_at'>('date');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
-  // État du modal d'entrée manuelle
-  const [showManualModal, setShowManualModal] = useState(false);
-
-  // État de la visionneuse de document
   const [viewingDocument, setViewingDocument] = useState<Document | null>(null);
   const [isLoadingViewer, setIsLoadingViewer] = useState(false);
+  
+  const [tagsList, setTagsList] = useState<Tag[]>([]);
+
+  // Manual Entry Modal State
+  const [showManualModal, setShowManualModal] = useState(false);
   const [manualForm, setManualForm] = useState({
     date: new Date().toISOString().split('T')[0],
     merchant: '',
@@ -76,41 +61,38 @@ const DocumentsPage: React.FC = () => {
   });
   const [isCreatingManual, setIsCreatingManual] = useState(false);
 
-  // État du modal d'édition
-  const [editingDoc, setEditingDoc] = useState<DocumentListItem | null>(null);
-  const [editForm, setEditForm] = useState({
-    merchant: '',
-    date: '',
-    total_amount: '',
-    currency: 'EUR',
-    doc_type: 'receipt' as 'receipt' | 'invoice' | 'payslip' | 'other',
-    is_income: false,
-    tag_ids: [] as number[],
-  });
-  const [isSaving, setIsSaving] = useState(false);
 
-  /**
-   * Charge la liste des documents
-   */
+  // State for filters
+  const [filters, setFilters] = useState<Partial<DocumentFiltersType>>({});
+  
+  // Debounce search terms
+  const debouncedSearch = useDebounce(filters.search, 300);
+  const debouncedOcrSearch = useDebounce(filters.ocr_search, 500);
+
+  const activeFilterCount = Object.values(filters).filter(v => v !== null && v !== undefined && v !== '' && (!Array.isArray(v) || v.length > 0)).length;
+
   const loadDocuments = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await documentsApi.list({
+      
+      const effectiveFilters = {
+        ...filters,
+        search: debouncedSearch,
+        ocr_search: debouncedOcrSearch,
         order_by: sortBy,
         order_dir: sortDir,
-      });
+      };
+
+      const data = await documentsApi.list(effectiveFilters);
       setDocumentsList(data);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Erreur lors du chargement des documents');
     } finally {
       setIsLoading(false);
     }
-  }, [sortBy, sortDir]);
+  }, [sortBy, sortDir, filters.start_date, filters.end_date, filters.min_amount, filters.max_amount, filters.tag_ids, filters.is_income, filters.doc_type, debouncedSearch, debouncedOcrSearch]);
 
-  /**
-   * Charge la liste des tags
-   */
   const loadTags = useCallback(async () => {
     try {
       const data = await tagsApi.list();
@@ -120,27 +102,20 @@ const DocumentsPage: React.FC = () => {
     }
   }, []);
 
-  // Chargement initial
   useEffect(() => {
     loadDocuments();
     loadTags();
   }, [loadDocuments, loadTags]);
 
-  /**
-   * Gère le drop de fichiers
-   */
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (acceptedFiles.length === 0) return;
-
       setIsUploading(true);
       setUploadProgress(null);
       setUploadSuccess(null);
       setError(null);
 
       let successCount = 0;
-      let errorCount = 0;
-
       for (const file of acceptedFiles) {
         try {
           setUploadProgress(`Upload de ${file.name}...`);
@@ -148,146 +123,73 @@ const DocumentsPage: React.FC = () => {
           successCount++;
         } catch (err: any) {
           console.error(`Erreur lors de l'upload de ${file.name}:`, err);
-          errorCount++;
         }
       }
-
       setIsUploading(false);
       setUploadProgress(null);
-
       if (successCount > 0) {
-        setUploadSuccess(
-          `${successCount} fichier(s) uploadé(s) avec succès${errorCount > 0 ? ` (${errorCount} erreur(s))` : ''
-          }`
-        );
-        // Recharge la liste
+        setUploadSuccess(`${successCount} fichier(s) uploadé(s) avec succès.`);
         loadDocuments();
-        // Efface le message de succès après 3 secondes
         setTimeout(() => setUploadSuccess(null), 3000);
-      } else if (errorCount > 0) {
-        setError(`Erreur lors de l'upload de ${errorCount} fichier(s)`);
       }
     },
     [loadDocuments]
   );
 
-  /**
-   * Configuration de react-dropzone
-   */
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: {
-      'application/pdf': ['.pdf'],
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-      'application/vnd.ms-excel': ['.xls'],
-      'text/csv': ['.csv'],
-    },
+    accept: { 'application/pdf': ['.pdf'], 'image/*': ['.png', '.jpg', '.jpeg'] },
     disabled: isUploading,
   });
 
-  /**
-   * Ouvre le modal d'édition pour un document
-   */
-  const handleEdit = (doc: DocumentListItem) => {
-    setEditingDoc(doc);
-    setEditForm({
-      merchant: doc.merchant || '',
-      date: doc.date || '',
-      total_amount: doc.total_amount?.toString() || '',
-      currency: doc.currency || 'EUR',
-      doc_type: (doc.doc_type as 'receipt' | 'invoice' | 'payslip' | 'other') || 'receipt',
-      is_income: doc.is_income || false,
-      tag_ids: doc.tags?.map((t) => t.id) || [],
-    });
-  };
-
-  /**
-   * Ferme le modal d'édition
-   */
-  const handleCloseEdit = () => {
-    setEditingDoc(null);
-    setEditForm({
-      merchant: '',
-      date: '',
-      total_amount: '',
-      currency: 'EUR',
-      doc_type: 'receipt',
-      is_income: false,
-      tag_ids: [],
-    });
-  };
-
-  /**
-   * Sauvegarde les modifications du document
-   */
-  const handleSaveEdit = async () => {
-    if (!editingDoc) return;
-
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('Voulez-vous vraiment supprimer ce document ?')) return;
     try {
-      setIsSaving(true);
-      setError(null);
-
-      // Construire les données de mise à jour (exclure les valeurs vides)
-      const updateData: Record<string, any> = {
-        is_income: editForm.is_income,
-        tag_ids: editForm.tag_ids,
-      };
-
-      // Ajouter les champs optionnels seulement s'ils ont une valeur
-      if (editForm.merchant.trim()) {
-        updateData.merchant = editForm.merchant.trim();
-      }
-      if (editForm.date) {
-        updateData.date = editForm.date; // Format YYYY-MM-DD du input date
-      }
-      if (editForm.total_amount) {
-        updateData.total_amount = parseFloat(editForm.total_amount);
-      }
-      if (editForm.currency) {
-        updateData.currency = editForm.currency;
-      }
-      if (editForm.doc_type) {
-        updateData.doc_type = editForm.doc_type;
-      }
-
-      await documentsApi.update(editingDoc.id, updateData);
-
-      // Recharger les documents
-      await loadDocuments();
-      handleCloseEdit();
+      setDeletingId(id);
+      await documentsApi.delete(id);
+      setDocumentsList((prev) => prev.filter((doc) => doc.id !== id));
     } catch (err: any) {
-      // Gérer les erreurs Pydantic (qui sont des tableaux d'objets)
-      const detail = err.response?.data?.detail;
-      if (Array.isArray(detail)) {
-        // Erreurs de validation Pydantic
-        const messages = detail.map((e: any) => e.msg || JSON.stringify(e)).join(', ');
-        setError(`Erreur de validation: ${messages}`);
-      } else if (typeof detail === 'string') {
-        setError(detail);
-      } else {
-        setError('Erreur lors de la sauvegarde');
-      }
+      setError(err.response?.data?.detail || 'Erreur lors de la suppression');
     } finally {
-      setIsSaving(false);
+      setDeletingId(null);
     }
   };
 
-  /**
-   * Toggle un tag dans le formulaire d'édition
-   */
-  const toggleTag = (tagId: number) => {
-    setEditForm((prev) => ({
-      ...prev,
-      tag_ids: prev.tag_ids.includes(tagId)
-        ? prev.tag_ids.filter((id) => id !== tagId)
-        : [...prev.tag_ids, tagId],
-    }));
+  const handleDuplicate = async (id: number) => {
+    try {
+      setDuplicatingId(id);
+      await documentsApi.duplicate(id);
+      loadDocuments();
+      setUploadSuccess('Document dupliqué avec succès');
+      setTimeout(() => setUploadSuccess(null), 3000);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Erreur lors de la duplication');
+    } finally {
+      setDuplicatingId(null);
+    }
+  };
+  
+  const handleView = async (id: number) => {
+    try {
+      setIsLoadingViewer(true);
+      const doc = await documentsApi.get(id);
+      setViewingDocument(doc);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Erreur lors du chargement du document');
+    } finally {
+      setIsLoadingViewer(false);
+    }
+  };
+  
+  const handleSort = (column: 'date' | 'total_amount' | 'merchant' | 'created_at') => {
+    if (sortBy === column) {
+      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(column);
+      setSortDir('desc');
+    }
   };
 
-  /**
-   * Toggle un tag dans le formulaire d'entrée manuelle
-   */
   const toggleManualTag = (tagId: number) => {
     setManualForm((prev) => ({
       ...prev,
@@ -297,9 +199,6 @@ const DocumentsPage: React.FC = () => {
     }));
   };
 
-  /**
-   * Ferme le modal d'entrée manuelle
-   */
   const handleCloseManual = () => {
     setShowManualModal(false);
     setManualForm({
@@ -314,141 +213,35 @@ const DocumentsPage: React.FC = () => {
     });
   };
 
-  /**
-   * Crée une entrée manuelle
-   */
   const handleCreateManual = async () => {
-    // Validation basique
-    if (!manualForm.merchant.trim()) {
-      setError('Le marchand/description est obligatoire');
+    if (!manualForm.merchant.trim() || !manualForm.total_amount || !manualForm.date) {
+      setError('Marchand, montant et date sont obligatoires.');
       return;
     }
-    if (!manualForm.total_amount || parseFloat(manualForm.total_amount) <= 0) {
-      setError('Le montant doit être supérieur à 0');
-      return;
-    }
-    if (!manualForm.date) {
-      setError('La date est obligatoire');
-      return;
-    }
-
     try {
       setIsCreatingManual(true);
       setError(null);
-
       await documentsApi.createManual({
-        date: manualForm.date,
-        merchant: manualForm.merchant.trim(),
+        ...manualForm,
         total_amount: parseFloat(manualForm.total_amount),
-        currency: manualForm.currency,
-        is_income: manualForm.is_income,
-        doc_type: manualForm.doc_type,
-        tag_ids: manualForm.tag_ids,
         notes: manualForm.notes.trim() || undefined,
       });
-
-      // Recharger la liste et fermer le modal
       await loadDocuments();
       handleCloseManual();
       setUploadSuccess('Entrée manuelle créée avec succès');
       setTimeout(() => setUploadSuccess(null), 3000);
     } catch (err: any) {
-      const detail = err.response?.data?.detail;
-      if (Array.isArray(detail)) {
-        const messages = detail.map((e: any) => e.msg || JSON.stringify(e)).join(', ');
-        setError(`Erreur de validation: ${messages}`);
-      } else if (typeof detail === 'string') {
-        setError(detail);
-      } else {
-        setError('Erreur lors de la création');
-      }
+      setError(err.response?.data?.detail || 'Erreur lors de la création manuelle');
     } finally {
       setIsCreatingManual(false);
     }
   };
-
-  /**
-   * Supprime un document
-   */
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('Voulez-vous vraiment supprimer ce document ?')) {
-      return;
-    }
-
-    try {
-      setDeletingId(id);
-      await documentsApi.delete(id);
-      // Retire le document de la liste locale
-      setDocumentsList((prev) => prev.filter((doc) => doc.id !== id));
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Erreur lors de la suppression');
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
-  /**
-   * Duplique un document
-   */
-  const handleDuplicate = async (id: number) => {
-    try {
-      setDuplicatingId(id);
-      await documentsApi.duplicate(id);
-      // Recharger la liste
-      await loadDocuments();
-      setUploadSuccess('Document dupliqué avec succès');
-      setTimeout(() => setUploadSuccess(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Erreur lors de la duplication');
-    } finally {
-      setDuplicatingId(null);
-    }
-  };
-
-  /**
-   * Ouvre la visionneuse de document
-   */
-  const handleView = async (id: number) => {
-    try {
-      setIsLoadingViewer(true);
-      const doc = await documentsApi.get(id);
-      setViewingDocument(doc);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Erreur lors du chargement du document');
-    } finally {
-      setIsLoadingViewer(false);
-    }
-  };
-
-  /**
-   * Change le tri
-   */
-  const handleSort = (column: 'date' | 'total_amount' | 'merchant' | 'created_at') => {
-    if (sortBy === column) {
-      // Inverse la direction si on clique sur la même colonne
-      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-    } else {
-      // Nouvelle colonne, tri descendant par défaut
-      setSortBy(column);
-      setSortDir('desc');
-    }
-  };
-
-  /**
-   * Icône de tri pour une colonne
-   */
+  
   const SortIcon: React.FC<{ column: 'date' | 'total_amount' | 'merchant' | 'created_at' }> = ({ column }) => {
-    if (sortBy !== column) {
-      return <ArrowUpDown className="w-4 h-4 text-slate-400" />;
-    }
-    return sortDir === 'asc'
-      ? <ArrowUp className="w-4 h-4 text-blue-600" />
-      : <ArrowDown className="w-4 h-4 text-blue-600" />;
+    if (sortBy !== column) return <ArrowUpDown className="w-4 h-4 text-slate-400" />;
+    return sortDir === 'asc' ? <ArrowUp className="w-4 h-4 text-blue-600" /> : <ArrowDown className="w-4 h-4 text-blue-600" />;
   };
 
-  /**
-   * Retourne l'icône appropriée selon le type de fichier
-   */
   const getFileIcon = (fileType: string | undefined | null) => {
     if (!fileType) return FileText;
     if (fileType.includes('pdf')) return FileText;
@@ -457,99 +250,33 @@ const DocumentsPage: React.FC = () => {
       return FileSpreadsheet;
     return File;
   };
-
-  /**
-   * Formate la taille du fichier
-   */
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  /**
-   * Formate le montant avec la devise
-   */
+  
   const formatAmount = (amount: number | undefined | null, currency: string = 'EUR'): string => {
     if (amount === undefined || amount === null) return '--';
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: currency,
-    }).format(amount);
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: currency }).format(amount);
   };
-
+  
   return (
     <div className="space-y-6">
-      {/* ============================================ */}
-      {/* Header de la page */}
-      {/* ============================================ */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Documents</h1>
-          <p className="text-slate-600 mt-1">
-            Gérez vos documents financiers
-          </p>
+          <p className="text-slate-600 mt-1">Gérez et recherchez vos documents financiers.</p>
         </div>
-        <div className="text-sm text-slate-500">
-          {documentsList.length} document(s)
-        </div>
+        <div className="text-sm text-slate-500">{documentsList.length} document(s) affiché(s)</div>
       </div>
 
-      {/* ============================================ */}
-      {/* Zone de Drag & Drop + Bouton entrée manuelle */}
-      {/* ============================================ */}
       <div className="flex gap-4">
-        {/* Zone d'upload */}
-        <div
-          {...getRootProps()}
-          className={clsx(
-            'flex-1 border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors',
-            isDragActive
-              ? 'border-blue-500 bg-blue-50'
-              : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50',
-            isUploading && 'opacity-50 cursor-not-allowed'
-          )}
-        >
-        <input {...getInputProps()} />
-        <div className="flex flex-col items-center">
-          {isUploading ? (
-            <>
-              <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
-              <p className="mt-4 text-sm text-slate-600">{uploadProgress}</p>
-            </>
-          ) : (
-            <>
-              <Upload
-                className={clsx(
-                  'w-12 h-12',
-                  isDragActive ? 'text-blue-500' : 'text-slate-400'
-                )}
-              />
-              <p className="mt-4 text-sm text-slate-600">
-                {isDragActive ? (
-                  <span className="text-blue-600 font-medium">
-                    Déposez les fichiers ici...
-                  </span>
-                ) : (
-                  <>
-                    <span className="text-blue-600 font-medium">
-                      Cliquez pour uploader
-                    </span>{' '}
-                    ou glissez-déposez vos fichiers
-                  </>
-                )}
-              </p>
-              <p className="mt-2 text-xs text-slate-400">
-                PDF, Images, Excel, CSV (max 10 MB)
-              </p>
-            </>
-          )}
+        <div {...getRootProps()} className={clsx('flex-1 border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors', isDragActive ? 'border-blue-500 bg-blue-50' : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50', isUploading && 'opacity-50 cursor-not-allowed')}>
+          <input {...getInputProps()} />
+          <div className="flex flex-col items-center">
+            {isUploading ? (
+              <><Loader2 className="w-12 h-12 text-blue-500 animate-spin" /><p className="mt-4 text-sm text-slate-600">{uploadProgress}</p></>
+            ) : (
+              <><Upload className={clsx('w-12 h-12', isDragActive ? 'text-blue-500' : 'text-slate-400')} /><p className="mt-4 text-sm text-slate-600">{isDragActive ? <span className="text-blue-600 font-medium">Déposez...</span> : <><span className="text-blue-600 font-medium">Cliquez ou glissez</span><span> pour uploader</span></>}</p><p className="mt-2 text-xs text-slate-400">PDF, Images</p></>
+            )}
+          </div>
         </div>
-        </div>
-
-        {/* Bouton entrée manuelle */}
         <button
           onClick={() => setShowManualModal(true)}
           className="flex flex-col items-center justify-center w-32 border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer transition-colors hover:border-green-400 hover:bg-green-50"
@@ -560,607 +287,73 @@ const DocumentsPage: React.FC = () => {
           </span>
         </button>
       </div>
+      
+      {uploadSuccess && <div className="flex items-center p-4 bg-green-50 border border-green-200 rounded-lg"><CheckCircle className="w-5 h-5 text-green-500 mr-3"/><span className="text-sm text-green-700">{uploadSuccess}</span><button onClick={() => setUploadSuccess(null)} className="ml-auto p-1"><X className="w-4 h-4"/></button></div>}
+      {error && <div className="flex items-center p-4 bg-red-50 border border-red-200 rounded-lg"><AlertCircle className="w-5 h-5 text-red-500 mr-3"/><span className="text-sm text-red-700">{error}</span><button onClick={() => setError(null)} className="ml-auto p-1"><X className="w-4 h-4"/></button></div>}
 
-      {/* ============================================ */}
-      {/* Messages de feedback */}
-      {/* ============================================ */}
-      {uploadSuccess && (
-        <div className="flex items-center p-4 bg-green-50 border border-green-200 rounded-lg">
-          <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-          <span className="text-sm text-green-700">{uploadSuccess}</span>
-          <button
-            onClick={() => setUploadSuccess(null)}
-            className="ml-auto p-1 hover:bg-green-100 rounded"
-          >
-            <X className="w-4 h-4 text-green-500" />
-          </button>
-        </div>
-      )}
+      <DocumentFilters filters={filters} onFiltersChange={setFilters} />
 
-      {error && (
-        <div className="flex items-center p-4 bg-red-50 border border-red-200 rounded-lg">
-          <AlertCircle className="w-5 h-5 text-red-500 mr-3 flex-shrink-0" />
-          <span className="text-sm text-red-700">{error}</span>
-          <button
-            onClick={() => setError(null)}
-            className="ml-auto p-1 hover:bg-red-100 rounded"
-          >
-            <X className="w-4 h-4 text-red-500" />
-          </button>
-        </div>
-      )}
-
-      {/* ============================================ */}
-      {/* Liste des documents */}
-      {/* ============================================ */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-          <span className="ml-3 text-slate-600">Chargement des documents...</span>
-        </div>
+        <div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 text-blue-500 animate-spin" /><span className="ml-3 text-slate-600">Chargement...</span></div>
       ) : documentsList.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-slate-200">
-          <FileText className="w-16 h-16 text-slate-300 mx-auto" />
-          <h3 className="mt-4 text-lg font-medium text-slate-800">
-            Aucun document
-          </h3>
-          <p className="mt-2 text-sm text-slate-500">
-            Commencez par uploader votre premier document
-          </p>
+          <Search className="w-16 h-16 text-slate-300 mx-auto" />
+          <h3 className="mt-4 text-lg font-medium text-slate-800">{activeFilterCount > 0 ? "Aucun résultat" : "Aucun document"}</h3>
+          <p className="mt-2 text-sm text-slate-500">{activeFilterCount > 0 ? "Essayez de modifier vos filtres." : "Commencez par uploader un document."}</p>
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          {/* En-tête du tableau */}
-          <div className="hidden sm:grid sm:grid-cols-12 gap-4 px-6 py-3 bg-slate-50 border-b border-slate-200 text-xs font-medium text-slate-500 uppercase tracking-wider">
-            <button
-              onClick={() => handleSort('merchant')}
-              className="col-span-4 flex items-center gap-1 hover:text-slate-700 transition-colors text-left"
-            >
-              Document
-              <SortIcon column="merchant" />
-            </button>
-            <button
-              onClick={() => handleSort('date')}
-              className="col-span-2 flex items-center gap-1 hover:text-slate-700 transition-colors text-left"
-            >
-              Date
-              <SortIcon column="date" />
-            </button>
-            <button
-              onClick={() => handleSort('total_amount')}
-              className="col-span-2 flex items-center gap-1 hover:text-slate-700 transition-colors text-left"
-            >
-              Montant
-              <SortIcon column="total_amount" />
-            </button>
+          <div className="hidden sm:grid sm:grid-cols-12 gap-4 px-6 py-3 bg-slate-50 border-b text-xs font-medium text-slate-500 uppercase">
+            <button onClick={() => handleSort('merchant')} className="col-span-4 flex items-center gap-1 hover:text-slate-700">Document <SortIcon column="merchant" /></button>
+            <button onClick={() => handleSort('date')} className="col-span-2 flex items-center gap-1 hover:text-slate-700">Date <SortIcon column="date" /></button>
+            <button onClick={() => handleSort('total_amount')} className="col-span-2 flex items-center gap-1 hover:text-slate-700">Montant <SortIcon column="total_amount" /></button>
             <div className="col-span-3">Tags</div>
             <div className="col-span-1">Actions</div>
           </div>
 
-          {/* Liste des documents */}
           <div className="divide-y divide-slate-200">
             {documentsList.map((doc) => {
-              const FileIcon = getFileIcon(doc.file_type);
-              const isDeleting = deletingId === doc.id;
-
+              const IconComponent = getFileIcon(doc.file_type);
               return (
-                <div
-                  key={doc.id}
-                  className={clsx(
-                    'px-6 py-4 hover:bg-slate-50 transition-colors',
-                    isDeleting && 'opacity-50'
-                  )}
-                >
-                  <div className="sm:grid sm:grid-cols-12 gap-4 items-center">
-                    {/* Nom du fichier ou entrée manuelle */}
-                    <div
-                      className={clsx(
-                        "col-span-4 flex items-center min-w-0",
-                        doc.file_path && "cursor-pointer group"
-                      )}
-                      onClick={() => doc.file_path && handleView(doc.id)}
-                      title={doc.file_path ? "Cliquer pour voir le document" : undefined}
-                    >
-                      <div className={clsx(
-                        "flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
-                        doc.original_name ? "bg-slate-100 group-hover:bg-blue-100" : "bg-green-100"
-                      )}>
-                        {doc.original_name ? (
-                          <FileIcon className="w-5 h-5 text-slate-500 group-hover:text-blue-600" />
-                        ) : (
-                          <Pencil className="w-5 h-5 text-green-600" />
-                        )}
-                      </div>
-                      <div className="ml-3 min-w-0">
-                        <p className="text-sm font-medium text-slate-800 truncate group-hover:text-blue-600">
-                          {doc.original_name || doc.merchant || 'Entrée manuelle'}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs text-slate-500">
-                            {doc.doc_type || 'Document'}
-                          </p>
-                          {!doc.original_name && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
-                              Manuel
-                            </span>
-                          )}
-                        </div>
-                      </div>
+              <div key={doc.id} className={clsx('px-6 py-4 hover:bg-slate-50', deletingId === doc.id && 'opacity-50')}>
+                <div className="sm:grid sm:grid-cols-12 gap-4 items-center">
+                  <div className={clsx("col-span-4 flex items-center", doc.file_path && "cursor-pointer group")} onClick={() => doc.file_path && handleView(doc.id)}>
+                    <div className={clsx("flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center", doc.original_name ? "bg-slate-100 group-hover:bg-blue-100" : "bg-green-100")}>
+                      {doc.original_name ? <IconComponent className="w-5 h-5 text-slate-500 group-hover:text-blue-600" /> : <Pencil className="w-5 h-5 text-green-600" />}
                     </div>
-
-                    {/* Date */}
-                    <div className="col-span-2 mt-2 sm:mt-0">
-                      <p className="text-sm text-slate-600">
-                        {doc.date
-                          ? format(new Date(doc.date), 'dd MMM yyyy', {
-                            locale: fr,
-                          })
-                          : format(new Date(doc.created_at), 'dd MMM yyyy', {
-                            locale: fr,
-                          })}
-                      </p>
-                      <p className="text-xs text-slate-400 sm:hidden">Date</p>
-                    </div>
-
-                    {/* Montant */}
-                    <div className="col-span-2 mt-2 sm:mt-0">
-                      <p
-                        className={clsx(
-                          'text-sm font-medium',
-                          doc.total_amount ? 'text-slate-800' : 'text-slate-400'
-                        )}
-                      >
-                        {formatAmount(doc.total_amount, doc.currency)}
-                      </p>
-                      <p className="text-xs text-slate-400 sm:hidden">Montant</p>
-                    </div>
-
-                    {/* Tags */}
-                    <div className="col-span-3 mt-2 sm:mt-0">
-                      <div className="flex flex-wrap gap-1">
-                        {doc.tags && doc.tags.length > 0 ? (
-                          doc.tags.map((tag) => (
-                            <span
-                              key={tag.id}
-                              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                              style={{
-                                backgroundColor: `${tag.color}20`,
-                                color: tag.color,
-                              }}
-                            >
-                              {tag.name}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-slate-400">
-                            Aucun tag
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="col-span-1 mt-3 sm:mt-0 flex justify-end gap-1">
-                      {doc.file_path && (
-                        <button
-                          onClick={() => handleView(doc.id)}
-                          disabled={isLoadingViewer}
-                          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
-                          title="Voir le document"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleDuplicate(doc.id)}
-                        disabled={duplicatingId === doc.id}
-                        className="p-2 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
-                        title="Dupliquer"
-                      >
-                        {duplicatingId === doc.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => handleEdit(doc)}
-                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Modifier"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(doc.id)}
-                        disabled={isDeleting}
-                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                        title="Supprimer"
-                      >
-                        {isDeleting ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-4 h-4" />
-                        )}
-                      </button>
+                    <div className="ml-3 min-w-0">
+                      <p className="text-sm font-medium text-slate-800 truncate group-hover:text-blue-600">{doc.merchant || doc.original_name || 'Entrée manuelle'}</p>
+                      <p className="text-xs text-slate-500">{doc.doc_type || 'Document'}</p>
                     </div>
                   </div>
+
+                  <div className="col-span-2 mt-2 sm:mt-0"><p className="text-sm text-slate-600">{doc.date ? format(new Date(doc.date), 'dd MMM yyyy', { locale: fr }) : 'N/A'}</p></div>
+                  <div className="col-span-2 mt-2 sm:mt-0"><p className={clsx('text-sm font-medium', doc.is_income ? 'text-green-600' : 'text-slate-800')}>{formatAmount(doc.total_amount, doc.currency)}</p></div>
+                  <div className="col-span-3 mt-2 sm:mt-0"><div className="flex flex-wrap gap-1">{(doc.tags || []).map(tag => <span key={tag.id} className="px-2 py-0.5 text-xs rounded-full" style={{ backgroundColor: `${tag.color}20`, color: tag.color }}>{tag.name}</span>)}</div></div>
+                  <div className="col-span-1 mt-3 sm:mt-0 flex justify-end gap-1">
+                    {doc.file_path && <button onClick={() => handleView(doc.id)} className="p-2 text-slate-400 hover:text-blue-600 rounded-lg"><Eye className="w-4 h-4" /></button>}
+                    <button onClick={() => handleDuplicate(doc.id)} className="p-2 text-slate-400 hover:text-green-600 rounded-lg" disabled={duplicatingId === doc.id}>{duplicatingId === doc.id ? <Loader2 className="w-4 h-4 animate-spin"/> : <Copy className="w-4 h-4" />}</button>
+                    <button onClick={() => handleDelete(doc.id)} className="p-2 text-slate-400 hover:text-red-600 rounded-lg" disabled={deletingId === doc.id}>{deletingId === doc.id ? <Loader2 className="w-4 h-4 animate-spin"/> : <Trash2 className="w-4 h-4" />}</button>
+                  </div>
                 </div>
-              );
-            })}
+              </div>
+            )})}
           </div>
         </div>
       )}
-
-      {/* ============================================ */}
-      {/* Modal d'édition */}
-      {/* ============================================ */}
-      {editingDoc && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            {/* Header du modal */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-              <h2 className="text-lg font-semibold text-slate-800">
-                Modifier le document
-              </h2>
-              <button
-                onClick={handleCloseEdit}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Contenu du formulaire */}
-            <div className="px-6 py-4 space-y-4">
-              {/* Nom du fichier (lecture seule) */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Fichier
-                </label>
-                <p className="text-sm text-slate-500 bg-slate-50 px-3 py-2 rounded-lg">
-                  {editingDoc.original_name}
-                </p>
-              </div>
-
-              {/* Marchand */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Marchand
-                </label>
-                <input
-                  type="text"
-                  value={editForm.merchant}
-                  onChange={(e) =>
-                    setEditForm((prev) => ({ ...prev, merchant: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Nom du marchand"
-                />
-              </div>
-
-              {/* Date */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Date
-                </label>
-                <input
-                  type="date"
-                  value={editForm.date}
-                  onChange={(e) =>
-                    setEditForm((prev) => ({ ...prev, date: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              {/* Montant et Devise */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Montant total
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={editForm.total_amount}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({ ...prev, total_amount: e.target.value }))
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Devise
-                  </label>
-                  <select
-                    value={editForm.currency}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({ ...prev, currency: e.target.value }))
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="EUR">EUR</option>
-                    <option value="USD">USD</option>
-                    <option value="GBP">GBP</option>
-                    <option value="CHF">CHF</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Type de document */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Type de document
-                </label>
-                <select
-                  value={editForm.doc_type}
-                  onChange={(e) =>
-                    setEditForm((prev) => ({
-                      ...prev,
-                      doc_type: e.target.value as 'receipt' | 'invoice' | 'payslip' | 'other',
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="receipt">Ticket de caisse</option>
-                  <option value="invoice">Facture</option>
-                  <option value="payslip">Fiche de paie</option>
-                  <option value="other">Autre</option>
-                </select>
-              </div>
-
-              {/* Revenu ou Dépense */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Type de transaction
-                </label>
-                <div className="flex gap-4">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="is_income"
-                      checked={!editForm.is_income}
-                      onChange={() =>
-                        setEditForm((prev) => ({ ...prev, is_income: false }))
-                      }
-                      className="w-4 h-4 text-blue-600 border-slate-300 focus:ring-blue-500"
-                    />
-                    <span className="ml-2 text-sm text-slate-700">Dépense</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="is_income"
-                      checked={editForm.is_income}
-                      onChange={() =>
-                        setEditForm((prev) => ({ ...prev, is_income: true }))
-                      }
-                      className="w-4 h-4 text-blue-600 border-slate-300 focus:ring-blue-500"
-                    />
-                    <span className="ml-2 text-sm text-slate-700">Revenu</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Tags */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Tags
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {tagsList.map((tag) => (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      onClick={() => toggleTag(tag.id)}
-                      className={clsx(
-                        'px-3 py-1 rounded-full text-sm font-medium transition-all',
-                        editForm.tag_ids.includes(tag.id)
-                          ? 'ring-2 ring-offset-1'
-                          : 'opacity-60 hover:opacity-100'
-                      )}
-                      style={{
-                        backgroundColor: `${tag.color}20`,
-                        color: tag.color,
-                        ...(editForm.tag_ids.includes(tag.id)
-                          ? { ringColor: tag.color }
-                          : {}),
-                      }}
-                    >
-                      {tag.name}
-                    </button>
-                  ))}
-                  {tagsList.length === 0 && (
-                    <p className="text-sm text-slate-400">
-                      Aucun tag disponible. Créez des tags dans la page Tags.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Footer du modal */}
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl">
-              <button
-                onClick={handleCloseEdit}
-                disabled={isSaving}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={handleSaveEdit}
-                disabled={isSaving}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Sauvegarde...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    Sauvegarder
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ============================================ */}
-      {/* Modal d'entrée manuelle */}
-      {/* ============================================ */}
+      
       {showManualModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            {/* Header du modal */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-              <h2 className="text-lg font-semibold text-slate-800">
-                Nouvelle entrée manuelle
-              </h2>
-              <button
-                onClick={handleCloseManual}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+            <div className="flex items-center justify-between px-6 py-4 border-b">
+              <h2 className="text-lg font-semibold">Nouvelle entrée manuelle</h2>
+              <button onClick={handleCloseManual} className="p-2"><X size={20}/></button>
             </div>
-
-            {/* Contenu du formulaire */}
-            <div className="px-6 py-4 space-y-4">
-              {/* Marchand / Description */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Marchand / Description <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={manualForm.merchant}
-                  onChange={(e) =>
-                    setManualForm((prev) => ({ ...prev, merchant: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  placeholder="Ex: Parking, Restaurant, Virement..."
-                />
-              </div>
-
-              {/* Date */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Date <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  value={manualForm.date}
-                  onChange={(e) =>
-                    setManualForm((prev) => ({ ...prev, date: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                />
-              </div>
-
-              {/* Montant et Devise */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Montant <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={manualForm.total_amount}
-                    onChange={(e) =>
-                      setManualForm((prev) => ({ ...prev, total_amount: e.target.value }))
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Devise
-                  </label>
-                  <select
-                    value={manualForm.currency}
-                    onChange={(e) =>
-                      setManualForm((prev) => ({ ...prev, currency: e.target.value }))
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  >
-                    <option value="EUR">EUR</option>
-                    <option value="USD">USD</option>
-                    <option value="GBP">GBP</option>
-                    <option value="CHF">CHF</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Type de transaction */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Type de transaction
-                </label>
-                <div className="flex gap-4">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="manual_is_income"
-                      checked={!manualForm.is_income}
-                      onChange={() =>
-                        setManualForm((prev) => ({ ...prev, is_income: false }))
-                      }
-                      className="w-4 h-4 text-green-600 border-slate-300 focus:ring-green-500"
-                    />
-                    <span className="ml-2 text-sm text-slate-700">Dépense</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="manual_is_income"
-                      checked={manualForm.is_income}
-                      onChange={() =>
-                        setManualForm((prev) => ({ ...prev, is_income: true }))
-                      }
-                      className="w-4 h-4 text-green-600 border-slate-300 focus:ring-green-500"
-                    />
-                    <span className="ml-2 text-sm text-slate-700">Revenu</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Type de document */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Catégorie
-                </label>
-                <select
-                  value={manualForm.doc_type}
-                  onChange={(e) =>
-                    setManualForm((prev) => ({
-                      ...prev,
-                      doc_type: e.target.value as 'receipt' | 'invoice' | 'payslip' | 'other',
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                >
-                  <option value="other">Autre</option>
-                  <option value="receipt">Ticket de caisse</option>
-                  <option value="invoice">Facture</option>
-                  <option value="payslip">Fiche de paie</option>
-                </select>
-              </div>
-
-              {/* Tags */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Tags
-                </label>
+            <div className="p-6 space-y-4">
+                {/* Form fields */}
+                <input type="text" placeholder="Marchand" value={manualForm.merchant} onChange={e => setManualForm({...manualForm, merchant: e.target.value})} className="w-full p-2 border rounded"/>
+                <input type="date" value={manualForm.date} onChange={e => setManualForm({...manualForm, date: e.target.value})} className="w-full p-2 border rounded"/>
+                <input type="number" placeholder="Montant" value={manualForm.total_amount} onChange={e => setManualForm({...manualForm, total_amount: e.target.value})} className="w-full p-2 border rounded"/>
                 <div className="flex flex-wrap gap-2">
                   {tagsList.map((tag) => (
                     <button
@@ -1168,105 +361,26 @@ const DocumentsPage: React.FC = () => {
                       type="button"
                       onClick={() => toggleManualTag(tag.id)}
                       className={clsx(
-                        'px-3 py-1 rounded-full text-sm font-medium transition-all',
-                        manualForm.tag_ids.includes(tag.id)
-                          ? 'ring-2 ring-offset-1'
-                          : 'opacity-60 hover:opacity-100'
+                        'px-3 py-1 rounded-full text-sm',
+                        manualForm.tag_ids.includes(tag.id) ? 'bg-blue-500 text-white' : 'bg-gray-200'
                       )}
-                      style={{
-                        backgroundColor: `${tag.color}20`,
-                        color: tag.color,
-                        ...(manualForm.tag_ids.includes(tag.id)
-                          ? { ringColor: tag.color }
-                          : {}),
-                      }}
                     >
                       {tag.name}
                     </button>
                   ))}
-                  {tagsList.length === 0 && (
-                    <p className="text-sm text-slate-400">
-                      Aucun tag disponible.
-                    </p>
-                  )}
                 </div>
-              </div>
-
-              {/* Notes */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Notes (optionnel)
-                </label>
-                <textarea
-                  value={manualForm.notes}
-                  onChange={(e) =>
-                    setManualForm((prev) => ({ ...prev, notes: e.target.value }))
-                  }
-                  rows={3}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  placeholder="Informations complémentaires..."
-                />
-              </div>
             </div>
-
-            {/* Footer du modal */}
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl">
-              <button
-                onClick={handleCloseManual}
-                disabled={isCreatingManual}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={handleCreateManual}
-                disabled={isCreatingManual}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-              >
-                {isCreatingManual ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Création...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-4 h-4" />
-                    Créer l'entrée
-                  </>
-                )}
+            <div className="px-6 py-4 bg-gray-50 flex justify-end gap-4">
+              <button onClick={handleCloseManual} className="px-4 py-2 rounded">Annuler</button>
+              <button onClick={handleCreateManual} disabled={isCreatingManual} className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-blue-300">
+                {isCreatingManual ? 'Création...' : 'Créer'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ============================================ */}
-      {/* Visionneuse de document */}
-      {/* ============================================ */}
-      {viewingDocument && (
-        <DocumentViewer
-          document={viewingDocument}
-          onClose={() => setViewingDocument(null)}
-          onUpdate={(updatedDoc) => {
-            // Mettre à jour le document dans la liste
-            setDocumentsList((prev) =>
-              prev.map((d) =>
-                d.id === updatedDoc.id
-                  ? {
-                      ...d,
-                      merchant: updatedDoc.merchant,
-                      date: updatedDoc.date,
-                      total_amount: updatedDoc.total_amount,
-                      doc_type: updatedDoc.doc_type,
-                      is_income: updatedDoc.is_income,
-                      tags: updatedDoc.tags,
-                    }
-                  : d
-              )
-            );
-          }}
-        />
-      )}
+      {viewingDocument && <DocumentViewer document={viewingDocument} onClose={() => setViewingDocument(null)} onUpdate={(updatedDoc) => { setDocumentsList(prev => prev.map(d => d.id === updatedDoc.id ? { ...d, ...updatedDoc } : d)); loadDocuments(); }} />}
     </div>
   );
 };
