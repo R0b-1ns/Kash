@@ -245,6 +245,17 @@ export const documents = {
     const response = await apiClient.post<Document>(`/documents/${id}/duplicate`);
     return response.data;
   },
+
+  /**
+   * Récupère le fichier d'un document sous forme de Blob URL
+   * Utile pour afficher les images/PDF dans le navigateur
+   */
+  getFileBlob: async (id: number): Promise<string> => {
+    const response = await apiClient.get(`/documents/${id}/file`, {
+      responseType: 'blob',
+    });
+    return URL.createObjectURL(response.data);
+  },
 };
 
 // ============================================

@@ -25,10 +25,12 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
+  Eye,
 } from 'lucide-react';
 import { documents as documentsApi, tags as tagsApi } from '../services/api';
-import { DocumentListItem, Tag } from '../types';
+import { DocumentListItem, Tag, Document } from '../types';
 import clsx from 'clsx';
+import DocumentViewer from '../components/DocumentViewer';
 
 // ============================================
 // Composant DocumentsPage
@@ -58,6 +60,10 @@ const DocumentsPage: React.FC = () => {
 
   // État du modal d'entrée manuelle
   const [showManualModal, setShowManualModal] = useState(false);
+
+  // État de la visionneuse de document
+  const [viewingDocument, setViewingDocument] = useState<Document | null>(null);
+  const [isLoadingViewer, setIsLoadingViewer] = useState(false);
   const [manualForm, setManualForm] = useState({
     date: new Date().toISOString().split('T')[0],
     merchant: '',
@@ -400,6 +406,21 @@ const DocumentsPage: React.FC = () => {
   };
 
   /**
+   * Ouvre la visionneuse de document
+   */
+  const handleView = async (id: number) => {
+    try {
+      setIsLoadingViewer(true);
+      const doc = await documentsApi.get(id);
+      setViewingDocument(doc);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Erreur lors du chargement du document');
+    } finally {
+      setIsLoadingViewer(false);
+    }
+  };
+
+  /**
    * Change le tri
    */
   const handleSort = (column: 'date' | 'total_amount' | 'merchant' | 'created_at') => {
@@ -632,19 +653,26 @@ const DocumentsPage: React.FC = () => {
                 >
                   <div className="sm:grid sm:grid-cols-12 gap-4 items-center">
                     {/* Nom du fichier ou entrée manuelle */}
-                    <div className="col-span-4 flex items-center min-w-0">
+                    <div
+                      className={clsx(
+                        "col-span-4 flex items-center min-w-0",
+                        doc.file_path && "cursor-pointer group"
+                      )}
+                      onClick={() => doc.file_path && handleView(doc.id)}
+                      title={doc.file_path ? "Cliquer pour voir le document" : undefined}
+                    >
                       <div className={clsx(
-                        "flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center",
-                        doc.original_name ? "bg-slate-100" : "bg-green-100"
+                        "flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
+                        doc.original_name ? "bg-slate-100 group-hover:bg-blue-100" : "bg-green-100"
                       )}>
                         {doc.original_name ? (
-                          <FileIcon className="w-5 h-5 text-slate-500" />
+                          <FileIcon className="w-5 h-5 text-slate-500 group-hover:text-blue-600" />
                         ) : (
                           <Pencil className="w-5 h-5 text-green-600" />
                         )}
                       </div>
                       <div className="ml-3 min-w-0">
-                        <p className="text-sm font-medium text-slate-800 truncate">
+                        <p className="text-sm font-medium text-slate-800 truncate group-hover:text-blue-600">
                           {doc.original_name || doc.merchant || 'Entrée manuelle'}
                         </p>
                         <div className="flex items-center gap-2">
@@ -713,6 +741,16 @@ const DocumentsPage: React.FC = () => {
 
                     {/* Actions */}
                     <div className="col-span-1 mt-3 sm:mt-0 flex justify-end gap-1">
+                      {doc.file_path && (
+                        <button
+                          onClick={() => handleView(doc.id)}
+                          disabled={isLoadingViewer}
+                          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
+                          title="Voir le document"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDuplicate(doc.id)}
                         disabled={duplicatingId === doc.id}
@@ -1200,6 +1238,16 @@ const DocumentsPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ============================================ */}
+      {/* Visionneuse de document */}
+      {/* ============================================ */}
+      {viewingDocument && (
+        <DocumentViewer
+          document={viewingDocument}
+          onClose={() => setViewingDocument(null)}
+        />
       )}
     </div>
   );

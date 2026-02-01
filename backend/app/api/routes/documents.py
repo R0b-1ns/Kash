@@ -6,6 +6,7 @@ Endpoints:
 - POST /documents/upload : Upload d'un nouveau document (déclenche OCR + IA)
 - POST /documents/manual : Créer une entrée manuelle (sans fichier)
 - GET /documents/{id} : Détails d'un document
+- GET /documents/{id}/file : Télécharger/afficher le fichier original
 - PUT /documents/{id} : Modifier un document (correction manuelle)
 - DELETE /documents/{id} : Supprimer un document
 - POST /documents/{id}/reprocess : Relancer l'extraction OCR + IA
@@ -21,6 +22,7 @@ from datetime import date
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query, BackgroundTasks
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import desc, asc
 from typing import Literal
@@ -301,6 +303,50 @@ def get_document(
 
     # Conversion manuelle
     return document_to_response(document)
+
+
+@router.get("/{document_id}/file")
+def get_document_file(
+    document_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Récupère le fichier original d'un document (image ou PDF).
+
+    Retourne le fichier avec le bon Content-Type pour affichage dans le navigateur.
+    """
+    document = db.query(Document).filter(
+        Document.id == document_id,
+        Document.user_id == current_user.id
+    ).first()
+
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document non trouvé"
+        )
+
+    if not document.file_path:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ce document n'a pas de fichier associé (entrée manuelle)"
+        )
+
+    if not os.path.exists(document.file_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Le fichier n'existe plus sur le serveur"
+        )
+
+    # Déterminer le media type
+    media_type = document.file_type or "application/octet-stream"
+
+    return FileResponse(
+        path=document.file_path,
+        media_type=media_type,
+        filename=document.original_name
+    )
 
 
 @router.put("/{document_id}")
