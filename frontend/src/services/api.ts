@@ -12,9 +12,12 @@ import {
   Document,
   DocumentListItem,
   DocumentFilters,
+  DocumentStatusResponse,
   Item,
   ItemCreate,
   ItemUpdate,
+  ItemFilters,
+  ItemListResponse,
   ItemAliasGroup,
   ItemAliasSuggestion,
   DistinctItem,
@@ -276,6 +279,15 @@ export const documents = {
     });
     return URL.createObjectURL(response.data);
   },
+
+  /**
+   * Récupère le statut de traitement d'un document
+   * Utilisé pour le polling pendant l'upload asynchrone
+   */
+  getStatus: async (id: number): Promise<DocumentStatusResponse> => {
+    const response = await apiClient.get<DocumentStatusResponse>(`/documents/${id}/status`);
+    return response.data;
+  },
 };
 
 // ============================================
@@ -283,6 +295,28 @@ export const documents = {
 // ============================================
 
 export const items = {
+  /**
+   * Liste les articles avec filtres avancés
+   */
+  list: async (filters?: ItemFilters): Promise<ItemListResponse> => {
+    const params: Record<string, any> = {};
+
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+          if (key === 'tag_ids' && Array.isArray(value) && value.length > 0) {
+            params[key] = value.join(',');
+          } else if (key !== 'tag_ids') {
+            params[key] = value;
+          }
+        }
+      });
+    }
+
+    const response = await apiClient.get<ItemListResponse>('/items', { params });
+    return response.data;
+  },
+
   /**
    * Ajoute un article à un document
    */

@@ -32,6 +32,10 @@ class Document(Base):
     ocr_raw_text = Column(Text)
     ocr_confidence = Column(Numeric(5, 2))
 
+    # Processing status (for async upload)
+    processing_status = Column(String(20), default="completed")  # pending, processing, completed, error
+    processing_error = Column(Text, nullable=True)
+
     # Sync status
     synced_to_nas = Column(Boolean, default=False)
     synced_at = Column(DateTime(timezone=True))

@@ -1,22 +1,22 @@
 /**
  * Page Articles - Liste et statistiques des articles achetés
- * Affiche tous les articles avec leurs stats d'achat
+ * Affiche tous les articles avec filtres avancés
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   ShoppingCart,
-  Search,
   Loader2,
   AlertCircle,
   TrendingUp,
-  Calendar,
   ArrowUpDown,
   Link as LinkIcon,
+  Package,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { stats as statsApi, itemAliases as aliasesApi } from '../services/api';
-import type { TopItem, DistinctItem } from '../types';
+import { items as itemsApi } from '../services/api';
+import type { ItemFilters as ItemFiltersType, Item } from '../types';
+import ItemFilters from '../components/ItemFilters';
 
 // ============================================
 // Helpers
@@ -42,7 +42,7 @@ const extractErrorMessage = (err: any, fallback: string): string => {
 // Types locaux
 // ============================================
 
-type SortField = 'name' | 'quantity' | 'spent' | 'count';
+type SortField = 'name' | 'quantity' | 'price';
 type SortDir = 'asc' | 'desc';
 
 // ============================================
@@ -51,56 +51,40 @@ type SortDir = 'asc' | 'desc';
 
 const ItemsPage: React.FC = () => {
   // État des données
-  const [items, setItems] = useState<DistinctItem[]>([]);
-  const [topItems, setTopItems] = useState<TopItem[]>([]);
+  const [itemsList, setItemsList] = useState<Item[]>([]);
+  const [statsData, setStatsData] = useState<{ total_spent: number; total_quantity: number }>({
+    total_spent: 0,
+    total_quantity: 0,
+  });
+  const [totalCount, setTotalCount] = useState(0);
 
   // État UI
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Filtres
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState<string>('');
-  const [sortField, setSortField] = useState<SortField>('count');
-  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [filters, setFilters] = useState<Partial<ItemFiltersType>>({});
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
 
   /**
-   * Génère les options de mois (12 derniers mois)
-   */
-  const getMonthOptions = () => {
-    const options = [];
-    const now = new Date();
-    for (let i = 0; i < 12; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      const label = d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-      options.push({ value, label });
-    }
-    return options;
-  };
-
-  /**
-   * Charge les données
+   * Charge les données avec les filtres
    */
   const loadData = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Charger les top items (avec stats) et la liste complète
-      const [topItemsData, allItemsData] = await Promise.all([
-        statsApi.getTopItems({ month: selectedMonth || undefined, limit: 500 }),
-        aliasesApi.listItems({ search: searchQuery || undefined, limit: 500 }),
-      ]);
-
-      setTopItems(topItemsData);
-      setItems(allItemsData);
+      const response = await itemsApi.list(filters);
+      setItemsList(response.items);
+      setStatsData(response.stats);
+      setTotalCount(response.total);
     } catch (err: any) {
       setError(extractErrorMessage(err, 'Erreur lors du chargement'));
     } finally {
       setIsLoading(false);
     }
-  }, [selectedMonth, searchQuery]);
+  }, [filters]);
 
   // Chargement initial et lors des changements de filtres
   useEffect(() => {
@@ -109,40 +93,27 @@ const ItemsPage: React.FC = () => {
   }, [loadData]);
 
   /**
-   * Fusionne les données de topItems avec les infos d'alias
+   * Gestion des changements de filtres
    */
-  const getMergedItems = () => {
-    // Créer un map des items avec alias
-    const aliasMap = new Map(items.map(item => [item.name, item]));
-
-    // Fusionner avec les top items
-    return topItems.map(top => ({
-      ...top,
-      has_alias: aliasMap.get(top.name)?.has_alias || false,
-      canonical_name: aliasMap.get(top.name)?.canonical_name,
-    }));
+  const handleFiltersChange = (newFilters: Partial<ItemFiltersType>) => {
+    setFilters(newFilters);
   };
 
   /**
    * Trie les items
    */
   const getSortedItems = () => {
-    const merged = getMergedItems();
-
-    return merged.sort((a, b) => {
+    return [...itemsList].sort((a, b) => {
       let comparison = 0;
       switch (sortField) {
         case 'name':
           comparison = a.name.localeCompare(b.name);
           break;
         case 'quantity':
-          comparison = Number(a.total_quantity) - Number(b.total_quantity);
+          comparison = (a.quantity || 1) - (b.quantity || 1);
           break;
-        case 'spent':
-          comparison = Number(a.total_spent) - Number(b.total_spent);
-          break;
-        case 'count':
-          comparison = a.purchase_count - b.purchase_count;
+        case 'price':
+          comparison = (a.total_price || a.unit_price || 0) - (b.total_price || b.unit_price || 0);
           break;
       }
       return sortDir === 'desc' ? -comparison : comparison;
@@ -173,11 +144,6 @@ const ItemsPage: React.FC = () => {
 
   const sortedItems = getSortedItems();
 
-  // Stats globales
-  const totalItems = sortedItems.length;
-  const totalSpent = sortedItems.reduce((sum, item) => sum + Number(item.total_spent), 0);
-  const totalPurchases = sortedItems.reduce((sum, item) => sum + item.purchase_count, 0);
-
   return (
     <div className="space-y-6">
       {/* ============================================ */}
@@ -206,11 +172,11 @@ const ItemsPage: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 rounded-lg">
-              <ShoppingCart className="w-5 h-5 text-blue-600" />
+              <Package className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">Articles différents</p>
-              <p className="text-xl font-bold text-slate-800">{totalItems}</p>
+              <p className="text-sm text-slate-500">Articles trouvés</p>
+              <p className="text-xl font-bold text-slate-800">{totalCount}</p>
             </div>
           </div>
         </div>
@@ -221,18 +187,18 @@ const ItemsPage: React.FC = () => {
             </div>
             <div>
               <p className="text-sm text-slate-500">Total dépensé</p>
-              <p className="text-xl font-bold text-slate-800">{formatCurrency(totalSpent)}</p>
+              <p className="text-xl font-bold text-slate-800">{formatCurrency(statsData.total_spent)}</p>
             </div>
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-purple-100 rounded-lg">
-              <Calendar className="w-5 h-5 text-purple-600" />
+              <ShoppingCart className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">Achats totaux</p>
-              <p className="text-xl font-bold text-slate-800">{totalPurchases}</p>
+              <p className="text-sm text-slate-500">Quantité totale</p>
+              <p className="text-xl font-bold text-slate-800">{statsData.total_quantity.toFixed(0)}</p>
             </div>
           </div>
         </div>
@@ -241,37 +207,7 @@ const ItemsPage: React.FC = () => {
       {/* ============================================ */}
       {/* Filtres */}
       {/* ============================================ */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          {/* Recherche */}
-          <div className="flex-1 relative">
-            <Search className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher un article..."
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Filtre par mois */}
-          <div className="sm:w-48">
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Tous les temps</option>
-              {getMonthOptions().map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
+      <ItemFilters filters={filters} onFiltersChange={handleFiltersChange} />
 
       {/* ============================================ */}
       {/* Erreur */}
@@ -296,7 +232,9 @@ const ItemsPage: React.FC = () => {
           <ShoppingCart className="w-16 h-16 text-slate-300 mx-auto" />
           <h3 className="mt-4 text-lg font-medium text-slate-800">Aucun article</h3>
           <p className="mt-2 text-sm text-slate-500">
-            Uploadez des documents pour voir vos articles
+            {Object.keys(filters).length > 0
+              ? 'Aucun article ne correspond aux filtres'
+              : 'Uploadez des documents pour voir vos articles'}
           </p>
         </div>
       ) : (
@@ -305,17 +243,10 @@ const ItemsPage: React.FC = () => {
           <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-slate-50 border-b border-slate-200 text-sm font-medium text-slate-600">
             <button
               onClick={() => handleSort('name')}
-              className="col-span-5 flex items-center gap-1 hover:text-slate-800"
+              className="col-span-6 flex items-center gap-1 hover:text-slate-800"
             >
               Article
               {sortField === 'name' && <ArrowUpDown className="w-3 h-3" />}
-            </button>
-            <button
-              onClick={() => handleSort('count')}
-              className="col-span-2 flex items-center gap-1 hover:text-slate-800 justify-end"
-            >
-              Achats
-              {sortField === 'count' && <ArrowUpDown className="w-3 h-3" />}
             </button>
             <button
               onClick={() => handleSort('quantity')}
@@ -325,40 +256,41 @@ const ItemsPage: React.FC = () => {
               {sortField === 'quantity' && <ArrowUpDown className="w-3 h-3" />}
             </button>
             <button
-              onClick={() => handleSort('spent')}
-              className="col-span-3 flex items-center gap-1 hover:text-slate-800 justify-end"
+              onClick={() => handleSort('price')}
+              className="col-span-2 flex items-center gap-1 hover:text-slate-800 justify-end"
             >
-              Total
-              {sortField === 'spent' && <ArrowUpDown className="w-3 h-3" />}
+              Prix unit.
+              {sortField === 'price' && <ArrowUpDown className="w-3 h-3" />}
             </button>
+            <div className="col-span-2 text-right">Total</div>
           </div>
 
           {/* Liste */}
           <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
             {sortedItems.map((item, index) => (
               <div
-                key={item.name}
+                key={item.id}
                 className="grid grid-cols-12 gap-4 px-4 py-3 hover:bg-slate-50 items-center"
               >
-                <div className="col-span-5">
+                <div className="col-span-6">
                   <div className="flex items-center gap-2">
                     <span className="text-slate-400 text-sm w-6">{index + 1}.</span>
                     <span className="text-slate-800 font-medium">{item.name}</span>
-                    {(item as any).has_alias && (
-                      <span className="text-xs text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded">
-                        groupé
+                    {item.category && (
+                      <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                        {item.category}
                       </span>
                     )}
                   </div>
                 </div>
                 <div className="col-span-2 text-right text-slate-600">
-                  {item.purchase_count}x
+                  {item.quantity || 1} {item.unit || ''}
                 </div>
                 <div className="col-span-2 text-right text-slate-600">
-                  {Number(item.total_quantity).toFixed(0)}
+                  {item.unit_price ? formatCurrency(item.unit_price) : '-'}
                 </div>
-                <div className="col-span-3 text-right font-medium text-slate-800">
-                  {formatCurrency(Number(item.total_spent))}
+                <div className="col-span-2 text-right font-medium text-slate-800">
+                  {item.total_price ? formatCurrency(item.total_price) : (item.unit_price ? formatCurrency(item.unit_price * (item.quantity || 1)) : '-')}
                 </div>
               </div>
             ))}

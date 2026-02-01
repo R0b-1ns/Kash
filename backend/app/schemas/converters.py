@@ -104,6 +104,8 @@ def document_to_response(doc: Document) -> dict:
         "is_income": doc.is_income,
         "ocr_raw_text": doc.ocr_raw_text,
         "ocr_confidence": doc.ocr_confidence,
+        "processing_status": doc.processing_status,
+        "processing_error": doc.processing_error,
         "synced_to_nas": doc.synced_to_nas,
         "synced_at": doc.synced_at,
         "created_at": doc.created_at,
@@ -126,6 +128,8 @@ def document_to_list_response(doc: Document) -> dict:
         "total_amount": doc.total_amount,
         "currency": doc.currency,
         "is_income": doc.is_income,
+        "processing_status": doc.processing_status,
+        "processing_error": doc.processing_error,
         "created_at": doc.created_at,
         "tags": [tag_to_simple(t) for t in doc.tags] if doc.tags else [],
     }

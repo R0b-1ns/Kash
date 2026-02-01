@@ -137,6 +137,8 @@ export interface ItemAliasGroupUpdate {
 // Types de documents
 // ============================================
 
+export type ProcessingStatus = 'pending' | 'processing' | 'completed' | 'error';
+
 export interface Document {
   id: number;
   file_path: string;
@@ -152,6 +154,8 @@ export interface Document {
   is_income: boolean;
   ocr_raw_text?: string;
   ocr_confidence?: number;
+  processing_status?: ProcessingStatus;
+  processing_error?: string;
   synced_to_nas: boolean;
   synced_at?: string;
   created_at: string;
@@ -171,8 +175,16 @@ export interface DocumentListItem {
   total_amount?: number;
   currency: string;
   is_income: boolean;
+  processing_status?: ProcessingStatus;
+  processing_error?: string;
   created_at: string;
   tags: Tag[];
+}
+
+export interface DocumentStatusResponse {
+  status: ProcessingStatus;
+  error?: string;
+  document?: Document;
 }
 
 export interface ManualEntryCreate {
@@ -196,6 +208,26 @@ export interface DocumentFilters {
   tag_ids?: number[];
   is_income?: boolean | null;
   doc_type?: string;
+}
+
+export interface ItemFilters {
+  search?: string;
+  category?: string;
+  min_price?: number;
+  max_price?: number;
+  start_date?: string;
+  end_date?: string;
+  merchant?: string;
+  tag_ids?: number[];
+}
+
+export interface ItemListResponse {
+  items: Item[];
+  total: number;
+  stats: {
+    total_spent: number;
+    total_quantity: number;
+  };
 }
 
 // ============================================

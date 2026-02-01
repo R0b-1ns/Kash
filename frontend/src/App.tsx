@@ -6,10 +6,12 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
+import { UploadProvider } from './contexts/UploadContext';
 
 // Composants
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import UploadToast from './components/UploadToast';
 
 // Pages
 import LoginPage from './pages/LoginPage';
@@ -29,8 +31,9 @@ import SettingsPage from './pages/SettingsPage';
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
+      <UploadProvider>
+        <BrowserRouter>
+          <Routes>
           {/* ============================================ */}
           {/* Routes publiques (non authentifiees) */}
           {/* ============================================ */}
@@ -130,7 +133,9 @@ function App() {
           {/* ============================================ */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <UploadToast />
       </BrowserRouter>
+    </UploadProvider>
     </AuthProvider>
   );
 }

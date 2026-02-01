@@ -21,7 +21,7 @@ import logging
 from datetime import date
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import desc, asc, or_
@@ -37,6 +37,11 @@ from app.models.item import Item
 from app.schemas import DocumentUpdate, DocumentManualCreate
 from app.schemas.converters import document_to_response, document_to_list_response
 from app.services.document_processor import process_document, reprocess_document, ProcessingError
+from app.core.database import SessionLocal
+import asyncio
+import threading
+from queue import Queue
+from typing import Optional as Opt
 
 # Configuration du logging
 logger = logging.getLogger(__name__)
@@ -46,6 +51,111 @@ router = APIRouter(prefix="/documents", tags=["Documents"])
 
 # Extensions de fichiers autorisées
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf"}
+
+
+# ============================================
+# File d'attente pour le traitement séquentiel
+# ============================================
+
+class DocumentProcessingQueue:
+    """
+    File d'attente pour traiter les documents un par un.
+
+    PaddleOCR ne supporte pas les requêtes concurrentes,
+    donc on sérialise le traitement des documents.
+    """
+
+    def __init__(self):
+        self._queue: Queue = Queue()
+        self._worker_thread: Opt[threading.Thread] = None
+        self._running = False
+        self._lock = threading.Lock()
+
+    def start(self):
+        """Démarre le worker thread s'il n'est pas déjà en cours."""
+        with self._lock:
+            if self._worker_thread is None or not self._worker_thread.is_alive():
+                self._running = True
+                self._worker_thread = threading.Thread(target=self._worker, daemon=True)
+                self._worker_thread.start()
+                logger.info("Worker de traitement de documents démarré")
+
+    def add(self, document_id: int):
+        """Ajoute un document à la file d'attente."""
+        self._queue.put(document_id)
+        logger.info(f"Document {document_id} ajouté à la file d'attente (taille: {self._queue.qsize()})")
+        self.start()  # S'assurer que le worker tourne
+
+    def _worker(self):
+        """Worker qui traite les documents un par un."""
+        while self._running:
+            try:
+                # Attendre un document (timeout pour vérifier _running)
+                try:
+                    document_id = self._queue.get(timeout=5)
+                except:
+                    continue
+
+                logger.info(f"Début du traitement séquentiel du document {document_id}")
+                self._process_single_document(document_id)
+                self._queue.task_done()
+
+            except Exception as e:
+                logger.error(f"Erreur dans le worker de traitement: {e}")
+
+    def _process_single_document(self, document_id: int):
+        """Traite un seul document (OCR + IA)."""
+        db = SessionLocal()
+        try:
+            # Mettre à jour le statut à "processing"
+            document = db.query(Document).filter(Document.id == document_id).first()
+            if not document:
+                logger.error(f"Document {document_id} non trouvé pour le traitement")
+                return
+
+            document.processing_status = "processing"
+            db.commit()
+
+            # Lancer le traitement
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                loop.run_until_complete(process_document(document_id, db))
+
+                # Succès
+                document = db.query(Document).filter(Document.id == document_id).first()
+                document.processing_status = "completed"
+                document.processing_error = None
+                db.commit()
+                logger.info(f"Document {document_id} traité avec succès")
+
+            except ProcessingError as e:
+                logger.error(f"Erreur lors du traitement du document {document_id}: {e.message}")
+                document = db.query(Document).filter(Document.id == document_id).first()
+                document.processing_status = "error"
+                document.processing_error = f"{e.step}: {e.message}"
+                db.commit()
+
+            except Exception as e:
+                logger.error(f"Erreur inattendue lors du traitement du document {document_id}: {str(e)}")
+                document = db.query(Document).filter(Document.id == document_id).first()
+                document.processing_status = "error"
+                document.processing_error = str(e)
+                db.commit()
+            finally:
+                loop.close()
+
+        finally:
+            db.close()
+
+
+# Instance globale de la file d'attente
+_processing_queue = DocumentProcessingQueue()
+
+
+def queue_document_for_processing(document_id: int):
+    """Ajoute un document à la file d'attente de traitement."""
+    _processing_queue.add(document_id)
 
 
 def validate_file(file: UploadFile) -> str:
@@ -165,20 +275,22 @@ def list_documents(
     return [document_to_list_response(doc) for doc in documents]
 
 
-@router.post("/upload", status_code=status.HTTP_201_CREATED)
+@router.post("/upload", status_code=status.HTTP_202_ACCEPTED)
 async def upload_document(
     file: UploadFile = File(..., description="Image ou PDF à analyser"),
-    background_tasks: BackgroundTasks = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ) -> dict:
     """
     Upload un nouveau document (image ou PDF).
 
-    Processus:
+    Processus asynchrone:
     1. Valide et sauvegarde le fichier
-    2. Crée l'entrée en base de données
-    3. Déclenche l'OCR et l'analyse IA pour extraire les données
+    2. Crée l'entrée en base de données avec status "pending"
+    3. Retourne immédiatement (HTTP 202)
+    4. Lance le traitement OCR + IA en arrière-plan
+
+    Le frontend peut suivre l'avancement via GET /documents/{id}/status
     """
     # Valider le fichier
     ext = validate_file(file)
@@ -202,50 +314,25 @@ async def upload_document(
     # Déterminer le type MIME
     file_type = file.content_type or "application/octet-stream"
 
-    # Créer le document en base
+    # Créer le document en base avec status "pending"
     document = Document(
         user_id=current_user.id,
         file_path=file_path,
         original_name=file.filename,
         file_type=file_type,
+        processing_status="pending",
     )
 
     db.add(document)
     db.commit()
     db.refresh(document)
 
-    # Lancer le traitement OCR + IA
-    try:
-        document = await process_document(document.id, db)
-        logger.info(f"Document {document.id} traité avec succès")
-    except ProcessingError as e:
-        logger.warning(f"Erreur lors du traitement du document {document.id}: {e.message}")
-        # Rollback: suppression du document et du fichier
-        logger.info(f"Rollback: suppression du document {document.id} après échec {e.step}")
-        db.delete(document)
-        db.commit()
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Échec de l'extraction ({e.step}): {e.message}"
-        )
-    except Exception as e:
-        logger.error(f"Erreur inattendue lors du traitement du document {document.id}: {str(e)}")
-        # En cas d'erreur inattendue, on supprime aussi
-        db.delete(document)
-        db.commit()
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erreur lors du traitement: {str(e)}"
-        )
+    logger.info(f"Document {document.id} créé, ajout à la file d'attente de traitement")
 
-    # Recharger le document avec ses relations
-    db.refresh(document)
+    # Ajouter à la file d'attente (traitement séquentiel)
+    queue_document_for_processing(document.id)
 
-    # Conversion manuelle
+    # Retourner immédiatement avec le document en status pending
     return document_to_response(document)
 
 
@@ -331,6 +418,48 @@ def get_document(
 
     # Conversion manuelle
     return document_to_response(document)
+
+
+@router.get("/{document_id}/status")
+def get_document_status(
+    document_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+) -> dict:
+    """
+    Récupère le statut de traitement d'un document.
+
+    Utilisé par le frontend pour le polling pendant l'upload asynchrone.
+
+    Returns:
+        - status: "pending" | "processing" | "completed" | "error"
+        - error: Message d'erreur si status == "error"
+        - document: Données complètes du document si status == "completed"
+    """
+    document = db.query(Document).options(
+        joinedload(Document.tags),
+        joinedload(Document.items)
+    ).filter(
+        Document.id == document_id,
+        Document.user_id == current_user.id
+    ).first()
+
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document non trouvé"
+        )
+
+    response = {
+        "status": document.processing_status,
+        "error": document.processing_error,
+    }
+
+    # Inclure les données complètes si le traitement est terminé
+    if document.processing_status == "completed":
+        response["document"] = document_to_response(document)
+
+    return response
 
 
 @router.get("/{document_id}/file")

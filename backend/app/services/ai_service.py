@@ -157,24 +157,22 @@ class AIService:
         settings = get_settings()
         self.host = host or settings.ollama_host
         self.model = model or settings.ollama_model
-        self._client: Optional[httpx.AsyncClient] = None
 
-    async def _get_client(self) -> httpx.AsyncClient:
+    def _create_client(self) -> httpx.AsyncClient:
         """
-        Retourne le client HTTP (avec initialisation paresseuse).
+        Crée un nouveau client HTTP.
+
+        Note: On crée un nouveau client à chaque appel pour éviter
+        les problèmes de réutilisation entre event loops différents.
 
         Returns:
-            Instance de httpx.AsyncClient configurée
+            Nouvelle instance de httpx.AsyncClient configurée
         """
-        if self._client is None or self._client.is_closed:
-            self._client = httpx.AsyncClient(timeout=OLLAMA_TIMEOUT)
-        return self._client
+        return httpx.AsyncClient(timeout=OLLAMA_TIMEOUT)
 
     async def close(self):
-        """Ferme le client HTTP proprement."""
-        if self._client and not self._client.is_closed:
-            await self._client.aclose()
-            self._client = None
+        """Méthode de compatibilité (plus de client à fermer)."""
+        pass
 
     async def check_connection(self) -> bool:
         """
@@ -184,9 +182,9 @@ class AIService:
             True si Ollama répond, False sinon
         """
         try:
-            client = await self._get_client()
-            response = await client.get(f"{self.host}/api/tags")
-            return response.status_code == 200
+            async with self._create_client() as client:
+                response = await client.get(f"{self.host}/api/tags")
+                return response.status_code == 200
         except Exception as e:
             logger.warning(f"Ollama non accessible: {e}")
             return False
@@ -260,8 +258,6 @@ class AIService:
         Returns:
             La réponse générée par le modèle
         """
-        client = await self._get_client()
-
         # Payload pour l'API generate d'Ollama
         payload = {
             "model": self.model,
@@ -275,19 +271,21 @@ class AIService:
 
         logger.info(f"Appel Ollama ({self.model}) pour extraction...")
 
-        response = await client.post(
-            f"{self.host}/api/generate",
-            json=payload
-        )
-        response.raise_for_status()
+        # Créer un nouveau client pour chaque appel (évite les problèmes d'event loop)
+        async with self._create_client() as client:
+            response = await client.post(
+                f"{self.host}/api/generate",
+                json=payload
+            )
+            response.raise_for_status()
 
-        data = response.json()
-        raw_response = data.get("response", "")
+            data = response.json()
+            raw_response = data.get("response", "")
 
-        # Log de debug pour voir la réponse brute
-        logger.debug(f"Réponse brute Ollama:\n{raw_response}")
+            # Log de debug pour voir la réponse brute
+            logger.debug(f"Réponse brute Ollama:\n{raw_response}")
 
-        return raw_response
+            return raw_response
 
     def _parse_response(self, response_text: str) -> ExtractionResult:
         """

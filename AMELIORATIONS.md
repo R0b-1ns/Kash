@@ -11,7 +11,9 @@ Roadmap des fonctionnalités à implémenter.
 | 1 | Visionneuse de documents (images + PDF, zoom, rotation) | v0.1 |
 | 2 | Gestion des articles (édition, suppression, ajout dans la visionneuse) | v0.1 |
 | 2b | Regroupement d'articles similaires (alias, suggestions automatiques) | v0.1 |
+| 3 | Upload asynchrone avec file d'attente (toast, multi-upload) | v0.2 |
 | 5 | Entrées financières manuelles (sans document) | v0.1 |
+| 8 | Recherche et filtres avancés sur les documents | v0.2 |
 | - | Templates de budget (sauvegarder/charger) | v0.1 |
 | - | Duplication de documents | v0.1 |
 | - | Tri des colonnes (date, montant, marchand) | v0.1 |
@@ -19,7 +21,7 @@ Roadmap des fonctionnalités à implémenter.
 
 ---
 
-## 3. Upload asynchrone avec file d'attente
+## ~~3. Upload asynchrone avec file d'attente~~ (IMPLÉMENTÉ v0.2)
 
 **Priorité:** Haute
 
@@ -134,9 +136,9 @@ Améliorer les options d'export.
 
 ---
 
-## 8. Recherche et filtres avancés
+## ~~8. Recherche et filtres avancés (Documents)~~ (IMPLÉMENTÉ v0.2)
 
-**Priorité:** Haute
+**Priorité:** ~~Haute~~ FAIT
 
 **Description:**
 Ajouter une barre de recherche et des filtres avancés sur la page Documents pour retrouver rapidement un document ou une plage de documents.
@@ -239,6 +241,66 @@ Voir les détails : http://localhost:3000/budgets
 - Service `notification_service.py` avec adaptateurs par canal
 - Job CRON pour les récapitulatifs périodiques
 - Table `notification_settings` pour stocker les préférences utilisateur
+
+---
+
+## 10. Recherche et filtres avancés sur les Articles (Items)
+
+**Priorité:** Haute
+
+**Description:**
+Ajouter un système de recherche et de filtres avancés sur la page Articles, similaire à celui implémenté pour les documents. Permet de retrouver rapidement des articles par catégorie, tag, période, etc.
+
+**Cas d'usage:**
+- Voir tous les articles de la catégorie "Nourriture"
+- Trouver les articles liés au tag "Santé"
+- Analyser les dépenses d'un type d'article sur une période
+- Comparer les prix d'un même article dans le temps
+
+**Fonctionnalités:**
+
+*Barre de recherche textuelle:*
+- Recherche par nom d'article
+- Recherche instantanée (debounce 300ms)
+
+*Filtres combinables:*
+- **Tags** : Filtrer par un ou plusieurs tags (via les documents associés)
+- **Plage de dates** : Date de début / Date de fin
+- **Plage de prix** : Prix min / Prix max (unit_price ou total_price)
+- **Marchand** : Filtrer par marchand (via le document parent)
+- **Catégorie** : Si catégorisation des articles implémentée
+
+*Interface:*
+- Réutiliser le composant `DocumentFilters` adapté pour les items
+- Panneau de filtres repliable
+- Badge avec nombre de filtres actifs
+- Bouton "Effacer les filtres"
+- Compteur de résultats ("X articles trouvés")
+
+*Backend:*
+```python
+# Nouvel endpoint ou enrichissement de l'existant
+GET /items?search=pain&tag_ids=1,5&start_date=2024-01-01&end_date=2024-12-31&min_price=1&max_price=10&merchant=carrefour
+```
+
+*Frontend:*
+```typescript
+interface ItemFilters {
+  search?: string;           // Recherche dans le nom
+  tag_ids?: number[];        // Tags des documents parents
+  start_date?: string;       // YYYY-MM-DD
+  end_date?: string;         // YYYY-MM-DD
+  min_price?: number;
+  max_price?: number;
+  merchant?: string;         // Marchand du document parent
+}
+```
+
+**Statistiques enrichies:**
+- Total dépensé pour les articles filtrés
+- Nombre d'achats
+- Prix moyen
+- Évolution du prix dans le temps (graphique)
 
 ---
 

@@ -5,23 +5,25 @@ Les items représentent les lignes individuelles d'un ticket ou d'une facture.
 Ils permettent d'analyser les dépenses au niveau article.
 
 Endpoints:
-- GET /items : Liste des items avec filtres
+- GET /items : Liste des items avec filtres avancés
 - POST /documents/{document_id}/items : Ajouter un item à un document
 - PUT /items/{id} : Modifier un item
 - DELETE /items/{id} : Supprimer un item
 """
 
 from datetime import date
+from decimal import Decimal
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
 from app.models.document import Document
 from app.models.item import Item
+from app.models.tag import DocumentTag
 from app.schemas import ItemCreate, ItemUpdate
 from app.schemas.converters import item_to_response
 
@@ -30,45 +32,101 @@ router = APIRouter(prefix="/items", tags=["Items"])
 
 @router.get("")
 def list_items(
-    # Filtres
-    name: Optional[str] = Query(None, description="Recherche par nom (contient)"),
+    # Recherche textuelle
+    search: Optional[str] = Query(None, description="Recherche par nom d'article"),
+    # Filtres sur l'item
     category: Optional[str] = Query(None, description="Filtrer par catégorie"),
-    start_date: Optional[date] = Query(None, description="Date de début (basé sur le document)"),
+    min_price: Optional[Decimal] = Query(None, description="Prix minimum"),
+    max_price: Optional[Decimal] = Query(None, description="Prix maximum"),
+    # Filtres sur le document parent
+    start_date: Optional[date] = Query(None, description="Date de début"),
     end_date: Optional[date] = Query(None, description="Date de fin"),
+    merchant: Optional[str] = Query(None, description="Filtrer par marchand"),
+    tag_ids: Optional[str] = Query(None, description="IDs des tags séparés par virgule"),
     # Pagination
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
     # Auth & DB
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-) -> List[dict]:
+) -> dict:
     """
-    Liste les items de tous les documents de l'utilisateur.
+    Liste les items de tous les documents de l'utilisateur avec filtres avancés.
 
     Utile pour analyser les dépenses par article.
-    Exemple: "Tous les achats de pain ce mois-ci"
+    Exemple: "Tous les achats de pain ce mois-ci chez Carrefour"
 
     Returns:
-        Liste des items correspondant aux filtres
+        Dictionnaire avec items, total et statistiques
     """
     query = db.query(Item).join(Document).filter(Document.user_id == current_user.id)
 
-    # Filtres
-    if name:
-        query = query.filter(Item.name.ilike(f"%{name}%"))
+    # Recherche textuelle par nom
+    if search:
+        query = query.filter(Item.name.ilike(f"%{search}%"))
+
+    # Filtres sur l'item
     if category:
         query = query.filter(Item.category == category)
+    if min_price is not None:
+        query = query.filter(
+            or_(
+                Item.total_price >= min_price,
+                Item.unit_price >= min_price
+            )
+        )
+    if max_price is not None:
+        query = query.filter(
+            or_(
+                Item.total_price <= max_price,
+                Item.unit_price <= max_price
+            )
+        )
+
+    # Filtres sur le document parent
     if start_date:
         query = query.filter(Document.date >= start_date)
     if end_date:
         query = query.filter(Document.date <= end_date)
+    if merchant:
+        query = query.filter(Document.merchant.ilike(f"%{merchant}%"))
+
+    # Filtre par tags (via le document)
+    if tag_ids:
+        try:
+            ids = [int(x.strip()) for x in tag_ids.split(",") if x.strip()]
+            if ids:
+                query = query.join(DocumentTag, Document.id == DocumentTag.document_id)
+                query = query.filter(DocumentTag.tag_id.in_(ids))
+                query = query.distinct()
+        except ValueError:
+            pass
+
+    # Compter le total avant pagination
+    total_count = query.count()
+
+    # Calculer les stats (sur les items filtrés)
+    stats_query = query.with_entities(
+        func.sum(func.coalesce(Item.total_price, Item.unit_price, 0)).label("total_spent"),
+        func.sum(Item.quantity).label("total_quantity")
+    ).first()
+
+    total_spent = float(stats_query.total_spent or 0)
+    total_quantity = float(stats_query.total_quantity or 0)
 
     # Tri par document puis par ID
     query = query.order_by(Item.document_id.desc(), Item.id)
 
     items = query.offset(skip).limit(limit).all()
 
-    return [item_to_response(i) for i in items]
+    return {
+        "items": [item_to_response(i) for i in items],
+        "total": total_count,
+        "stats": {
+            "total_spent": total_spent,
+            "total_quantity": total_quantity
+        }
+    }
 
 
 @router.get("/categories", response_model=List[str])

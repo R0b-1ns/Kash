@@ -503,3 +503,12 @@ NAS_MOUNT_PATH=/app/nas_backup
 *   **Frontend Hook:** Création du hook `useDebounce` pour optimiser les champs de recherche textuelle.
 *   **Frontend Component:** Création du composant `DocumentFilters.tsx`, contenant l'interface utilisateur pour tous les nouveaux filtres (recherche, dates, montants, tags, etc.).
 *   **Frontend Page:** Intégration de `DocumentFilters` dans `DocumentsPage.tsx`, ajout de la gestion de l'état des filtres et liaison avec l'appel API mis à jour. La page gère désormais le rafraîchissement dynamique de la liste en fonction des filtres appliqués.
+
+---
+
+## 2026-02-01 - Mise à jour de la Documentation
+
+*   **Documentation:** Mise à jour de la documentation (`docs_src`) pour refléter l'implémentation de la recherche avancée sur les documents.
+    - Ajout des nouveaux paramètres de requête à `docs_src/api/documents.md`.
+    - Mention des nouveaux composants frontend dans `docs_src/architecture/frontend.md`.
+*   **Génération de site:** Le site statique de la documentation (`docs/`) a été régénéré avec succès.

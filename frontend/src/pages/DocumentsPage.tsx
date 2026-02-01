@@ -28,16 +28,20 @@ import clsx from 'clsx';
 import DocumentViewer from '../components/DocumentViewer';
 import DocumentFilters from '../components/DocumentFilters';
 import { useDebounce } from '../hooks/useDebounce';
+import { useUpload } from '../contexts/UploadContext';
 
 const DocumentsPage: React.FC = () => {
   const [documentsList, setDocumentsList] = useState<DocumentListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [duplicatingId, setDuplicatingId] = useState<number | null>(null);
+
+  // Contexte d'upload asynchrone
+  const { addUpload, uploadQueue, setOnDocumentReady } = useUpload();
+  const [isDropping, setIsDropping] = useState(false); // Juste pendant l'envoi HTTP initial
+  const processingCount = uploadQueue.filter(item => item.status === 'pending' || item.status === 'processing').length;
 
   const [sortBy, setSortBy] = useState<'date' | 'total_amount' | 'merchant' | 'created_at'>('date');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
@@ -107,39 +111,36 @@ const DocumentsPage: React.FC = () => {
     loadTags();
   }, [loadDocuments, loadTags]);
 
+  // Callback quand un document est prêt (traitement terminé)
+  useEffect(() => {
+    setOnDocumentReady(() => {
+      // Recharger la liste quand un document est terminé
+      loadDocuments();
+    });
+
+    return () => {
+      setOnDocumentReady(undefined);
+    };
+  }, [setOnDocumentReady, loadDocuments]);
+
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (acceptedFiles.length === 0) return;
-      setIsUploading(true);
-      setUploadProgress(null);
-      setUploadSuccess(null);
       setError(null);
+      setIsDropping(true);
 
-      let successCount = 0;
-      for (const file of acceptedFiles) {
-        try {
-          setUploadProgress(`Upload de ${file.name}...`);
-          await documentsApi.upload(file);
-          successCount++;
-        } catch (err: any) {
-          console.error(`Erreur lors de l'upload de ${file.name}:`, err);
-        }
-      }
-      setIsUploading(false);
-      setUploadProgress(null);
-      if (successCount > 0) {
-        setUploadSuccess(`${successCount} fichier(s) uploadé(s) avec succès.`);
-        loadDocuments();
-        setTimeout(() => setUploadSuccess(null), 3000);
-      }
+      // Upload tous les fichiers en parallèle (chaque upload retourne immédiatement)
+      await Promise.all(acceptedFiles.map(file => addUpload(file)));
+
+      setIsDropping(false);
     },
-    [loadDocuments]
+    [addUpload]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { 'application/pdf': ['.pdf'], 'image/*': ['.png', '.jpg', '.jpeg'] },
-    disabled: isUploading,
+    disabled: isDropping, // Désactivé seulement pendant l'envoi HTTP initial
   });
 
   const handleDelete = async (id: number) => {
@@ -267,13 +268,35 @@ const DocumentsPage: React.FC = () => {
       </div>
 
       <div className="flex gap-4">
-        <div {...getRootProps()} className={clsx('flex-1 border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors', isDragActive ? 'border-blue-500 bg-blue-50' : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50', isUploading && 'opacity-50 cursor-not-allowed')}>
+        <div {...getRootProps()} className={clsx('flex-1 border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors', isDragActive ? 'border-blue-500 bg-blue-50' : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50', isDropping && 'opacity-50 cursor-wait')}>
           <input {...getInputProps()} />
           <div className="flex flex-col items-center">
-            {isUploading ? (
-              <><Loader2 className="w-12 h-12 text-blue-500 animate-spin" /><p className="mt-4 text-sm text-slate-600">{uploadProgress}</p></>
+            {isDropping ? (
+              <>
+                <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+                <p className="mt-4 text-sm text-blue-600 font-medium">Envoi des fichiers...</p>
+              </>
             ) : (
-              <><Upload className={clsx('w-12 h-12', isDragActive ? 'text-blue-500' : 'text-slate-400')} /><p className="mt-4 text-sm text-slate-600">{isDragActive ? <span className="text-blue-600 font-medium">Déposez...</span> : <><span className="text-blue-600 font-medium">Cliquez ou glissez</span><span> pour uploader</span></>}</p><p className="mt-2 text-xs text-slate-400">PDF, Images</p></>
+              <>
+                <Upload className={clsx('w-12 h-12', isDragActive ? 'text-blue-500' : 'text-slate-400')} />
+                <p className="mt-4 text-sm text-slate-600">
+                  {isDragActive ? (
+                    <span className="text-blue-600 font-medium">Déposez les fichiers ici...</span>
+                  ) : (
+                    <>
+                      <span className="text-blue-600 font-medium">Cliquez ou glissez</span>
+                      <span> pour uploader</span>
+                    </>
+                  )}
+                </p>
+                <p className="mt-2 text-xs text-slate-400">PDF, Images (multi-upload supporté)</p>
+                {processingCount > 0 && (
+                  <div className="mt-3 flex items-center gap-2 text-sm text-blue-600">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>{processingCount} document(s) en traitement</span>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
