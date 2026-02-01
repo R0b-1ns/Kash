@@ -4,23 +4,16 @@ Roadmap des fonctionnalités à implémenter.
 
 ---
 
-## 1. Visionneuse de documents
+## Fonctionnalités implémentées
 
-**Priorité:** Haute
-
-**Description:**
-Ajouter une visionneuse intégrée pour afficher les PDF et images directement dans l'application.
-
-**Fonctionnalités:**
-- Cliquer sur un document dans la liste ouvre une modal/sidebar avec le fichier
-- Support des images (JPG, PNG, WebP, etc.)
-- Support des PDF (avec navigation multi-pages)
-- Zoom avant/arrière
-- Affichage côte à côte avec les données extraites pour vérification
-
-**Librairies potentielles:**
-- `react-pdf` pour les PDF
-- Visionneuse native pour les images
+| # | Fonctionnalité | Version |
+|---|----------------|---------|
+| 1 | Visionneuse de documents (images + PDF, zoom, rotation) | v0.1 |
+| 5 | Entrées financières manuelles (sans document) | v0.1 |
+| - | Templates de budget (sauvegarder/charger) | v0.1 |
+| - | Duplication de documents | v0.1 |
+| - | Tri des colonnes (date, montant, marchand) | v0.1 |
+| - | Édition dans la visionneuse (marchand, date, montant, tags) | v0.1 |
 
 ---
 
@@ -32,15 +25,69 @@ Ajouter une visionneuse intégrée pour afficher les PDF et images directement d
 Permettre la modification et suppression des articles extraits par l'OCR/IA, car l'extraction n'est pas toujours exacte.
 
 **Fonctionnalités:**
+
+*Édition des articles dans la visionneuse:*
 - Voir la liste des articles d'un document
 - Modifier un article (nom, quantité, prix unitaire, prix total)
 - Supprimer un article incorrect
 - Ajouter manuellement un article manquant
 - Recalculer le total automatiquement après modification
 
-**Où l'intégrer:**
-- Dans le modal d'édition de document (ajouter un onglet "Articles")
-- Ou dans une vue détaillée du document
+*Interface:*
+- Section "Articles" dans le panneau latéral de la visionneuse
+- Bouton "Modifier" pour passer en mode édition
+- Champs inline pour chaque article
+- Bouton "+" pour ajouter un nouvel article
+- Icône poubelle pour supprimer
+
+*Backend:*
+- `PUT /items/{id}` - Modifier un article
+- `DELETE /items/{id}` - Supprimer un article
+- `POST /documents/{id}/items` - Ajouter un article
+
+---
+
+## 2b. Regroupement d'articles similaires
+
+**Priorité:** Moyenne
+
+**Description:**
+L'OCR peut extraire le même article avec des noms légèrement différents (ex: "Pain", "PAIN", "pain de mie"). Cette fonctionnalité permet de regrouper ces variantes pour avoir des statistiques cohérentes.
+
+**Problème résolu:**
+- "Coca Cola" et "COCA-COLA" comptent comme le même article
+- Meilleure lisibilité dans le dashboard "Articles fréquents"
+- Statistiques de consommation plus précises
+
+**Fonctionnalités:**
+
+*Table de correspondance:*
+```
+| Nom canonique | Variantes                        |
+|---------------|----------------------------------|
+| Coca-Cola     | COCA-COLA, Coca Cola, coca cola  |
+| Pain          | PAIN, pain de mie, Baguette      |
+```
+
+*Interface:*
+- Page "Gestion des articles" dans les paramètres
+- Recherche d'articles existants
+- Glisser-déposer pour regrouper des articles
+- Définir le nom "canonique" (celui qui sera affiché)
+- Possibilité de "dégrouper" si erreur
+
+*Backend:*
+- Nouvelle table `item_aliases`:
+  ```sql
+  id, canonical_name, alias_name, user_id, created_at
+  ```
+- Lors du calcul des stats, regrouper par `canonical_name`
+- Suggestion automatique de regroupement (Levenshtein distance < 3)
+
+*Dashboard:*
+- Les articles regroupés apparaissent sous leur nom canonique
+- Badge indiquant le nombre de variantes fusionnées
+- Clic pour voir le détail des variantes
 
 ---
 
@@ -131,47 +178,6 @@ Permettre de marquer un document comme "récurrent" pour les abonnements mensuel
 
 ---
 
-## 5. Entrées financières manuelles (sans document)
-
-**Priorité:** Haute
-
-**Description:**
-Permettre de créer une entrée financière sans uploader de document. Utile quand on n'a pas de ticket de caisse mais qu'on a quand même une dépense/revenu sur le compte bancaire.
-
-**Cas d'usage:**
-- Oubli de demander le ticket
-- Paiement en ligne sans facture PDF
-- Petites dépenses (parking, pourboire, etc.)
-- Virements bancaires
-- Remboursements
-
-**Fonctionnalités:**
-
-*Frontend:*
-- Bouton "Ajouter une entrée" à côté de la zone d'upload
-- Formulaire simplifié :
-  - Date (obligatoire)
-  - Marchand/Description (obligatoire)
-  - Montant (obligatoire)
-  - Devise
-  - Type : Dépense / Revenu
-  - Tags
-  - Notes (optionnel)
-- Badge visuel "Manuel" sur les entrées sans document
-
-*Backend:*
-- Le champ `file_path` devient nullable
-- Nouveau champ `is_manual` (boolean) ou simplement `file_path IS NULL`
-- Endpoint `POST /documents/manual` pour créer sans fichier
-- Pas d'OCR ni d'IA pour les entrées manuelles
-
-**Affichage:**
-- Les entrées manuelles apparaissent dans la même liste que les documents
-- Icône différente (crayon au lieu de fichier)
-- Possibilité de les modifier/supprimer comme les autres
-
----
-
 ## 6. Amélioration du Dashboard
 
 **Priorité:** Moyenne
@@ -182,7 +188,7 @@ Améliorer l'affichage des articles fréquents dans le dashboard.
 **Fonctionnalités:**
 - Cliquer sur un article pour voir les documents associés
 - Filtrer par période
-- Fusionner les articles similaires (ex: "Pain" et "PAIN")
+- Affichage des articles regroupés (voir #2b)
 
 ---
 
@@ -292,13 +298,13 @@ Alertes pour le suivi budgétaire via différents canaux de communication.
 
 *Format des messages:*
 ```
-🚨 Alerte Budget - Kash
+Alerte Budget - Kash
 
 Le budget "Courses" a atteint 85% de sa limite.
 - Dépensé : 425€ / 500€
 - Restant : 75€
 
-📊 Voir les détails : http://localhost:3000/budgets
+Voir les détails : http://localhost:3000/budgets
 ```
 
 *Backend:*
