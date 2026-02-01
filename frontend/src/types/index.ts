@@ -156,6 +156,11 @@ export interface Document {
   ocr_confidence?: number;
   processing_status?: ProcessingStatus;
   processing_error?: string;
+  // Recurring document fields
+  is_recurring: boolean;
+  recurring_frequency?: 'monthly' | 'quarterly' | 'yearly';
+  recurring_end_date?: string;
+  recurring_parent_id?: number;
   synced_to_nas: boolean;
   synced_at?: string;
   created_at: string;
@@ -175,6 +180,9 @@ export interface DocumentListItem {
   total_amount?: number;
   currency: string;
   is_income: boolean;
+  is_recurring?: boolean;
+  recurring_frequency?: 'monthly' | 'quarterly' | 'yearly';
+  recurring_parent_id?: number;
   processing_status?: ProcessingStatus;
   processing_error?: string;
   created_at: string;
@@ -412,4 +420,43 @@ export interface AuthContextType {
   logout: () => void;
   error: string | null;
   clearError: () => void;
+}
+
+// ============================================
+// Types de documents récurrents (abonnements)
+// ============================================
+
+export interface RecurringTemplate {
+  id: number;
+  merchant: string;
+  total_amount: number;
+  currency: string;
+  frequency: 'monthly' | 'quarterly' | 'yearly';
+  is_active: boolean;
+  end_date?: string;
+  last_generated?: string;
+  tags: Array<{ id: number; name: string; color: string }>;
+}
+
+export interface RecurringSummary {
+  total_monthly: number;
+  total_count: number;
+  pending_this_month: number;
+  generated_this_month: number;
+  month: string;
+  templates: RecurringTemplate[];
+}
+
+export interface RecurringGenerateResult {
+  success: boolean;
+  month: string;
+  created: number;
+  skipped: number;
+  details: Array<{
+    id: number;
+    merchant: string;
+    date: string;
+    total_amount: number;
+    parent_id: number;
+  }>;
 }

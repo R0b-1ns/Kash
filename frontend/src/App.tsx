@@ -23,6 +23,7 @@ import BudgetsPage from './pages/BudgetsPage';
 import ItemAliasesPage from './pages/ItemAliasesPage';
 import ItemsPage from './pages/ItemsPage';
 import SettingsPage from './pages/SettingsPage';
+import RecurringPage from './pages/RecurringPage';
 
 // ============================================
 // Composant App
@@ -111,6 +112,18 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <ItemAliasesPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Abonnements - Documents récurrents */}
+          <Route
+            path="/recurring"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <RecurringPage />
                 </Layout>
               </ProtectedRoute>
             }

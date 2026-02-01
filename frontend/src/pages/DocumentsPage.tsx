@@ -21,6 +21,7 @@ import {
   Eye,
   Plus,
   Search,
+  RefreshCw,
 } from 'lucide-react';
 import { documents as documentsApi, tags as tagsApi } from '../services/api';
 import { DocumentListItem, Tag, Document, DocumentFilters as DocumentFiltersType } from '../types';
@@ -340,12 +341,24 @@ const DocumentsPage: React.FC = () => {
               return (
               <div key={doc.id} className={clsx('px-6 py-4 hover:bg-slate-50', deletingId === doc.id && 'opacity-50')}>
                 <div className="sm:grid sm:grid-cols-12 gap-4 items-center">
-                  <div className={clsx("col-span-4 flex items-center", doc.file_path && "cursor-pointer group")} onClick={() => doc.file_path && handleView(doc.id)}>
-                    <div className={clsx("flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center", doc.original_name ? "bg-slate-100 group-hover:bg-blue-100" : "bg-green-100")}>
-                      {doc.original_name ? <IconComponent className="w-5 h-5 text-slate-500 group-hover:text-blue-600" /> : <Pencil className="w-5 h-5 text-green-600" />}
+                  <div className="col-span-4 flex items-center cursor-pointer group" onClick={() => handleView(doc.id)}>
+                    <div className={clsx("flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center group-hover:bg-blue-100", doc.original_name ? "bg-slate-100" : "bg-green-100")}>
+                      {doc.original_name ? <IconComponent className="w-5 h-5 text-slate-500 group-hover:text-blue-600" /> : <Pencil className="w-5 h-5 text-green-600 group-hover:text-blue-600" />}
                     </div>
                     <div className="ml-3 min-w-0">
-                      <p className="text-sm font-medium text-slate-800 truncate group-hover:text-blue-600">{doc.merchant || doc.original_name || 'Entrée manuelle'}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-slate-800 truncate group-hover:text-blue-600">{doc.merchant || doc.original_name || 'Entrée manuelle'}</p>
+                        {doc.is_recurring && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">
+                            <RefreshCw className="w-3 h-3" />
+                          </span>
+                        )}
+                        {doc.recurring_parent_id && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded">
+                            Auto
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-slate-500">{doc.doc_type || 'Document'}</p>
                     </div>
                   </div>
@@ -354,9 +367,13 @@ const DocumentsPage: React.FC = () => {
                   <div className="col-span-2 mt-2 sm:mt-0"><p className={clsx('text-sm font-medium', doc.is_income ? 'text-green-600' : 'text-slate-800')}>{formatAmount(doc.total_amount, doc.currency)}</p></div>
                   <div className="col-span-3 mt-2 sm:mt-0"><div className="flex flex-wrap gap-1">{(doc.tags || []).map(tag => <span key={tag.id} className="px-2 py-0.5 text-xs rounded-full" style={{ backgroundColor: `${tag.color}20`, color: tag.color }}>{tag.name}</span>)}</div></div>
                   <div className="col-span-1 mt-3 sm:mt-0 flex justify-end gap-1">
-                    {doc.file_path && <button onClick={() => handleView(doc.id)} className="p-2 text-slate-400 hover:text-blue-600 rounded-lg"><Eye className="w-4 h-4" /></button>}
-                    <button onClick={() => handleDuplicate(doc.id)} className="p-2 text-slate-400 hover:text-green-600 rounded-lg" disabled={duplicatingId === doc.id}>{duplicatingId === doc.id ? <Loader2 className="w-4 h-4 animate-spin"/> : <Copy className="w-4 h-4" />}</button>
-                    <button onClick={() => handleDelete(doc.id)} className="p-2 text-slate-400 hover:text-red-600 rounded-lg" disabled={deletingId === doc.id}>{deletingId === doc.id ? <Loader2 className="w-4 h-4 animate-spin"/> : <Trash2 className="w-4 h-4" />}</button>
+                    {doc.file_path ? (
+                      <button onClick={() => handleView(doc.id)} className="p-2 text-slate-400 hover:text-blue-600 rounded-lg" title="Voir"><Eye className="w-4 h-4" /></button>
+                    ) : (
+                      <button onClick={() => handleView(doc.id)} className="p-2 text-slate-400 hover:text-blue-600 rounded-lg" title="Modifier"><Pencil className="w-4 h-4" /></button>
+                    )}
+                    <button onClick={() => handleDuplicate(doc.id)} className="p-2 text-slate-400 hover:text-green-600 rounded-lg" disabled={duplicatingId === doc.id} title="Dupliquer">{duplicatingId === doc.id ? <Loader2 className="w-4 h-4 animate-spin"/> : <Copy className="w-4 h-4" />}</button>
+                    <button onClick={() => handleDelete(doc.id)} className="p-2 text-slate-400 hover:text-red-600 rounded-lg" disabled={deletingId === doc.id} title="Supprimer">{deletingId === doc.id ? <Loader2 className="w-4 h-4 animate-spin"/> : <Trash2 className="w-4 h-4" />}</button>
                   </div>
                 </div>
               </div>

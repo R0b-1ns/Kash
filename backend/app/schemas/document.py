@@ -47,6 +47,10 @@ class DocumentUpdate(BaseModel):
     currency: Union[str, None] = Field(None, max_length=3)
     is_income: Union[bool, None] = None
     tag_ids: Union[List[int], None] = None
+    # Recurring document fields
+    is_recurring: Union[bool, None] = None
+    recurring_frequency: Union[str, None] = Field(None, pattern="^(monthly|quarterly|yearly)$")
+    recurring_end_date: Union[date_type, None] = None
 
 
 class DocumentManualCreate(BaseModel):

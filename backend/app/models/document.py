@@ -36,6 +36,12 @@ class Document(Base):
     processing_status = Column(String(20), default="completed")  # pending, processing, completed, error
     processing_error = Column(Text, nullable=True)
 
+    # Recurring documents (subscriptions)
+    is_recurring = Column(Boolean, default=False, nullable=False, index=True)
+    recurring_frequency = Column(String(20), nullable=True)  # monthly, quarterly, yearly
+    recurring_end_date = Column(Date, nullable=True)
+    recurring_parent_id = Column(Integer, ForeignKey("documents.id", ondelete="SET NULL"), nullable=True, index=True)
+
     # Sync status
     synced_to_nas = Column(Boolean, default=False)
     synced_at = Column(DateTime(timezone=True))
@@ -47,3 +53,7 @@ class Document(Base):
     # Relationships
     items = relationship("Item", back_populates="document", cascade="all, delete-orphan")
     tags = relationship("Tag", secondary="document_tags", back_populates="documents")
+
+    # Self-referential relationship for recurring documents
+    recurring_parent = relationship("Document", remote_side=[id], foreign_keys=[recurring_parent_id])
+    recurring_children = relationship("Document", foreign_keys=[recurring_parent_id])

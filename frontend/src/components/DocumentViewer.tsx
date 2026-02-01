@@ -39,6 +39,9 @@ interface FormData {
   doc_type: string;
   is_income: boolean;
   tag_ids: number[];
+  is_recurring: boolean;
+  recurring_frequency: string;
+  recurring_end_date: string;
 }
 
 interface EditableItem {
@@ -71,6 +74,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document: initialDocume
     doc_type: document.doc_type || 'other',
     is_income: document.is_income || false,
     tag_ids: document.tags?.map(t => t.id) || [],
+    is_recurring: document.is_recurring || false,
+    recurring_frequency: document.recurring_frequency || 'monthly',
+    recurring_end_date: document.recurring_end_date || '',
   });
 
   // État des articles en édition
@@ -81,12 +87,38 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document: initialDocume
   const isImage = document.file_type?.startsWith('image/') ||
     /\.(jpg|jpeg|png|gif|webp)$/i.test(document.original_name || '');
 
-  // Charger le fichier
+  // Déterminer si c'est une entrée manuelle (sans fichier)
+  const isManualEntry = !document.file_path;
+
+  // Charger le fichier (seulement si ce n'est pas une entrée manuelle)
   useEffect(() => {
     const loadFile = async () => {
-      if (!document.file_path) {
-        setError('Ce document n\'a pas de fichier associé');
+      if (isManualEntry) {
+        // Pour les entrées manuelles, ouvrir directement en mode édition
         setIsLoading(false);
+        setIsEditing(true);
+        setFormData({
+          merchant: document.merchant || '',
+          date: document.date || '',
+          total_amount: document.total_amount?.toString() || '',
+          doc_type: document.doc_type || 'other',
+          is_income: document.is_income || false,
+          tag_ids: document.tags?.map(t => t.id) || [],
+          is_recurring: document.is_recurring || false,
+          recurring_frequency: document.recurring_frequency || 'monthly',
+          recurring_end_date: document.recurring_end_date || '',
+        });
+        setEditableItems(
+          (document.items || []).map(item => ({
+            id: item.id,
+            name: item.name,
+            quantity: item.quantity?.toString() || '1',
+            unit_price: item.unit_price?.toString() || '',
+            total_price: item.total_price?.toString() || '',
+            isNew: false,
+            isDeleted: false,
+          }))
+        );
         return;
       }
 
@@ -159,6 +191,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document: initialDocume
       doc_type: document.doc_type || 'other',
       is_income: document.is_income || false,
       tag_ids: document.tags?.map(t => t.id) || [],
+      is_recurring: document.is_recurring || false,
+      recurring_frequency: document.recurring_frequency || 'monthly',
+      recurring_end_date: document.recurring_end_date || '',
     });
     // Initialiser les articles éditables depuis le document
     setEditableItems(
@@ -245,6 +280,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document: initialDocume
         doc_type: formData.doc_type as any,
         is_income: formData.is_income,
         tag_ids: formData.tag_ids,
+        is_recurring: formData.is_recurring,
+        recurring_frequency: formData.is_recurring ? formData.recurring_frequency : undefined,
+        recurring_end_date: formData.is_recurring && formData.recurring_end_date ? formData.recurring_end_date : undefined,
       });
 
       // 2. Gérer les articles
@@ -318,90 +356,91 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document: initialDocume
 
   return (
     <div className="fixed inset-0 z-50 flex bg-black/80" onClick={onClose}>
-      {/* Zone principale - le document */}
-      <div
-        className="flex-1 flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Barre d'outils */}
-        <div className="flex items-center justify-between px-4 py-3 bg-slate-900 text-white">
-          <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            <span className="font-medium truncate max-w-md">
-              {document.original_name || 'Document'}
-            </span>
-            {saveSuccess && (
-              <span className="flex items-center gap-1 text-green-400 text-sm">
-                <Check className="w-4 h-4" />
-                Sauvegardé
+      {/* Zone principale - le document (masquée pour les entrées manuelles) */}
+      {!isManualEntry && (
+        <div
+          className="flex-1 flex flex-col"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Barre d'outils */}
+          <div className="flex items-center justify-between px-4 py-3 bg-slate-900 text-white">
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              <span className="font-medium truncate max-w-md">
+                {document.original_name || 'Document'}
               </span>
-            )}
+              {saveSuccess && (
+                <span className="flex items-center gap-1 text-green-400 text-sm">
+                  <Check className="w-4 h-4" />
+                  Sauvegardé
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Contrôles de zoom (pour les images) */}
+              {isImage && (
+                <>
+                  <button
+                    onClick={handleZoomOut}
+                    className="p-2 hover:bg-slate-700 rounded transition-colors"
+                    title="Zoom arrière (-)"
+                  >
+                    <ZoomOut className="w-5 h-5" />
+                  </button>
+                  <span className="text-sm min-w-[4rem] text-center">{zoom}%</span>
+                  <button
+                    onClick={handleZoomIn}
+                    className="p-2 hover:bg-slate-700 rounded transition-colors"
+                    title="Zoom avant (+)"
+                  >
+                    <ZoomIn className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={handleRotate}
+                    className="p-2 hover:bg-slate-700 rounded transition-colors"
+                    title="Rotation"
+                  >
+                    <RotateCw className="w-5 h-5" />
+                  </button>
+                  <div className="w-px h-6 bg-slate-600 mx-2" />
+                </>
+              )}
+
+              <button
+                onClick={handleDownload}
+                disabled={!fileUrl}
+                className="p-2 hover:bg-slate-700 rounded transition-colors disabled:opacity-50"
+                title="Télécharger"
+              >
+                <Download className="w-5 h-5" />
+              </button>
+
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-slate-700 rounded transition-colors ml-2"
+                title="Fermer (Escape)"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Contrôles de zoom (pour les images) */}
-            {isImage && (
-              <>
-                <button
-                  onClick={handleZoomOut}
-                  className="p-2 hover:bg-slate-700 rounded transition-colors"
-                  title="Zoom arrière (-)"
-                >
-                  <ZoomOut className="w-5 h-5" />
-                </button>
-                <span className="text-sm min-w-[4rem] text-center">{zoom}%</span>
-                <button
-                  onClick={handleZoomIn}
-                  className="p-2 hover:bg-slate-700 rounded transition-colors"
-                  title="Zoom avant (+)"
-                >
-                  <ZoomIn className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={handleRotate}
-                  className="p-2 hover:bg-slate-700 rounded transition-colors"
-                  title="Rotation"
-                >
-                  <RotateCw className="w-5 h-5" />
-                </button>
-                <div className="w-px h-6 bg-slate-600 mx-2" />
-              </>
+          {/* Contenu du document */}
+          <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-800 p-4">
+            {isLoading && (
+              <div className="flex flex-col items-center gap-3 text-white">
+                <Loader2 className="w-10 h-10 animate-spin" />
+                <span>Chargement du document...</span>
+              </div>
             )}
 
-            <button
-              onClick={handleDownload}
-              disabled={!fileUrl}
-              className="p-2 hover:bg-slate-700 rounded transition-colors disabled:opacity-50"
-              title="Télécharger"
-            >
-              <Download className="w-5 h-5" />
-            </button>
-
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-slate-700 rounded transition-colors ml-2"
-              title="Fermer (Escape)"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Contenu du document */}
-        <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-800 p-4">
-          {isLoading && (
-            <div className="flex flex-col items-center gap-3 text-white">
-              <Loader2 className="w-10 h-10 animate-spin" />
-              <span>Chargement du document...</span>
-            </div>
-          )}
-
-          {error && (
-            <div className="flex flex-col items-center gap-3 text-red-400">
-              <AlertCircle className="w-10 h-10" />
-              <span>{error}</span>
-            </div>
-          )}
+            {error && (
+              <div className="flex flex-col items-center gap-3 text-red-400">
+                <AlertCircle className="w-10 h-10" />
+                <span>{error}</span>
+              </div>
+            )}
 
           {fileUrl && !isLoading && !error && (
             <>
@@ -440,25 +479,35 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document: initialDocume
           )}
         </div>
       </div>
+      )}
 
       {/* Panneau latéral - Données extraites / Édition */}
       <div
-        className="w-96 bg-white flex flex-col overflow-hidden"
+        className={`${isManualEntry ? 'w-full max-w-xl mx-auto' : 'w-96'} bg-white flex flex-col overflow-hidden`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header avec boutons d'action */}
         <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
           <h3 className="font-semibold text-slate-800">
-            {isEditing ? 'Modifier' : 'Données extraites'}
+            {isManualEntry
+              ? (document.merchant || 'Entrée manuelle')
+              : (isEditing ? 'Modifier' : 'Données extraites')
+            }
           </h3>
           <div className="flex items-center gap-2">
+            {saveSuccess && (
+              <span className="flex items-center gap-1 text-green-600 text-sm">
+                <Check className="w-4 h-4" />
+                Sauvegardé
+              </span>
+            )}
             {isEditing ? (
               <>
                 <button
-                  onClick={handleCancelEdit}
+                  onClick={isManualEntry ? onClose : handleCancelEdit}
                   className="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-200 rounded transition-colors"
                 >
-                  Annuler
+                  {isManualEntry ? 'Fermer' : 'Annuler'}
                 </button>
                 <button
                   onClick={handleSave}
@@ -595,6 +644,68 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document: initialDocume
                 >
                   {document.is_income ? 'Revenu' : 'Dépense'}
                 </span>
+              )}
+            </div>
+
+            {/* Document récurrent */}
+            <div>
+              <label className="text-xs font-medium text-slate-500 uppercase">Abonnement</label>
+              {isEditing ? (
+                <div className="mt-1 space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.is_recurring}
+                      onChange={(e) => setFormData(prev => ({ ...prev, is_recurring: e.target.checked }))}
+                      className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-slate-700">Document récurrent</span>
+                  </label>
+
+                  {formData.is_recurring && (
+                    <div className="pl-6 space-y-2">
+                      <div>
+                        <label className="text-xs text-slate-500">Fréquence</label>
+                        <select
+                          value={formData.recurring_frequency}
+                          onChange={(e) => setFormData(prev => ({ ...prev, recurring_frequency: e.target.value }))}
+                          className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="monthly">Mensuel</option>
+                          <option value="quarterly">Trimestriel</option>
+                          <option value="yearly">Annuel</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-500">Date de fin (optionnel)</label>
+                        <input
+                          type="date"
+                          value={formData.recurring_end_date}
+                          onChange={(e) => setFormData(prev => ({ ...prev, recurring_end_date: e.target.value }))}
+                          className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : document.is_recurring ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-sm bg-blue-100 text-blue-700">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    {document.recurring_frequency === 'monthly' ? 'Mensuel' :
+                     document.recurring_frequency === 'quarterly' ? 'Trimestriel' :
+                     document.recurring_frequency === 'yearly' ? 'Annuel' : document.recurring_frequency}
+                  </span>
+                  {document.recurring_end_date && (
+                    <span className="text-xs text-slate-500">
+                      jusqu'au {document.recurring_end_date}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-400 mt-1">Non récurrent</p>
               )}
             </div>
           </div>

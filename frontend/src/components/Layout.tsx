@@ -17,6 +17,7 @@ import {
   User,
   ChevronRight,
   Settings,
+  RefreshCw,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import clsx from 'clsx';
@@ -45,6 +46,7 @@ const navigation: NavItem[] = [
   { name: 'Tags', href: '/tags', icon: Tags },
   { name: 'Articles', href: '/items', icon: ShoppingCart },
   { name: 'Budgets', href: '/budgets', icon: PiggyBank },
+  { name: 'Abonnements', href: '/recurring', icon: RefreshCw },
   { name: 'Paramètres', href: '/settings', icon: Settings },
 ];
 

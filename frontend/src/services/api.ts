@@ -44,6 +44,8 @@ import {
   SyncRunResult,
   ExportParams,
   ManualEntryCreate,
+  RecurringSummary,
+  RecurringGenerateResult,
 } from '../types';
 
 // URL de base de l'API (configurée via variables d'environnement)
@@ -719,6 +721,55 @@ export const exportApi = {
   },
 };
 
+// ============================================
+// API des documents récurrents (abonnements)
+// ============================================
+
+export const recurring = {
+  /**
+   * Liste les templates récurrents de l'utilisateur
+   */
+  list: async (): Promise<DocumentListItem[]> => {
+    const response = await apiClient.get<DocumentListItem[]>('/recurring');
+    return response.data;
+  },
+
+  /**
+   * Récupère le résumé des charges fixes
+   */
+  getSummary: async (month?: string): Promise<RecurringSummary> => {
+    const params = month ? { month } : {};
+    const response = await apiClient.get<RecurringSummary>('/recurring/summary', { params });
+    return response.data;
+  },
+
+  /**
+   * Génère les documents récurrents pour un mois donné
+   */
+  generate: async (month?: string): Promise<RecurringGenerateResult> => {
+    const params = month ? { month } : {};
+    const response = await apiClient.post<RecurringGenerateResult>('/recurring/generate', null, { params });
+    return response.data;
+  },
+
+  /**
+   * Active/désactive le statut récurrent d'un document
+   */
+  toggle: async (documentId: number): Promise<Document> => {
+    const response = await apiClient.post<Document>(`/recurring/${documentId}/toggle`);
+    return response.data;
+  },
+
+  /**
+   * Liste les documents générés automatiquement pour un mois
+   */
+  listGenerated: async (month?: string): Promise<DocumentListItem[]> => {
+    const params = month ? { month } : {};
+    const response = await apiClient.get<DocumentListItem[]>('/recurring/generated', { params });
+    return response.data;
+  },
+};
+
 // Export par défaut de toutes les APIs
 export default {
   auth,
@@ -731,6 +782,7 @@ export default {
   stats,
   sync,
   exportApi,
+  recurring,
   setToken,
   getToken,
   removeToken,
