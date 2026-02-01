@@ -13,6 +13,7 @@ from app.models.item import Item
 from app.models.budget import Budget
 from app.models.user import User
 from app.models.currency import Currency
+from app.models.item_alias import ItemAlias
 
 
 def user_to_response(user: User) -> dict:
@@ -141,4 +142,14 @@ def budget_to_response(budget: Budget) -> dict:
         "created_at": budget.created_at,
         "updated_at": budget.updated_at,
         "tag": tag_to_simple(budget.tag) if budget.tag else None,
+    }
+
+
+def item_alias_to_response(alias: ItemAlias) -> dict:
+    """Convertit un ItemAlias SQLAlchemy en dict."""
+    return {
+        "id": alias.id,
+        "canonical_name": alias.canonical_name,
+        "alias_name": alias.alias_name,
+        "created_at": alias.created_at,
     }

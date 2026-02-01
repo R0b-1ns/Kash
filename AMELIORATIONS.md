@@ -9,85 +9,13 @@ Roadmap des fonctionnalités à implémenter.
 | # | Fonctionnalité | Version |
 |---|----------------|---------|
 | 1 | Visionneuse de documents (images + PDF, zoom, rotation) | v0.1 |
+| 2 | Gestion des articles (édition, suppression, ajout dans la visionneuse) | v0.1 |
+| 2b | Regroupement d'articles similaires (alias, suggestions automatiques) | v0.1 |
 | 5 | Entrées financières manuelles (sans document) | v0.1 |
 | - | Templates de budget (sauvegarder/charger) | v0.1 |
 | - | Duplication de documents | v0.1 |
 | - | Tri des colonnes (date, montant, marchand) | v0.1 |
 | - | Édition dans la visionneuse (marchand, date, montant, tags) | v0.1 |
-
----
-
-## 2. Gestion des articles (items)
-
-**Priorité:** Haute
-
-**Description:**
-Permettre la modification et suppression des articles extraits par l'OCR/IA, car l'extraction n'est pas toujours exacte.
-
-**Fonctionnalités:**
-
-*Édition des articles dans la visionneuse:*
-- Voir la liste des articles d'un document
-- Modifier un article (nom, quantité, prix unitaire, prix total)
-- Supprimer un article incorrect
-- Ajouter manuellement un article manquant
-- Recalculer le total automatiquement après modification
-
-*Interface:*
-- Section "Articles" dans le panneau latéral de la visionneuse
-- Bouton "Modifier" pour passer en mode édition
-- Champs inline pour chaque article
-- Bouton "+" pour ajouter un nouvel article
-- Icône poubelle pour supprimer
-
-*Backend:*
-- `PUT /items/{id}` - Modifier un article
-- `DELETE /items/{id}` - Supprimer un article
-- `POST /documents/{id}/items` - Ajouter un article
-
----
-
-## 2b. Regroupement d'articles similaires
-
-**Priorité:** Moyenne
-
-**Description:**
-L'OCR peut extraire le même article avec des noms légèrement différents (ex: "Pain", "PAIN", "pain de mie"). Cette fonctionnalité permet de regrouper ces variantes pour avoir des statistiques cohérentes.
-
-**Problème résolu:**
-- "Coca Cola" et "COCA-COLA" comptent comme le même article
-- Meilleure lisibilité dans le dashboard "Articles fréquents"
-- Statistiques de consommation plus précises
-
-**Fonctionnalités:**
-
-*Table de correspondance:*
-```
-| Nom canonique | Variantes                        |
-|---------------|----------------------------------|
-| Coca-Cola     | COCA-COLA, Coca Cola, coca cola  |
-| Pain          | PAIN, pain de mie, Baguette      |
-```
-
-*Interface:*
-- Page "Gestion des articles" dans les paramètres
-- Recherche d'articles existants
-- Glisser-déposer pour regrouper des articles
-- Définir le nom "canonique" (celui qui sera affiché)
-- Possibilité de "dégrouper" si erreur
-
-*Backend:*
-- Nouvelle table `item_aliases`:
-  ```sql
-  id, canonical_name, alias_name, user_id, created_at
-  ```
-- Lors du calcul des stats, regrouper par `canonical_name`
-- Suggestion automatique de regroupement (Levenshtein distance < 3)
-
-*Dashboard:*
-- Les articles regroupés apparaissent sous leur nom canonique
-- Badge indiquant le nombre de variantes fusionnées
-- Clic pour voir le détail des variantes
 
 ---
 

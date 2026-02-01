@@ -11,6 +11,7 @@ Structure des routes:
 - /budgets : Gestion des budgets mensuels
 - /budget-templates : Templates de budget réutilisables
 - /items : Gestion des articles
+- /item-aliases : Regroupement d'articles similaires
 - /stats : Statistiques et dashboard
 - /currencies : Gestion des devises
 - /export : Export des données (CSV)
@@ -25,6 +26,7 @@ from app.api.routes.tags import router as tags_router
 from app.api.routes.budgets import router as budgets_router
 from app.api.routes.budget_templates import router as budget_templates_router
 from app.api.routes.items import router as items_router
+from app.api.routes.item_aliases import router as item_aliases_router
 from app.api.routes.stats import router as stats_router
 from app.api.routes.currencies import router as currencies_router
 from app.api.routes.export import router as export_router
@@ -40,6 +42,7 @@ api_router.include_router(tags_router)
 api_router.include_router(budgets_router)
 api_router.include_router(budget_templates_router)
 api_router.include_router(items_router)
+api_router.include_router(item_aliases_router)
 api_router.include_router(stats_router)
 api_router.include_router(currencies_router)
 api_router.include_router(export_router)

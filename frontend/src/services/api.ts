@@ -11,6 +11,15 @@ import {
   AuthResponse,
   Document,
   DocumentListItem,
+  Item,
+  ItemCreate,
+  ItemUpdate,
+  ItemAliasGroup,
+  ItemAliasSuggestion,
+  DistinctItem,
+  ItemAliasCreate,
+  ItemAliasBulkCreate,
+  ItemAliasGroupUpdate,
   Tag,
   TagCreate,
   TagUpdate,
@@ -255,6 +264,118 @@ export const documents = {
       responseType: 'blob',
     });
     return URL.createObjectURL(response.data);
+  },
+};
+
+// ============================================
+// API des items (articles)
+// ============================================
+
+export const items = {
+  /**
+   * Ajoute un article à un document
+   */
+  create: async (documentId: number, data: ItemCreate): Promise<Item> => {
+    const response = await apiClient.post<Item>(`/items/documents/${documentId}`, data);
+    return response.data;
+  },
+
+  /**
+   * Met à jour un article
+   */
+  update: async (itemId: number, data: ItemUpdate): Promise<Item> => {
+    const response = await apiClient.put<Item>(`/items/${itemId}`, data);
+    return response.data;
+  },
+
+  /**
+   * Supprime un article
+   */
+  delete: async (itemId: number): Promise<void> => {
+    await apiClient.delete(`/items/${itemId}`);
+  },
+};
+
+// ============================================
+// API des alias d'articles
+// ============================================
+
+export const itemAliases = {
+  /**
+   * Liste tous les groupes d'alias
+   */
+  list: async (): Promise<ItemAliasGroup[]> => {
+    const response = await apiClient.get<ItemAliasGroup[]>('/item-aliases');
+    return response.data;
+  },
+
+  /**
+   * Récupère les suggestions de regroupement
+   */
+  getSuggestions: async (params?: {
+    min_occurrences?: number;
+    max_distance?: number;
+  }): Promise<ItemAliasSuggestion[]> => {
+    const response = await apiClient.get<ItemAliasSuggestion[]>('/item-aliases/suggestions', { params });
+    return response.data;
+  },
+
+  /**
+   * Liste les articles distincts avec leur statut d'alias
+   */
+  listItems: async (params?: {
+    search?: string;
+    limit?: number;
+  }): Promise<DistinctItem[]> => {
+    const response = await apiClient.get<DistinctItem[]>('/item-aliases/items-list', { params });
+    return response.data;
+  },
+
+  /**
+   * Crée un alias
+   */
+  create: async (data: ItemAliasCreate): Promise<any> => {
+    const response = await apiClient.post('/item-aliases', data);
+    return response.data;
+  },
+
+  /**
+   * Crée plusieurs alias (regroupement)
+   */
+  createBulk: async (data: ItemAliasBulkCreate): Promise<{
+    success: boolean;
+    canonical_name: string;
+    created: number;
+    skipped: number;
+    errors: string[];
+  }> => {
+    const response = await apiClient.post('/item-aliases/bulk', data);
+    return response.data;
+  },
+
+  /**
+   * Renomme un groupe
+   */
+  renameGroup: async (data: ItemAliasGroupUpdate): Promise<{
+    success: boolean;
+    updated_count: number;
+  }> => {
+    const response = await apiClient.put('/item-aliases/group', data);
+    return response.data;
+  },
+
+  /**
+   * Supprime un alias (dégroupe un article)
+   */
+  delete: async (aliasId: number): Promise<void> => {
+    await apiClient.delete(`/item-aliases/${aliasId}`);
+  },
+
+  /**
+   * Supprime un groupe entier
+   */
+  deleteGroup: async (canonicalName: string): Promise<void> => {
+    await apiClient.delete(`/item-aliases/group/${encodeURIComponent(canonicalName)}`);
   },
 };
 
@@ -557,6 +678,8 @@ export const exportApi = {
 export default {
   auth,
   documents,
+  items,
+  itemAliases,
   tags,
   budgets,
   budgetTemplates,

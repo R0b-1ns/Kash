@@ -70,6 +70,69 @@ export interface Item {
   created_at: string;
 }
 
+export interface ItemCreate {
+  name: string;
+  quantity?: number;
+  unit?: string;
+  unit_price?: number;
+  total_price?: number;
+  category?: string;
+}
+
+export interface ItemUpdate {
+  name?: string;
+  quantity?: number;
+  unit?: string;
+  unit_price?: number;
+  total_price?: number;
+  category?: string;
+}
+
+// ============================================
+// Types d'alias d'articles
+// ============================================
+
+export interface ItemAlias {
+  id: number;
+  alias_name: string;
+  created_at: string;
+}
+
+export interface ItemAliasGroup {
+  canonical_name: string;
+  aliases: ItemAlias[];
+  alias_count: number;
+}
+
+export interface ItemAliasSuggestion {
+  suggested_canonical: string;
+  variants: string[];
+  total_occurrences: number;
+}
+
+export interface DistinctItem {
+  name: string;
+  occurrence_count: number;
+  total_spent: number;
+  has_alias: boolean;
+  canonical_name?: string;
+}
+
+export interface ItemAliasCreate {
+  canonical_name: string;
+  alias_name: string;
+}
+
+export interface ItemAliasBulkCreate {
+  canonical_name: string;
+  alias_names: string[];
+}
+
+export interface ItemAliasGroupUpdate {
+  old_canonical_name: string;
+  new_canonical_name: string;
+}
+
 // ============================================
 // Types de documents
 // ============================================

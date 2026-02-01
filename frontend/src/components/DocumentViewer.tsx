@@ -20,8 +20,10 @@ import {
   Edit2,
   Save,
   Check,
+  Plus,
+  Trash2,
 } from 'lucide-react';
-import { documents as documentsApi, tags as tagsApi } from '../services/api';
+import { documents as documentsApi, tags as tagsApi, items as itemsApi } from '../services/api';
 import type { Document, Tag } from '../types';
 
 interface DocumentViewerProps {
@@ -37,6 +39,16 @@ interface FormData {
   doc_type: string;
   is_income: boolean;
   tag_ids: number[];
+}
+
+interface EditableItem {
+  id?: number; // undefined pour les nouveaux articles
+  name: string;
+  quantity: string;
+  unit_price: string;
+  total_price: string;
+  isNew?: boolean;
+  isDeleted?: boolean;
 }
 
 const DocumentViewer: React.FC<DocumentViewerProps> = ({ document: initialDocument, onClose, onUpdate }) => {
@@ -60,6 +72,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document: initialDocume
     is_income: document.is_income || false,
     tag_ids: document.tags?.map(t => t.id) || [],
   });
+
+  // État des articles en édition
+  const [editableItems, setEditableItems] = useState<EditableItem[]>([]);
 
   // Détermine si c'est un PDF ou une image
   const isPdf = document.file_type?.includes('pdf') || document.original_name?.toLowerCase().endsWith('.pdf');
@@ -145,16 +160,84 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document: initialDocume
       is_income: document.is_income || false,
       tag_ids: document.tags?.map(t => t.id) || [],
     });
+    // Initialiser les articles éditables depuis le document
+    setEditableItems(
+      (document.items || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity?.toString() || '1',
+        unit_price: item.unit_price?.toString() || '',
+        total_price: item.total_price?.toString() || '',
+        isNew: false,
+        isDeleted: false,
+      }))
+    );
     setIsEditing(true);
   };
 
   const handleCancelEdit = () => {
     setIsEditing(false);
+    setEditableItems([]);
+  };
+
+  // Gestion des articles
+  const handleItemChange = (index: number, field: keyof EditableItem, value: string) => {
+    setEditableItems(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      // Auto-calcul du total si quantité ou prix unitaire changent
+      if (field === 'quantity' || field === 'unit_price') {
+        const qty = parseFloat(updated[index].quantity) || 0;
+        const unitPrice = parseFloat(updated[index].unit_price) || 0;
+        if (qty > 0 && unitPrice > 0) {
+          updated[index].total_price = (qty * unitPrice).toFixed(2);
+        }
+      }
+      return updated;
+    });
+  };
+
+  const handleAddItem = () => {
+    setEditableItems(prev => [
+      ...prev,
+      {
+        name: '',
+        quantity: '1',
+        unit_price: '',
+        total_price: '',
+        isNew: true,
+        isDeleted: false,
+      },
+    ]);
+  };
+
+  const handleDeleteItem = (index: number) => {
+    setEditableItems(prev => {
+      const updated = [...prev];
+      if (updated[index].isNew) {
+        // Si c'est un nouvel article, on le supprime directement
+        updated.splice(index, 1);
+      } else {
+        // Sinon on le marque comme supprimé
+        updated[index] = { ...updated[index], isDeleted: true };
+      }
+      return updated;
+    });
+  };
+
+  const handleRestoreItem = (index: number) => {
+    setEditableItems(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], isDeleted: false };
+      return updated;
+    });
   };
 
   const handleSave = async () => {
     try {
       setIsSaving(true);
+
+      // 1. Sauvegarder les modifications du document
       const updatedDoc = await documentsApi.update(document.id, {
         merchant: formData.merchant || undefined,
         date: formData.date || undefined,
@@ -164,13 +247,49 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document: initialDocume
         tag_ids: formData.tag_ids,
       });
 
-      setDocument(updatedDoc);
+      // 2. Gérer les articles
+      const itemPromises: Promise<any>[] = [];
+
+      for (const item of editableItems) {
+        if (item.isDeleted && item.id) {
+          // Supprimer les articles marqués comme supprimés
+          itemPromises.push(itemsApi.delete(item.id));
+        } else if (item.isNew && !item.isDeleted && item.name.trim()) {
+          // Créer les nouveaux articles
+          itemPromises.push(
+            itemsApi.create(document.id, {
+              name: item.name.trim(),
+              quantity: parseFloat(item.quantity) || 1,
+              unit_price: item.unit_price ? parseFloat(item.unit_price) : undefined,
+              total_price: item.total_price ? parseFloat(item.total_price) : undefined,
+            })
+          );
+        } else if (!item.isNew && !item.isDeleted && item.id) {
+          // Mettre à jour les articles existants
+          itemPromises.push(
+            itemsApi.update(item.id, {
+              name: item.name.trim(),
+              quantity: parseFloat(item.quantity) || 1,
+              unit_price: item.unit_price ? parseFloat(item.unit_price) : undefined,
+              total_price: item.total_price ? parseFloat(item.total_price) : undefined,
+            })
+          );
+        }
+      }
+
+      await Promise.all(itemPromises);
+
+      // 3. Recharger le document pour avoir les articles à jour
+      const refreshedDoc = await documentsApi.get(document.id);
+
+      setDocument(refreshedDoc);
+      setEditableItems([]);
       setIsEditing(false);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2000);
 
       if (onUpdate) {
-        onUpdate(updatedDoc);
+        onUpdate(refreshedDoc);
       }
     } catch (err: any) {
       console.error('Erreur lors de la sauvegarde:', err);
@@ -536,32 +655,145 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document: initialDocume
             )}
           </div>
 
-          {/* Articles (lecture seule) */}
-          {document.items && document.items.length > 0 && (
-            <div>
-              <label className="text-xs font-medium text-slate-500 uppercase mb-2 block">
-                Articles ({document.items.length})
+          {/* Articles */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-medium text-slate-500 uppercase">
+                Articles ({isEditing
+                  ? editableItems.filter(i => !i.isDeleted).length
+                  : document.items?.length || 0})
               </label>
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {document.items.map((item) => (
+              {isEditing && (
+                <button
+                  type="button"
+                  onClick={handleAddItem}
+                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
+                >
+                  <Plus className="w-3 h-3" />
+                  Ajouter
+                </button>
+              )}
+            </div>
+
+            {isEditing ? (
+              /* Mode édition des articles */
+              <div className="space-y-2 max-h-80 overflow-y-auto">
+                {editableItems.map((item, index) => (
                   <div
-                    key={item.id}
-                    className="flex justify-between text-sm p-2 bg-slate-50 rounded"
+                    key={item.id || `new-${index}`}
+                    className={`p-2 rounded border ${
+                      item.isDeleted
+                        ? 'bg-red-50 border-red-200 opacity-60'
+                        : item.isNew
+                        ? 'bg-green-50 border-green-200'
+                        : 'bg-slate-50 border-slate-200'
+                    }`}
                   >
-                    <div>
-                      <p className="text-slate-800">{item.name}</p>
-                      <p className="text-slate-500 text-xs">
-                        {item.quantity} × {formatCurrency(item.unit_price)}
-                      </p>
-                    </div>
-                    <p className="font-medium text-slate-800">
-                      {formatCurrency(item.total_price)}
-                    </p>
+                    {item.isDeleted ? (
+                      /* Article marqué comme supprimé */
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-red-600 line-through">{item.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRestoreItem(index)}
+                          className="text-xs text-blue-600 hover:text-blue-700"
+                        >
+                          Restaurer
+                        </button>
+                      </div>
+                    ) : (
+                      /* Article en édition */
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={item.name}
+                            onChange={(e) => handleItemChange(index, 'name', e.target.value)}
+                            placeholder="Nom de l'article"
+                            className="flex-1 px-2 py-1 text-sm border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteItem(index)}
+                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="w-16">
+                            <label className="text-[10px] text-slate-400">Qté</label>
+                            <input
+                              type="number"
+                              min="0"
+                              step="1"
+                              value={item.quantity}
+                              onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                              className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="text-[10px] text-slate-400">Prix unit.</label>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={item.unit_price}
+                              onChange={(e) => handleItemChange(index, 'unit_price', e.target.value)}
+                              placeholder="0.00"
+                              className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="text-[10px] text-slate-400">Total</label>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={item.total_price}
+                              onChange={(e) => handleItemChange(index, 'total_price', e.target.value)}
+                              placeholder="0.00"
+                              className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
+                {editableItems.length === 0 && (
+                  <p className="text-sm text-slate-400 text-center py-4">
+                    Aucun article. Cliquez sur "Ajouter" pour en créer.
+                  </p>
+                )}
               </div>
-            </div>
-          )}
+            ) : (
+              /* Mode lecture des articles */
+              document.items && document.items.length > 0 ? (
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {document.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex justify-between text-sm p-2 bg-slate-50 rounded"
+                    >
+                      <div>
+                        <p className="text-slate-800">{item.name}</p>
+                        <p className="text-slate-500 text-xs">
+                          {item.quantity} × {formatCurrency(item.unit_price)}
+                        </p>
+                      </div>
+                      <p className="font-medium text-slate-800">
+                        {formatCurrency(item.total_price)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-400">Aucun article</p>
+              )
+            )}
+          </div>
 
           {/* Confiance OCR */}
           {document.ocr_confidence !== undefined && document.ocr_confidence !== null && (

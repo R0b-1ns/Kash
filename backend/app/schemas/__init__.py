@@ -50,6 +50,13 @@ from app.schemas.currency import (
     CurrencyUpdate,
 )
 
+from app.schemas.item_alias import (
+    ItemAliasCreate,
+    ItemAliasUpdate,
+    ItemAliasBulkCreate,
+    ItemAliasGroupUpdate,
+)
+
 # =============================================================================
 # Converters (SQLAlchemy -> dict)
 # =============================================================================
@@ -64,6 +71,7 @@ from app.schemas.converters import (
     document_to_response,
     document_to_list_response,
     budget_to_response,
+    item_alias_to_response,
 )
 
 __all__ = [
@@ -92,6 +100,11 @@ __all__ = [
     # Currency
     "CurrencyCreate",
     "CurrencyUpdate",
+    # Item Alias
+    "ItemAliasCreate",
+    "ItemAliasUpdate",
+    "ItemAliasBulkCreate",
+    "ItemAliasGroupUpdate",
     # Converters
     "user_to_response",
     "currency_to_response",
@@ -102,4 +115,5 @@ __all__ = [
     "document_to_response",
     "document_to_list_response",
     "budget_to_response",
+    "item_alias_to_response",
 ]

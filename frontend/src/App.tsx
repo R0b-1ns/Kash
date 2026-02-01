@@ -18,6 +18,8 @@ import DashboardPage from './pages/DashboardPage';
 import DocumentsPage from './pages/DocumentsPage';
 import TagsPage from './pages/TagsPage';
 import BudgetsPage from './pages/BudgetsPage';
+import ItemAliasesPage from './pages/ItemAliasesPage';
+import ItemsPage from './pages/ItemsPage';
 import SettingsPage from './pages/SettingsPage';
 
 // ============================================
@@ -82,6 +84,30 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <BudgetsPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Articles - Liste et stats */}
+          <Route
+            path="/items"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ItemsPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Articles similaires - Regroupement */}
+          <Route
+            path="/item-aliases"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ItemAliasesPage />
                 </Layout>
               </ProtectedRoute>
             }

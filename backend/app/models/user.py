@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 
@@ -11,3 +12,6 @@ class User(Base):
     name = Column(String(100))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    # Relations
+    item_aliases = relationship("ItemAlias", back_populates="user", cascade="all, delete-orphan")

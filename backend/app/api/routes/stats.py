@@ -28,6 +28,7 @@ from app.models.user import User
 from app.models.document import Document
 from app.models.item import Item
 from app.models.tag import Tag, DocumentTag
+from app.models.item_alias import ItemAlias
 
 router = APIRouter(prefix="/stats", tags=["Statistiques"])
 
@@ -256,14 +257,16 @@ def get_monthly_evolution(
 @router.get("/top-items", response_model=List[TopItem])
 def get_top_items(
     month: Optional[str] = Query(None, pattern=r"^\d{4}-\d{2}$"),
-    limit: int = Query(10, ge=1, le=50),
+    limit: int = Query(10, ge=1, le=500),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     Articles les plus achetés (en montant dépensé).
 
-    Utile pour voir où va l'argent au niveau article.
+    Utilise les alias d'articles pour regrouper les variantes.
+    Par exemple, "COCA-COLA" et "Coca Cola" seront groupés sous "Coca-Cola"
+    si un alias est défini.
 
     Args:
         month: Mois à filtrer (optionnel, sinon tous les temps)
@@ -272,11 +275,28 @@ def get_top_items(
     Returns:
         Liste des top articles avec quantité totale et montant
     """
+    # Récupérer les alias de l'utilisateur
+    aliases = {
+        a.alias_name: a.canonical_name
+        for a in db.query(ItemAlias).filter(ItemAlias.user_id == current_user.id).all()
+    }
+
+    # Utiliser COALESCE avec une sous-requête pour remplacer les noms par leur alias
+    # Si un alias existe, utiliser le canonical_name, sinon garder le nom original
+    alias_subquery = db.query(ItemAlias.alias_name, ItemAlias.canonical_name).filter(
+        ItemAlias.user_id == current_user.id
+    ).subquery()
+
+    # Nom effectif = canonical_name si alias existe, sinon Item.name
+    effective_name = func.coalesce(alias_subquery.c.canonical_name, Item.name)
+
     query = db.query(
-        Item.name,
+        effective_name.label("name"),
         func.sum(Item.quantity).label("total_quantity"),
         func.sum(Item.total_price).label("total_spent"),
         func.count(Item.id).label("purchase_count")
+    ).outerjoin(
+        alias_subquery, Item.name == alias_subquery.c.alias_name
     ).join(
         Document
     ).filter(
@@ -293,9 +313,10 @@ def get_top_items(
         )
 
     results = query.group_by(
-        Item.name
+        effective_name
     ).order_by(
-        func.sum(Item.total_price).desc()
+        func.count(Item.id).desc(),  # D'abord par nombre d'achats
+        func.sum(Item.total_price).desc()  # Puis par montant total
     ).limit(limit).all()
 
     return [

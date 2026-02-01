@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   FileText,
   Tags,
+  ShoppingCart,
   PiggyBank,
   LogOut,
   Menu,
@@ -42,6 +43,7 @@ const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Documents', href: '/documents', icon: FileText },
   { name: 'Tags', href: '/tags', icon: Tags },
+  { name: 'Articles', href: '/items', icon: ShoppingCart },
   { name: 'Budgets', href: '/budgets', icon: PiggyBank },
   { name: 'Paramètres', href: '/settings', icon: Settings },
 ];

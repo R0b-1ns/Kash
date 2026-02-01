@@ -5,6 +5,7 @@ from app.models.tag import Tag, DocumentTag
 from app.models.budget import Budget
 from app.models.budget_template import BudgetTemplate, BudgetTemplateItem
 from app.models.currency import Currency
+from app.models.item_alias import ItemAlias
 
 __all__ = [
     "User",
@@ -16,4 +17,5 @@ __all__ = [
     "BudgetTemplate",
     "BudgetTemplateItem",
     "Currency",
+    "ItemAlias",
 ]

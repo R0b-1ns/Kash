@@ -425,3 +425,68 @@ NAS_MOUNT_PATH=/app/nas_backup
 
 *   **Nom choisi : Kash** - Version stylisée de "Cash", évoque la gestion d'argent de façon moderne.
 *   **Création du README.md** - Présentation du projet avec architecture, installation, utilisation.
+
+---
+
+## 2026-02-01 - Gestion des articles
+
+### Édition des articles dans la visionneuse
+
+*   **DocumentViewer:** Ajout de l'édition inline des articles dans le panneau latéral
+    - Modification: nom, quantité, prix unitaire, prix total
+    - Auto-calcul du total (quantité × prix unitaire)
+    - Ajout de nouveaux articles (bouton "+")
+    - Suppression d'articles (icône poubelle, avec restauration possible)
+    - Sauvegarde groupée de toutes les modifications
+*   **API Items:** Ajout des fonctions `create`, `update`, `delete` dans `api.ts`
+*   **Types:** Ajout de `ItemCreate`, `ItemUpdate` dans `types/index.ts`
+
+### Regroupement d'articles similaires
+
+**Problème résolu:** L'OCR extrait le même article avec des noms différents (ex: "COCA-COLA", "Coca Cola", "coca cola"). Le regroupement permet d'avoir des statistiques cohérentes.
+
+*   **Backend - Nouveau modèle:**
+    - `ItemAlias` : table de correspondance (canonical_name ↔ alias_name)
+    - Migration `006_item_aliases.py`
+
+*   **Backend - Nouveaux endpoints (`/item-aliases`):**
+    | Méthode | Route | Description |
+    |---------|-------|-------------|
+    | GET | `/` | Liste des groupes existants |
+    | GET | `/suggestions` | Suggestions automatiques (Levenshtein) |
+    | GET | `/items-list` | Liste des articles distincts |
+    | POST | `/` | Créer un alias |
+    | POST | `/bulk` | Créer plusieurs alias (regroupement) |
+    | PUT | `/group` | Renommer un groupe |
+    | DELETE | `/{id}` | Supprimer un alias |
+    | DELETE | `/group/{name}` | Supprimer un groupe |
+
+*   **Backend - Stats mises à jour:**
+    - `/stats/top-items` utilise maintenant les alias pour regrouper
+    - Tri par nombre d'achats (prioritaire) puis par montant
+
+*   **Frontend - Page Articles Similaires (`/item-aliases`):**
+    - Tab "Groupes existants" : voir, renommer, supprimer
+    - Tab "Suggestions" : suggestions automatiques basées sur la distance de Levenshtein
+    - Tab "Créer manuellement" : rechercher et sélectionner des articles
+    - Possibilité d'ajouter des articles à un groupe existant
+
+*   **Frontend - Nouvelle page Articles (`/items`):**
+    - Stats globales : articles différents, total dépensé, achats totaux
+    - Recherche par nom d'article
+    - Filtre par mois (12 derniers mois)
+    - Tableau triable (nom, achats, quantité, montant)
+    - Lien vers la page de regroupement
+
+### Corrections de bugs
+
+*   **Routes FastAPI:** Réorganisation des routes PUT/DELETE pour que les routes statiques (`/group`) soient définies avant les routes dynamiques (`/{id}`)
+*   **Gestion des erreurs Pydantic:** Ajout de `extractErrorMessage()` pour extraire correctement les messages d'erreur de validation
+*   **Schéma Pydantic:** `min_items` → `min_length` (syntaxe Pydantic v2)
+*   **Limite stats:** Augmentation de la limite de 50 à 500 pour `/stats/top-items`
+
+### Navigation
+
+*   Nouveau lien "Articles" dans la sidebar (icône ShoppingCart)
+*   `/items` : page principale des articles avec stats
+*   `/item-aliases` : accessible depuis la page Articles ("Gérer les regroupements")
