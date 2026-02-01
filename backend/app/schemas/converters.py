@@ -116,7 +116,9 @@ def document_to_list_response(doc: Document) -> dict:
     """Convertit un Document SQLAlchemy en dict pour DocumentListResponse."""
     return {
         "id": doc.id,
+        "file_path": doc.file_path,  # Nécessaire pour savoir si le doc a un fichier
         "original_name": doc.original_name,
+        "file_type": doc.file_type,
         "doc_type": doc.doc_type,
         "date": doc.date,
         "merchant": doc.merchant,
