@@ -14,6 +14,7 @@ Kash centralise vos factures, tickets de caisse et fiches de paie. Il extrait au
 - **Tags** : Organisation personnalisée (pas de catégories fixes)
 - **Multi-devise** : EUR, USD, GBP, CHF... avec conversion
 - **Export** : CSV des documents et résumés mensuels
+- **Rapports PDF** : Rapports mensuels et annuels avec graphiques.
 - **Sync NAS** : Sauvegarde automatique vers NAS (SMB)
 
 ## Architecture
@@ -96,8 +97,7 @@ Accédez à http://localhost:3000 et créez votre compte.
 
 ### 2. Configurer vos tags
 
-Créez des tags pour organiser vos documents (ex: Courses, Restaurant, Transport...).
-
+Créez des tags pour organiser vos documents (ex: Courses, Restaurant, Transport...).n
 ### 3. Uploader des documents
 
 Glissez-déposez vos tickets et factures. L'extraction est automatique :
@@ -175,7 +175,6 @@ Voir [AMELIORATIONS.md](AMELIORATIONS.md) pour la roadmap :
 - Gestion des articles (modifier/supprimer)
 - Documents récurrents (abonnements)
 - Entrées financières manuelles
-- Export PDF
 
 ## Licence
 
