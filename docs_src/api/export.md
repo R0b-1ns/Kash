@@ -82,6 +82,67 @@ Loisirs;220.45 EUR;17.6%
 
 ---
 
+### GET /monthly/pdf
+
+Génère et exporte le rapport PDF mensuel avec graphiques.
+
+**Query Parameters:**
+
+| Paramètre | Type | Obligatoire | Description |
+|-----------|------|-------------|-------------|
+| year | int | Oui | Année du rapport (2000-2100) |
+| month | int | Oui | Mois du rapport (1-12) |
+
+**Response (200):**
+- Content-Type: `application/pdf`
+- Content-Disposition: `attachment; filename="bilan_*.pdf"`
+
+!!! note "Contenu du rapport"
+    Le rapport PDF mensuel inclut un résumé financier, des graphiques de répartition par catégorie (donut), d'évolution mensuelle, des tops dépenses et marchands, ainsi qu'un suivi budgétaire.
+
+---
+
+### GET /annual/pdf
+
+Génère et exporte le rapport PDF annuel récapitulatif.
+
+**Query Parameters:**
+
+| Paramètre | Type | Obligatoire | Description |
+|-----------|------|-------------|-------------|
+| year | int | Oui | Année du rapport (2000-2100) |
+
+**Response (200):**
+- Content-Type: `application/pdf`
+- Content-Disposition: `attachment; filename="bilan_annuel_*.pdf"`
+
+!!! note "Contenu du rapport"
+    Le rapport PDF annuel contient un résumé de l'année, l'évolution mensuelle (graphique ligne), un tableau comparatif mois par mois, la répartition annuelle par catégorie et les tops dépenses/marchands.
+
+---
+
+### GET /chart/{chart_type}
+
+Exporte un graphique individuel en PNG.
+
+**Path Parameters:**
+
+| Paramètre | Type | Obligatoire | Description |
+|-----------|------|-------------|-------------|
+| chart_type | string | Oui | Type de graphique : `pie`, `bar`, `line`, `donut`, `area` |
+
+**Query Parameters:**
+
+| Paramètre | Type | Obligatoire | Description |
+|-----------|------|-------------|-------------|
+| month | string | Non | Mois à filtrer pour le graphique (format YYYY-MM) |
+
+**Response (200):**
+- Content-Type: `image/png`
+- Content-Disposition: `attachment; filename="graphique_*.png"`
+
+---
+
 ## Exemples d'utilisation
 
 ### Export avec cURL
@@ -102,10 +163,25 @@ curl -H "Authorization: Bearer $TOKEN" \
      "http://localhost:8000/api/v1/export/documents/csv?include_items=true" \
      -o documents_details.csv
 
-# Export résumé mensuel
+# Export résumé mensuel CSV
 curl -H "Authorization: Bearer $TOKEN" \
      "http://localhost:8000/api/v1/export/monthly/csv?year=2024&month=1" \
      -o resume_janvier.csv
+
+# Export rapport mensuel PDF
+curl -H "Authorization: Bearer $TOKEN" \
+     "http://localhost:8000/api/v1/export/monthly/pdf?year=2024&month=1" \
+     -o rapport_janvier.pdf
+
+# Export rapport annuel PDF
+curl -H "Authorization: Bearer $TOKEN" \
+     "http://localhost:8000/api/v1/export/annual/pdf?year=2024" \
+     -o rapport_annuel_2024.pdf
+
+# Export graphique camembert PNG pour un mois
+curl -H "Authorization: Bearer $TOKEN" \
+     "http://localhost:8000/api/v1/export/chart/pie?month=2024-01" \
+     -o graphique_janvier_camembert.png
 ```
 
 ### Export avec JavaScript
@@ -120,8 +196,17 @@ await exportApi.documentsCSV({
 });
 // Le fichier est téléchargé automatiquement
 
-// Télécharger le résumé mensuel
+// Télécharger le résumé mensuel CSV
 await exportApi.monthlyCSV(2024, 1);
+
+// Télécharger le rapport mensuel PDF
+await exportApi.monthlyPDF(2024, 1);
+
+// Télécharger le rapport annuel PDF
+await exportApi.annualPDF(2024);
+
+// Télécharger un graphique PNG
+await exportApi.exportChart('donut', '2024-01');
 ```
 
 ---

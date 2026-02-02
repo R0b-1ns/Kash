@@ -42,7 +42,8 @@ backend/
 │       ├── document_processor.py
 │       ├── export_service.py
 │       ├── nas_sync_service.py
-│       └── currency_service.py
+│       ├── currency_service.py
+│       └── pdf_service.py     # Nouveau service de génération PDF
 ├── alembic/                 # Migrations BDD
 │   └── versions/
 │       └── 001_initial_schema.py
@@ -183,6 +184,27 @@ class DocumentProcessor:
         """
 ```
 
+### PDFReportService
+
+Service de génération de rapports PDF avec graphiques.
+
+Ce service utilise `ReportLab` pour la création de documents PDF et `Matplotlib` pour la génération de graphiques intégrés.
+
+```python
+class PDFReportService:
+    def __init__(self, db: Session, user_id: int):
+        # ...
+    
+    def generate_monthly_report(self, year: int, month: int) -> bytes:
+        # ...
+    
+    def generate_annual_report(self, year: int) -> bytes:
+        # ...
+    
+    def export_chart(self, chart_type: str, params: dict) -> bytes:
+        # ...
+```
+
 ## Routes API
 
 ### Authentification (`/auth`)
@@ -241,6 +263,9 @@ class DocumentProcessor:
 |---------|----------|-------------|
 | GET | `/documents/csv` | Export CSV documents |
 | GET | `/monthly/csv` | Export résumé mensuel |
+| GET | `/monthly/pdf` | Export PDF rapport mensuel |
+| GET | `/annual/pdf` | Export PDF rapport annuel |
+| GET | `/chart/{chart_type}` | Export graphique PNG |
 
 ### Synchronisation (`/sync`)
 

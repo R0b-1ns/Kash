@@ -815,6 +815,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pages-frontend-importantes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pages Frontend importantes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#authentification" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1515,6 +1526,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pages-frontend-importantes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pages Frontend importantes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#authentification" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1817,6 +1839,9 @@
 <a id="__codelineno-4-37" name="__codelineno-4-37" href="#__codelineno-4-37"></a><span class="c1">// Export</span>
 <a id="__codelineno-4-38" name="__codelineno-4-38" href="#__codelineno-4-38"></a><span class="nx">exportApi</span><span class="p">.</span><span class="nx">documentsCSV</span><span class="p">(</span><span class="nx">params</span><span class="o">?</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="ow">void</span><span class="o">&gt;</span>
 <a id="__codelineno-4-39" name="__codelineno-4-39" href="#__codelineno-4-39"></a><span class="nx">exportApi</span><span class="p">.</span><span class="nx">monthlyCSV</span><span class="p">(</span><span class="nx">year</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">,</span><span class="w"> </span><span class="nx">month</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="ow">void</span><span class="o">&gt;</span>
+<a id="__codelineno-4-40" name="__codelineno-4-40" href="#__codelineno-4-40"></a><span class="nx">exportApi</span><span class="p">.</span><span class="nx">monthlyPDF</span><span class="p">(</span><span class="nx">year</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">,</span><span class="w"> </span><span class="nx">month</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="ow">void</span><span class="o">&gt;</span>
+<a id="__codelineno-4-41" name="__codelineno-4-41" href="#__codelineno-4-41"></a><span class="nx">exportApi</span><span class="p">.</span><span class="nx">annualPDF</span><span class="p">(</span><span class="nx">year</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="ow">void</span><span class="o">&gt;</span>
+<a id="__codelineno-4-42" name="__codelineno-4-42" href="#__codelineno-4-42"></a><span class="nx">exportApi</span><span class="p">.</span><span class="nx">exportChart</span><span class="p">(</span><span class="nx">chartType</span><span class="o">:</span><span class="w"> </span><span class="kt">ChartType</span><span class="p">,</span><span class="w"> </span><span class="nx">month?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="ow">void</span><span class="o">&gt;</span>
 </code></pre></div>
 <h2 id="composants">Composants<a class="headerlink" href="#composants" title="Permanent link">&para;</a></h2>
 <h3 id="layout">Layout<a class="headerlink" href="#layout" title="Permanent link">&para;</a></h3>
@@ -1875,6 +1900,10 @@
 </tr>
 </tbody>
 </table>
+<h2 id="pages-frontend-importantes">Pages Frontend importantes<a class="headerlink" href="#pages-frontend-importantes" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong><code>SettingsPage.tsx</code></strong>: Cette page a été étendue pour inclure les nouvelles interfaces utilisateur d'exportation de rapports PDF mensuels et annuels, ainsi que l'exportation de graphiques individuels au format PNG. Elle permet aux utilisateurs de choisir les périodes et les types de graphiques pour leurs exports.</li>
+</ul>
 <h2 id="authentification">Authentification<a class="headerlink" href="#authentification" title="Permanent link">&para;</a></h2>
 <h3 id="context-auth">Context Auth<a class="headerlink" href="#context-auth" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">AuthContext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">createContext</span><span class="p">&lt;</span><span class="nt">AuthContextType</span><span class="p">&gt;(</span><span class="kc">null</span><span class="p">);</span>

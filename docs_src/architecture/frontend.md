@@ -184,6 +184,9 @@ sync.runSync(): Promise<SyncRunResult>
 // Export
 exportApi.documentsCSV(params?): Promise<void>
 exportApi.monthlyCSV(year: number, month: number): Promise<void>
+exportApi.monthlyPDF(year: number, month: number): Promise<void>
+exportApi.annualPDF(year: number): Promise<void>
+exportApi.exportChart(chartType: ChartType, month?: string): Promise<void>
 ```
 
 ## Composants
@@ -228,6 +231,10 @@ Si l'utilisateur n'est pas connecté, il est redirigé vers `/login`.
 | `BudgetProgress` | Barres de progression budgets |
 | `TopExpenses` | Liste dernières dépenses |
 | `TopItems` | Articles les plus fréquents |
+
+## Pages Frontend importantes
+
+*   **`SettingsPage.tsx`**: Cette page a été étendue pour inclure les nouvelles interfaces utilisateur d'exportation de rapports PDF mensuels et annuels, ainsi que l'exportation de graphiques individuels au format PNG. Elle permet aux utilisateurs de choisir les périodes et les types de graphiques pour leurs exports.
 
 ## Authentification
 

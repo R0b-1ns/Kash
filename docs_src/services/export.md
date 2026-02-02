@@ -1,17 +1,21 @@
-# Service Export
+# Services d'Export et Rapports
 
-Le service d'export génère des fichiers CSV à partir des données.
+Ce module regroupe les services backend pour l'exportation de données en différents formats (CSV, PDF) et la génération de rapports avec des graphiques.
 
-## Fichier source
+## Fichiers sources
 
-`backend/app/services/export_service.py`
+- `backend/app/services/export_service.py`
+- `backend/app/services/pdf_service.py`
 
 ## Fonctionnalités
 
 - Export des documents en CSV
-- Export du résumé mensuel
-- Filtrage par dates, tags
-- Option détail des articles
+- Export du résumé mensuel en CSV
+- Génération de rapports mensuels PDF avec graphiques
+- Génération de rapports annuels PDF avec graphiques
+- Export de graphiques individuels en PNG
+- Filtrage par dates, tags (pour CSV)
+- Option détail des articles (pour CSV)
 
 ## Classe ExportService
 
@@ -53,15 +57,70 @@ class ExportService:
         """
 ```
 
+## Classe PDFReportService
+
+Le `PDFReportService` est responsable de la génération de rapports PDF détaillés et de l'exportation de graphiques individuels au format PNG. Il utilise `ReportLab` pour la mise en page des PDF et `Matplotlib` pour créer des visualisations de données.
+
+```python
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg') # Utilisation du backend sans GUI
+from io import BytesIO
+
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Image, Table, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+
+class PDFReportService:
+    def __init__(self, db: Session, user_id: int):
+        """
+        Initialise le service de rapports PDF.
+
+        Args:
+            db: Session de base de données
+            user_id: ID de l'utilisateur (filtre les données)
+        """
+
+    def generate_monthly_report(self, year: int, month: int) -> bytes:
+        """
+        Génère un rapport financier mensuel complet en PDF avec graphiques.
+
+        Returns:
+            Contenu du fichier PDF sous forme de bytes.
+        """
+
+    def generate_annual_report(self, year: int) -> bytes:
+        """
+        Génère un rapport financier annuel complet en PDF avec graphiques.
+
+        Returns:
+            Contenu du fichier PDF sous forme de bytes.
+        """
+
+    def export_chart(self, chart_type: str, params: dict) -> bytes:
+        """
+        Exporte un graphique individuel (pie, bar, line, donut, area) en PNG.
+
+        Args:
+            chart_type: Type de graphique à générer.
+            params: Paramètres spécifiques au graphique (ex: 'month').
+
+        Returns:
+            Contenu du fichier PNG sous forme de bytes.
+        """
+```
+
 ## Utilisation
 
 ```python
 from app.services.export_service import get_export_service
+from app.services.pdf_service import get_pdf_service
 
-# Créer le service
+# Créer les services
 export_service = get_export_service(db, user_id=1)
+pdf_service = get_pdf_service(db, user_id=1)
 
-# Export des documents
+# Export des documents CSV
 csv_content = export_service.export_documents_csv(
     start_date=date(2024, 1, 1),
     end_date=date(2024, 1, 31),
@@ -69,9 +128,23 @@ csv_content = export_service.export_documents_csv(
     include_items=True
 )
 
-# Sauvegarder le fichier
+# Sauvegarder le fichier CSV
 with open("export.csv", "w", encoding="utf-8-sig") as f:
     f.write(csv_content)
+
+# Générer un rapport mensuel PDF
+pdf_content = pdf_service.generate_monthly_report(2024, 1)
+
+# Sauvegarder le fichier PDF
+with open("rapport_mensuel.pdf", "wb") as f:
+    f.write(pdf_content)
+
+# Exporter un graphique PNG
+png_content = pdf_service.export_chart("donut", {"month": "2024-01"})
+
+# Sauvegarder le fichier PNG
+with open("graphique_donut.png", "wb") as f:
+    f.write(png_content)
 ```
 
 ## Formats de sortie
@@ -105,7 +178,7 @@ ID Document;Date;Marchand;Article;Quantité;Unité;Prix unitaire;Prix total;Cat�
 1;2024-01-15;Carrefour;Baguette;2.00;;1.20;2.40;Boulangerie;Courses
 ```
 
-### Export mensuel
+### Export mensuel CSV
 
 ```csv
 Résumé mensuel;2024-01
@@ -121,6 +194,14 @@ Tag;Montant;Pourcentage
 Courses;450.30 EUR;36.0%
 Transport;180.00 EUR;14.4%
 ```
+
+### Rapports PDF
+
+Les rapports PDF (mensuels et annuels) offrent une mise en page structurée avec un résumé financier, des tableaux et des graphiques générés dynamiquement.
+
+### Graphiques PNG
+
+Les exports de graphiques PNG fournissent des images haute résolution des visualisations de données.
 
 ## Configuration CSV
 
