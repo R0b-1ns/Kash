@@ -1,24 +1,34 @@
 version: '3.8'
 
 services:
+  nginx:
+    image: nginx:latest
+    container_name: finance-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: finance-backend
-    ports:
-      - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://finance:finance@postgres:5432/finance_db
       - SECRET_KEY=${SECRET_KEY}
       - OLLAMA_HOST=http://ollama:11434
       - OCR_SERVICE_URL=${OCR_SERVICE_URL}
-      - NAS_MOUNT_PATH=${NAS_MOUNT_PATH:-}  # Chemin du montage SMB dans le container
+      - NAS_MOUNT_PATH=${NAS_MOUNT_PATH:-}
     volumes:
       - ./backend/app:/app/app
-      - ./backend/alembic:/app/alembic  # Migrations Alembic
+      - ./backend/alembic:/app/alembic
       - ./uploads:/app/uploads
-      - ${NAS_LOCAL_PATH:-./nas_backup}:/app/nas_backup  # Montage NAS (ou dossier local par défaut)
+      - ${NAS_LOCAL_PATH:-./nas_backup}:/app/nas_backup
     depends_on:
       postgres:
         condition: service_healthy
@@ -33,8 +43,6 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: finance-frontend
-    ports:
-      - "3000:3000"
     environment:
       - VITE_API_URL=${VITE_API_URL}
     volumes:
@@ -79,7 +87,7 @@ services:
       retries: 30
       start_period: 120s
     restart: unless-stopped
-    # Pour Mac M1, Ollama utilise automatiquement le GPU via Metal
+    # For Mac M1, Ollama uses the GPU via Metal automatically
 
   ocr-service: # New OCR microservice
     build:
