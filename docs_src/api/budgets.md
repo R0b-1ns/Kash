@@ -1,20 +1,20 @@
-# API Budgets
+# Budgets API
 
 Base URL: `/api/v1/budgets`
 
-Les budgets permettent de définir des limites de dépenses mensuelles par catégorie (tag).
+Budgets allow setting monthly spending limits per category (tag).
 
 ## Endpoints
 
 ### GET /
 
-Liste tous les budgets.
+Lists all budgets.
 
 **Query Parameters:**
 
-| Paramètre | Type | Description |
+| Parameter | Type | Description |
 |-----------|------|-------------|
-| month | string | Filtrer par mois (format: YYYY-MM) |
+| month | string | Filter by month (format: YYYY-MM) |
 
 **Response (200):**
 ```json
@@ -29,7 +29,7 @@ Liste tous les budgets.
     "updated_at": "2024-01-01T00:00:00Z",
     "tag": {
       "id": 1,
-      "name": "Courses",
+      "name": "Groceries",
       "color": "#22c55e"
     }
   }
@@ -40,15 +40,15 @@ Liste tous les budgets.
 
 ### GET /current
 
-Récupère les budgets du mois avec les dépenses calculées.
+Retrieves budgets for the current month with calculated spending.
 
-C'est l'endpoint principal pour le dashboard et la page budgets.
+This is the main endpoint for the dashboard and budget page.
 
 **Query Parameters:**
 
-| Paramètre | Type | Description |
+| Parameter | Type | Description |
 |-----------|------|-------------|
-| month | string | Mois cible (format: YYYY-MM, défaut: mois actuel) |
+| month | string | Target month (format: YYYY-MM, default: current month) |
 
 **Response (200):**
 ```json
@@ -56,7 +56,7 @@ C'est l'endpoint principal pour le dashboard et la page budgets.
   {
     "id": 1,
     "tag_id": 1,
-    "tag_name": "Courses",
+    "tag_name": "Groceries",
     "tag_color": "#22c55e",
     "month": "2024-01",
     "limit_amount": 500.00,
@@ -80,14 +80,14 @@ C'est l'endpoint principal pour le dashboard et la page budgets.
 ]
 ```
 
-!!! note "Calcul des dépenses"
-    `spent_amount` est calculé en temps réel à partir des documents du mois ayant le tag correspondant.
+!!! note "Spending Calculation"
+    `spent_amount` is calculated in real-time from documents of the month with the corresponding tag.
 
 ---
 
 ### POST /
 
-Crée un nouveau budget.
+Creates a new budget.
 
 **Request Body:**
 ```json
@@ -99,12 +99,12 @@ Crée un nouveau budget.
 }
 ```
 
-| Champ | Type | Obligatoire | Description |
-|-------|------|-------------|-------------|
-| tag_id | int | Oui | ID du tag associé |
-| month | string | Oui | Mois (format: YYYY-MM) |
-| limit_amount | number | Oui | Limite de dépenses |
-| currency | string | Non | Devise (défaut: EUR) |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| tag_id | int | Yes | ID of the associated tag |
+| month | string | Yes | Month (format: YYYY-MM) |
+| limit_amount | number | Yes | Spending limit |
+| currency | string | No | Currency (default: EUR) |
 
 **Response (201):**
 ```json
@@ -119,18 +119,18 @@ Crée un nouveau budget.
 }
 ```
 
-**Erreurs:**
+**Errors:**
 
 | Code | Description |
 |------|-------------|
-| 400 | Budget déjà existant pour ce tag/mois |
-| 404 | Tag non trouvé |
+| 400 | Budget already exists for this tag/month |
+| 404 | Tag not found |
 
 ---
 
 ### PUT /{id}
 
-Met à jour un budget.
+Updates a budget.
 
 **Request Body:**
 ```json
@@ -139,55 +139,55 @@ Met à jour un budget.
 }
 ```
 
-| Champ | Type | Description |
+| Field | Type | Description |
 |-------|------|-------------|
-| limit_amount | number | Nouvelle limite |
-| currency | string | Nouvelle devise |
+| limit_amount | number | New limit |
+| currency | string | New currency |
 
-**Response (200):** Budget mis à jour
+**Response (200):** Budget updated
 
 ---
 
 ### DELETE /{id}
 
-Supprime un budget.
+Deletes a budget.
 
 **Response (204):** No Content
 
 ---
 
-## Indicateurs visuels
+## Visual Indicators
 
-Le pourcentage d'utilisation détermine la couleur de l'indicateur :
+The percentage of usage determines the indicator's color:
 
-| Pourcentage | Couleur | Signification |
-|-------------|---------|---------------|
-| 0-50% | Vert (`#22c55e`) | Confortable |
-| 50-75% | Jaune (`#eab308`) | À surveiller |
-| 75-90% | Orange (`#f97316`) | Attention |
-| 90%+ | Rouge (`#ef4444`) | Limite proche/dépassée |
+| Usage Percentage | Color | Meaning |
+|------------------|---------|---------------|
+| 0-50%            | Green (`#22c55e`) | Comfortable    |
+| 50-75%           | Yellow (`#eab308`) | Watch out      |
+| 75-90%           | Orange (`#f97316`) | Close to limit |
+| 90%+             | Red (`#ef4444`) | Limit exceeded   |
 
-## Exemple d'utilisation
+## Example Usage
 
-### Créer des budgets pour le mois
+### Create monthly budgets
 
 ```javascript
-// Créer un budget courses
+// Create a groceries budget
 await budgets.create({
-  tag_id: 1, // ID du tag "Courses"
+  tag_id: 1, // ID of "Groceries" tag
   month: "2024-01",
   limit_amount: 500
 });
 
-// Créer un budget transport
+// Create a transport budget
 await budgets.create({
-  tag_id: 2, // ID du tag "Transport"
+  tag_id: 2, // ID of "Transport" tag
   month: "2024-01",
   limit_amount: 150
 });
 ```
 
-### Afficher la progression
+### Display progress
 
 ```javascript
 const current = await budgets.getCurrent("2024-01");
@@ -195,7 +195,7 @@ const current = await budgets.getCurrent("2024-01");
 current.forEach(budget => {
   console.log(`${budget.tag_name}: ${budget.percentage_used}%`);
   if (budget.percentage_used > 100) {
-    console.log("⚠️ Budget dépassé !");
+    console.log("⚠️ Budget exceeded!");
   }
 });
 ```

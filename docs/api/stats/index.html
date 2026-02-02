@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#api-statistiques" class="md-skip">
+        <a href="#statistics-api" class="md-skip">
           Aller au contenu
         </a>
       
@@ -927,10 +927,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#exemple-dutilisation-pour-le-dashboard" class="md-nav__link">
+  <a href="#example-usage-for-the-dashboard" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exemple d'utilisation pour le dashboard
+        Example usage for the dashboard
       
     </span>
   </a>
@@ -1270,10 +1270,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#exemple-dutilisation-pour-le-dashboard" class="md-nav__link">
+  <a href="#example-usage-for-the-dashboard" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exemple d'utilisation pour le dashboard
+        Example usage for the dashboard
       
     </span>
   </a>
@@ -1297,17 +1297,17 @@
 
 
 
-<h1 id="api-statistiques">API Statistiques<a class="headerlink" href="#api-statistiques" title="Permanent link">&para;</a></h1>
+<h1 id="statistics-api">Statistics API<a class="headerlink" href="#statistics-api" title="Permanent link">&para;</a></h1>
 <p>Base URL: <code>/api/v1/stats</code></p>
-<p>Endpoints pour récupérer les statistiques et données du dashboard.</p>
+<p>Endpoints for retrieving statistics and dashboard data.</p>
 <h2 id="endpoints">Endpoints<a class="headerlink" href="#endpoints" title="Permanent link">&para;</a></h2>
 <h3 id="get-summary">GET /summary<a class="headerlink" href="#get-summary" title="Permanent link">&para;</a></h3>
-<p>Récupère le résumé financier d'un mois.</p>
+<p>Retrieves the financial summary for a month.</p>
 <p><strong>Query Parameters:</strong></p>
 <table>
 <thead>
 <tr>
-<th>Paramètre</th>
+<th>Parameter</th>
 <th>Type</th>
 <th>Description</th>
 </tr>
@@ -1316,7 +1316,7 @@
 <tr>
 <td>month</td>
 <td>string</td>
-<td>Mois cible (format: YYYY-MM, défaut: mois actuel)</td>
+<td>Target month (format: YYYY-MM, default: current month)</td>
 </tr>
 </tbody>
 </table>
@@ -1332,18 +1332,18 @@
 <table>
 <thead>
 <tr>
-<th>Champ</th>
+<th>Field</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>total_expenses</td>
-<td>Somme des documents où is_income=false</td>
+<td>Sum of documents where is_income=false</td>
 </tr>
 <tr>
 <td>total_income</td>
-<td>Somme des documents où is_income=true</td>
+<td>Sum of documents where is_income=true</td>
 </tr>
 <tr>
 <td>balance</td>
@@ -1351,18 +1351,18 @@
 </tr>
 <tr>
 <td>transaction_count</td>
-<td>Nombre total de documents</td>
+<td>Total number of documents</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h3 id="get-by-tag">GET /by-tag<a class="headerlink" href="#get-by-tag" title="Permanent link">&para;</a></h3>
-<p>Récupère les dépenses groupées par tag.</p>
+<p>Retrieves expenses grouped by tag.</p>
 <p><strong>Query Parameters:</strong></p>
 <table>
 <thead>
 <tr>
-<th>Paramètre</th>
+<th>Parameter</th>
 <th>Type</th>
 <th>Description</th>
 </tr>
@@ -1371,7 +1371,7 @@
 <tr>
 <td>month</td>
 <td>string</td>
-<td>Mois cible (format: YYYY-MM, défaut: mois actuel)</td>
+<td>Target month (format: YYYY-MM, default: current month)</td>
 </tr>
 </tbody>
 </table>
@@ -1379,7 +1379,7 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">[</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="p">{</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">&quot;tag_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">&quot;tag_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Courses&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">&quot;tag_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Groceries&quot;</span><span class="p">,</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">&quot;tag_color&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#22c55e&quot;</span><span class="p">,</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">&quot;total_amount&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">450.30</span><span class="p">,</span>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nt">&quot;transaction_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span>
@@ -1395,7 +1395,7 @@
 <a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">  </span><span class="p">},</span>
 <a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">  </span><span class="p">{</span>
 <a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">    </span><span class="nt">&quot;tag_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">    </span><span class="nt">&quot;tag_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Non catégorisé&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">    </span><span class="nt">&quot;tag_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Uncategorized&quot;</span><span class="p">,</span>
 <a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">    </span><span class="nt">&quot;tag_color&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#9ca3af&quot;</span><span class="p">,</span>
 <a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">    </span><span class="nt">&quot;total_amount&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">620.45</span><span class="p">,</span>
 <a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">    </span><span class="nt">&quot;transaction_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">22</span><span class="p">,</span>
@@ -1404,17 +1404,17 @@
 <a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="p">]</span>
 </code></pre></div></p>
 <div class="admonition note">
-<p class="admonition-title">Documents sans tag</p>
-<p>Les documents sans tag sont regroupés sous "Non catégorisé" avec <code>tag_id: null</code>.</p>
+<p class="admonition-title">Untagged Documents</p>
+<p>Documents without tags are grouped under "Uncategorized" with <code>tag_id: null</code>.</p>
 </div>
 <hr />
 <h3 id="get-monthly">GET /monthly<a class="headerlink" href="#get-monthly" title="Permanent link">&para;</a></h3>
-<p>Récupère l'évolution des dépenses/revenus sur plusieurs mois.</p>
+<p>Retrieves expenses/income evolution over several months.</p>
 <p><strong>Query Parameters:</strong></p>
 <table>
 <thead>
 <tr>
-<th>Paramètre</th>
+<th>Parameter</th>
 <th>Type</th>
 <th>Description</th>
 </tr>
@@ -1423,7 +1423,7 @@
 <tr>
 <td>months</td>
 <td>int</td>
-<td>Nombre de mois à récupérer (défaut: 12, max: 24)</td>
+<td>Number of months to retrieve (default: 12, max: 24)</td>
 </tr>
 </tbody>
 </table>
@@ -1446,15 +1446,15 @@
 <a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">  </span><span class="p">}</span>
 <a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="p">]</span>
 </code></pre></div></p>
-<p>Les données sont triées par mois croissant.</p>
+<p>Data is sorted by ascending month.</p>
 <hr />
 <h3 id="get-top-items">GET /top-items<a class="headerlink" href="#get-top-items" title="Permanent link">&para;</a></h3>
-<p>Récupère les articles les plus fréquemment achetés.</p>
+<p>Retrieves the most frequently purchased items.</p>
 <p><strong>Query Parameters:</strong></p>
 <table>
 <thead>
 <tr>
-<th>Paramètre</th>
+<th>Parameter</th>
 <th>Type</th>
 <th>Description</th>
 </tr>
@@ -1463,31 +1463,31 @@
 <tr>
 <td>month</td>
 <td>string</td>
-<td>Mois cible (optionnel, tous les mois si omis)</td>
+<td>Target month (optional, all months if omitted)</td>
 </tr>
 <tr>
 <td>limit</td>
 <td>int</td>
-<td>Nombre max de résultats (défaut: 10)</td>
+<td>Max number of results (default: 10)</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Response (200):</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">[</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="p">{</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Pommes Golden&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Golden Apples&quot;</span><span class="p">,</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">&quot;total_quantity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">15.5</span><span class="p">,</span>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nt">&quot;total_spent&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">46.35</span><span class="p">,</span>
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="nt">&quot;purchase_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="p">},</span>
 <a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="p">{</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Baguette tradition&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Traditional Baguette&quot;</span><span class="p">,</span>
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">    </span><span class="nt">&quot;total_quantity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">24.0</span><span class="p">,</span>
 <a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="nt">&quot;total_spent&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">28.80</span><span class="p">,</span>
 <a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="nt">&quot;purchase_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">24</span>
 <a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">  </span><span class="p">},</span>
 <a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">  </span><span class="p">{</span>
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Lait demi-écrémé&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Semi-skimmed Milk&quot;</span><span class="p">,</span>
 <a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">    </span><span class="nt">&quot;total_quantity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">12.0</span><span class="p">,</span>
 <a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">    </span><span class="nt">&quot;total_spent&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">13.20</span><span class="p">,</span>
 <a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">    </span><span class="nt">&quot;purchase_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span>
@@ -1497,32 +1497,32 @@
 <table>
 <thead>
 <tr>
-<th>Champ</th>
+<th>Field</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>name</td>
-<td>Nom de l'article</td>
+<td>Item name</td>
 </tr>
 <tr>
 <td>total_quantity</td>
-<td>Quantité totale achetée</td>
+<td>Total quantity purchased</td>
 </tr>
 <tr>
 <td>total_spent</td>
-<td>Montant total dépensé</td>
+<td>Total amount spent</td>
 </tr>
 <tr>
 <td>purchase_count</td>
-<td>Nombre de fois acheté</td>
+<td>Number of times purchased</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="exemple-dutilisation-pour-le-dashboard">Exemple d'utilisation pour le dashboard<a class="headerlink" href="#exemple-dutilisation-pour-le-dashboard" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// Charger toutes les données du dashboard en parallèle</span>
+<h2 id="example-usage-for-the-dashboard">Example usage for the dashboard<a class="headerlink" href="#example-usage-for-the-dashboard" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// Load all dashboard data in parallel</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">summary</span><span class="p">,</span><span class="w"> </span><span class="nx">byTag</span><span class="p">,</span><span class="w"> </span><span class="nx">monthly</span><span class="p">,</span><span class="w"> </span><span class="nx">topItems</span><span class="p">,</span><span class="w"> </span><span class="nx">budgets</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nb">Promise</span><span class="p">.</span><span class="nx">all</span><span class="p">([</span>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nx">stats</span><span class="p">.</span><span class="nx">getSummary</span><span class="p">(</span><span class="s2">&quot;2024-01&quot;</span><span class="p">),</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nx">stats</span><span class="p">.</span><span class="nx">getByTag</span><span class="p">(</span><span class="s2">&quot;2024-01&quot;</span><span class="p">),</span>
@@ -1531,15 +1531,15 @@
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="nx">budgets</span><span class="p">.</span><span class="nx">getCurrent</span><span class="p">(</span><span class="s2">&quot;2024-01&quot;</span><span class="p">)</span>
 <a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="p">]);</span>
 <a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1">// Afficher le résumé</span>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Solde: </span><span class="si">${</span><span class="nx">summary</span><span class="p">.</span><span class="nx">balance</span><span class="si">}</span><span class="sb">€`</span><span class="p">);</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1">// Display summary</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Balance: </span><span class="si">${</span><span class="nx">summary</span><span class="p">.</span><span class="nx">balance</span><span class="si">}</span><span class="sb">€`</span><span class="p">);</span>
 <a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="c1">// Graphique camembert par tag</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="c1">// Pie chart by tag</span>
 <a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="nx">byTag</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">tag</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`</span><span class="si">${</span><span class="nx">tag</span><span class="p">.</span><span class="nx">tag_name</span><span class="si">}</span><span class="sb">: </span><span class="si">${</span><span class="nx">tag</span><span class="p">.</span><span class="nx">percentage</span><span class="si">}</span><span class="sb">%`</span><span class="p">);</span>
 <a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="p">});</span>
 <a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>
-<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="c1">// Graphique d&#39;évolution</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="c1">// Evolution chart</span>
 <a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="nx">monthly</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">month</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`</span><span class="si">${</span><span class="nx">month</span><span class="p">.</span><span class="nx">month</span><span class="si">}</span><span class="sb">: +</span><span class="si">${</span><span class="nx">month</span><span class="p">.</span><span class="nx">income</span><span class="si">}</span><span class="sb">€ / -</span><span class="si">${</span><span class="nx">month</span><span class="p">.</span><span class="nx">expenses</span><span class="si">}</span><span class="sb">€`</span><span class="p">);</span>
 <a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="p">});</span>

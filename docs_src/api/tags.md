@@ -1,21 +1,21 @@
-# API Tags
+# Tags API
 
 Base URL: `/api/v1/tags`
 
-Les tags permettent de catégoriser les documents de manière flexible.
+Tags allow flexible categorization of documents.
 
 ## Endpoints
 
 ### GET /
 
-Liste tous les tags de l'utilisateur.
+Lists all user tags.
 
 **Response (200):**
 ```json
 [
   {
     "id": 1,
-    "name": "Courses",
+    "name": "Groceries",
     "color": "#22c55e",
     "icon": "shopping-cart",
     "created_at": "2024-01-15T10:30:00Z"
@@ -34,52 +34,52 @@ Liste tous les tags de l'utilisateur.
 
 ### POST /
 
-Crée un nouveau tag.
+Creates a new tag.
 
 **Request Body:**
 ```json
 {
-  "name": "Loisirs",
+  "name": "Leisure",
   "color": "#f59e0b",
   "icon": "gamepad"
 }
 ```
 
-| Champ | Type | Obligatoire | Description |
-|-------|------|-------------|-------------|
-| name | string | Oui | Nom du tag (unique par utilisateur) |
-| color | string | Oui | Couleur hexadécimale (#RRGGBB) |
-| icon | string | Non | Nom de l'icône (optionnel) |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| name | string | Yes | Tag name (unique per user) |
+| color | string | Yes | Hexadecimal color (#RRGGBB) |
+| icon | string | No | Icon name (optional) |
 
 **Response (201):**
 ```json
 {
   "id": 3,
-  "name": "Loisirs",
+  "name": "Leisure",
   "color": "#f59e0b",
   "icon": "gamepad",
   "created_at": "2024-01-15T11:00:00Z"
 }
 ```
 
-**Erreurs:**
+**Errors:**
 
 | Code | Description |
 |------|-------------|
-| 400 | Nom de tag déjà utilisé |
-| 422 | Données invalides |
+| 400 | Tag name already used |
+| 422 | Invalid data |
 
 ---
 
 ### GET /{id}
 
-Récupère un tag par son ID.
+Retrieves a tag by its ID.
 
 **Response (200):**
 ```json
 {
   "id": 1,
-  "name": "Courses",
+  "name": "Groceries",
   "color": "#22c55e",
   "icon": "shopping-cart",
   "created_at": "2024-01-15T10:30:00Z"
@@ -90,58 +90,58 @@ Récupère un tag par son ID.
 
 ### PUT /{id}
 
-Met à jour un tag.
+Updates a tag.
 
 **Request Body:**
 ```json
 {
-  "name": "Alimentation",
+  "name": "Food",
   "color": "#16a34a"
 }
 ```
 
-Tous les champs sont optionnels.
+All fields are optional.
 
-**Response (200):** Tag mis à jour
+**Response (200):** Tag updated
 
 ---
 
 ### DELETE /{id}
 
-Supprime un tag.
+Deletes a tag.
 
-!!! warning "Attention"
-    La suppression d'un tag le retire de tous les documents associés.
-    Les budgets liés à ce tag sont également supprimés.
+!!! warning "Warning"
+    Deleting a tag removes it from all associated documents.
+    Budgets linked to this tag are also deleted.
 
 **Response (204):** No Content
 
 ---
 
-## Couleurs suggérées
+## Suggested Colors
 
-| Catégorie | Couleur | Hex |
+| Category | Color | Hex |
 |-----------|---------|-----|
-| Courses | Vert | `#22c55e` |
-| Transport | Bleu | `#3b82f6` |
-| Logement | Violet | `#8b5cf6` |
-| Loisirs | Orange | `#f59e0b` |
-| Santé | Rose | `#ec4899` |
-| Restaurant | Rouge | `#ef4444` |
-| Voyage | Cyan | `#06b6d4` |
-| Revenus | Émeraude | `#10b981` |
+| Groceries | Green | `#22c55e` |
+| Transport | Blue | `#3b82f6` |
+| Housing | Purple | `#8b5cf6` |
+| Leisure | Orange | `#f59e0b` |
+| Health | Pink | `#ec4899` |
+| Restaurant | Red | `#ef4444` |
+| Travel | Cyan | `#06b6d4` |
+| Income | Emerald | `#10b981` |
 
-## Icônes suggérées
+## Suggested Icons
 
-Les icônes sont optionnelles et utilisent les noms de [Lucide Icons](https://lucide.dev/).
+Icons are optional and use names from [Lucide Icons](https://lucide.dev/).
 
-| Catégorie | Icône |
+| Category | Icon |
 |-----------|-------|
-| Courses | `shopping-cart` |
+| Groceries | `shopping-cart` |
 | Transport | `car` |
-| Logement | `home` |
-| Loisirs | `gamepad` |
-| Santé | `heart-pulse` |
+| Housing | `home` |
+| Leisure | `gamepad` |
+| Health | `heart-pulse` |
 | Restaurant | `utensils` |
-| Voyage | `plane` |
-| Salaire | `banknote` |
+| Travel | `plane` |
+| Salary | `banknote` |

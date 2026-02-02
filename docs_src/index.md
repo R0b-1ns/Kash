@@ -1,42 +1,42 @@
 # Finance Manager
 
-Gestionnaire de finances personnel avec OCR et IA locale.
+Personal finance manager with OCR and local AI.
 
-## Fonctionnalités
+## Features
 
-- **Upload de documents** : Photos de tickets, factures PDF, fiches de paie
-- **OCR intelligent** : Extraction automatique du texte avec PaddleOCR
-- **IA locale** : Catégorisation et extraction de données avec Ollama/Mistral
-- **Dashboard interactif** : Graphiques, statistiques, suivi de budget
-- **Tags personnalisables** : Système de catégorisation flexible
-- **Multi-devises** : Support des devises pour les voyages
-- **Export CSV** : Exportez vos données facilement
-- **Synchronisation NAS** : Sauvegarde automatique vers votre NAS
+- **Document Upload**: Photos of receipts, PDF invoices, pay stubs
+- **Smart OCR**: Automatic text extraction with PaddleOCR
+- **Local AI**: Data categorization and extraction with Ollama/Mistral
+- **Interactive Dashboard**: Charts, statistics, budget tracking
+- **Customizable Tags**: Flexible categorization system
+- **Multi-currency**: Currency support for travels
+- **CSV Export**: Easily export your data
+- **NAS Synchronization**: Automatic backup to your NAS
 
-## Stack technique
+## Tech Stack
 
-| Composant | Technologie |
+| Component | Technology |
 |-----------|-------------|
 | Backend | FastAPI, SQLAlchemy, PostgreSQL |
 | Frontend | React 18, TypeScript, Tailwind CSS |
 | OCR | PaddleOCR |
-| IA | Ollama avec Mistral 7B |
-| Conteneurisation | Docker Compose |
+| AI | Ollama with Mistral 7B |
+| Containerization | Docker Compose |
 
-## Démarrage rapide
+## Quick Start
 
 ```bash
-# Cloner le projet
+# Clone the project
 git clone <repository>
 cd gestionnaireDeFinance
 
-# Configurer l'environnement
+# Configure the environment
 cp .env.example .env
 
-# Lancer avec Docker
+# Launch with Docker
 docker compose up -d
 
-# Accéder à l'application
+# Access the application
 open http://localhost:3000
 ```
 
@@ -47,13 +47,13 @@ open http://localhost:3000
 │                    Frontend (React)                      │
 │                   http://localhost:3000                  │
 └───────────────────────┬─────────────────────────────────┘
-                        │ API REST
+                        │ REST API
 ┌───────────────────────▼─────────────────────────────────┐
 │                   Backend (FastAPI)                      │
 │                   http://localhost:8000                  │
 ├─────────────────────────────────────────────────────────┤
 │  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐    │
-│  │   OCR   │  │   IA    │  │  Export │  │   Sync  │    │
+│  │   OCR   │  │   AI    │  │  Export │  │   Sync  │    │
 │  │ Service │  │ Service │  │ Service │  │ Service │    │
 │  └────┬────┘  └────┬────┘  └─────────┘  └────┬────┘    │
 │       │            │                          │         │
@@ -68,9 +68,9 @@ open http://localhost:3000
               └───────────────┘        └─────────────┘
 ```
 
-## Liens utiles
+## Useful Links
 
-- [Guide d'installation](getting-started/installation.md)
+- [Installation Guide](getting-started/installation.md)
 - [Configuration](getting-started/configuration.md)
 - [API Reference](api/auth.md)
-- [Documentation Swagger](http://localhost:8000/docs)
+- [Swagger Documentation](http://localhost:8000/docs)

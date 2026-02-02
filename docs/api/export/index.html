@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#api-export" class="md-skip">
+        <a href="#export-api" class="md-skip">
           Aller au contenu
         </a>
       
@@ -917,10 +917,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#format-sans-items-defaut" class="md-nav__link">
+  <a href="#format-without-items-default" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Format sans items (défaut)
+        Format without items (default)
       
     </span>
   </a>
@@ -928,10 +928,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#format-avec-items" class="md-nav__link">
+  <a href="#format-with-items" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Format avec items
+        Format with items
       
     </span>
   </a>
@@ -988,22 +988,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#exemples-dutilisation" class="md-nav__link">
+  <a href="#usage-examples" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exemples d'utilisation
+        Usage Examples
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Exemples d&#39;utilisation">
+    <nav class="md-nav" aria-label="Usage Examples">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#export-avec-curl" class="md-nav__link">
+  <a href="#export-with-curl" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Export avec cURL
+        Export with cURL
       
     </span>
   </a>
@@ -1011,10 +1011,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#export-avec-javascript" class="md-nav__link">
+  <a href="#export-with-javascript" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Export avec JavaScript
+        Export with JavaScript
       
     </span>
   </a>
@@ -1304,10 +1304,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#format-sans-items-defaut" class="md-nav__link">
+  <a href="#format-without-items-default" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Format sans items (défaut)
+        Format without items (default)
       
     </span>
   </a>
@@ -1315,10 +1315,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#format-avec-items" class="md-nav__link">
+  <a href="#format-with-items" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Format avec items
+        Format with items
       
     </span>
   </a>
@@ -1375,22 +1375,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#exemples-dutilisation" class="md-nav__link">
+  <a href="#usage-examples" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exemples d'utilisation
+        Usage Examples
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Exemples d&#39;utilisation">
+    <nav class="md-nav" aria-label="Usage Examples">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#export-avec-curl" class="md-nav__link">
+  <a href="#export-with-curl" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Export avec cURL
+        Export with cURL
       
     </span>
   </a>
@@ -1398,10 +1398,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#export-avec-javascript" class="md-nav__link">
+  <a href="#export-with-javascript" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Export avec JavaScript
+        Export with JavaScript
       
     </span>
   </a>
@@ -1441,17 +1441,17 @@
 
 
 
-<h1 id="api-export">API Export<a class="headerlink" href="#api-export" title="Permanent link">&para;</a></h1>
+<h1 id="export-api">Export API<a class="headerlink" href="#export-api" title="Permanent link">&para;</a></h1>
 <p>Base URL: <code>/api/v1/export</code></p>
-<p>Endpoints pour exporter les données en format CSV.</p>
+<p>Endpoints for exporting data in CSV format.</p>
 <h2 id="endpoints">Endpoints<a class="headerlink" href="#endpoints" title="Permanent link">&para;</a></h2>
 <h3 id="get-documentscsv">GET /documents/csv<a class="headerlink" href="#get-documentscsv" title="Permanent link">&para;</a></h3>
-<p>Exporte les documents en format CSV.</p>
+<p>Exports documents in CSV format.</p>
 <p><strong>Query Parameters:</strong></p>
 <table>
 <thead>
 <tr>
-<th>Paramètre</th>
+<th>Parameter</th>
 <th>Type</th>
 <th>Description</th>
 </tr>
@@ -1460,51 +1460,51 @@
 <tr>
 <td>start_date</td>
 <td>date</td>
-<td>Date de début (format: YYYY-MM-DD)</td>
+<td>Start date (format: YYYY-MM-DD)</td>
 </tr>
 <tr>
 <td>end_date</td>
 <td>date</td>
-<td>Date de fin (format: YYYY-MM-DD)</td>
+<td>End date (format: YYYY-MM-DD)</td>
 </tr>
 <tr>
 <td>tag_ids</td>
 <td>int[]</td>
-<td>Filtrer par tags (peut être répété)</td>
+<td>Filter by tags (can be repeated)</td>
 </tr>
 <tr>
 <td>include_items</td>
 <td>bool</td>
-<td>Inclure le détail des articles (défaut: false)</td>
+<td>Include item details (default: false)</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Response (200):</strong>
 - Content-Type: <code>text/csv; charset=utf-8</code>
 - Content-Disposition: <code>attachment; filename="documents_*.csv"</code></p>
-<h3 id="format-sans-items-defaut">Format sans items (défaut)<a class="headerlink" href="#format-sans-items-defaut" title="Permanent link">&para;</a></h3>
-<p>Une ligne par document :</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ID;Date;Heure;Marchand;Lieu;Type;Montant;Devise;Type transaction;Tags;Fichier original
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>1;2024-01-15;14:30:00;Carrefour;Paris 15e;receipt;45.67;EUR;Dépense;Courses;ticket-carrefour.jpg
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>2;2024-01-16;09:15:00;RATP;Paris;receipt;16.90;EUR;Dépense;Transport;navigo.pdf
+<h3 id="format-without-items-default">Format without items (default)<a class="headerlink" href="#format-without-items-default" title="Permanent link">&para;</a></h3>
+<p>One line per document:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ID;Date;Time;Merchant;Location;Type;Amount;Currency;Transaction Type;Tags;Original File
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>1;2024-01-15;14:30:00;Carrefour;Paris 15e;receipt;45.67;EUR;Expense;Groceries;ticket-carrefour.jpg
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>2;2024-01-16;09:15:00;RATP;Paris;receipt;16.90;EUR;Expense;Transport;navigo.pdf
 </code></pre></div>
-<h3 id="format-avec-items">Format avec items<a class="headerlink" href="#format-avec-items" title="Permanent link">&para;</a></h3>
-<p>Une ligne par article :</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ID Document;Date;Marchand;Article;Quantité;Unité;Prix unitaire;Prix total;Catégorie article;Tags document
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>1;2024-01-15;Carrefour;Pommes Golden;1.50;kg;2.99;4.49;Fruits;Courses
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>1;2024-01-15;Carrefour;Baguette;2.00;;1.20;2.40;Boulangerie;Courses
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>1;2024-01-15;Carrefour;Lait;1.00;L;1.10;1.10;Produits laitiers;Courses
+<h3 id="format-with-items">Format with items<a class="headerlink" href="#format-with-items" title="Permanent link">&para;</a></h3>
+<p>One line per item:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Document ID;Date;Merchant;Item;Quantity;Unit;Unit Price;Total Price;Item Category;Document Tags
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>1;2024-01-15;Carrefour;Golden Apples;1.50;kg;2.99;4.49;Fruits;Groceries
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>1;2024-01-15;Carrefour;Baguette;2.00;;1.20;2.40;Bakery;Groceries
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>1;2024-01-15;Carrefour;Milk;1.00;L;1.10;1.10;Dairy;Groceries
 </code></pre></div>
 <hr />
 <h3 id="get-monthlycsv">GET /monthly/csv<a class="headerlink" href="#get-monthlycsv" title="Permanent link">&para;</a></h3>
-<p>Exporte le résumé mensuel en format CSV.</p>
+<p>Exports the monthly summary in CSV format.</p>
 <p><strong>Query Parameters:</strong></p>
 <table>
 <thead>
 <tr>
-<th>Paramètre</th>
+<th>Parameter</th>
 <th>Type</th>
-<th>Obligatoire</th>
+<th>Required</th>
 <th>Description</th>
 </tr>
 </thead>
@@ -1512,46 +1512,46 @@
 <tr>
 <td>year</td>
 <td>int</td>
-<td>Oui</td>
-<td>Année (2000-2100)</td>
+<td>Yes</td>
+<td>Year (2000-2100)</td>
 </tr>
 <tr>
 <td>month</td>
 <td>int</td>
-<td>Oui</td>
-<td>Mois (1-12)</td>
+<td>Yes</td>
+<td>Month (1-12)</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Response (200):</strong>
 - Content-Type: <code>text/csv; charset=utf-8</code>
-- Content-Disposition: <code>attachment; filename="resume_YYYY-MM.csv"</code></p>
+- Content-Disposition: <code>attachment; filename="summary_YYYY-MM.csv"</code></p>
 <p><strong>Format:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Résumé mensuel;2024-01
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Monthly Summary;2024-01
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>Métrique;Valeur
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>Total dépenses;1250.75 EUR
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>Total revenus;3500.00 EUR
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>Solde;2249.25 EUR
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>Nombre de transactions;42
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>Metric;Value
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>Total Expenses;1250.75 EUR
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>Total Income;3500.00 EUR
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>Balance;2249.25 EUR
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>Number of transactions;42
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>Dépenses par catégorie
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>Tag;Montant;Pourcentage
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>Courses;450.30 EUR;36.0%
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>Expenses by Category
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>Tag;Amount;Percentage
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>Groceries;450.30 EUR;36.0%
 <a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>Transport;180.00 EUR;14.4%
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>Logement;400.00 EUR;32.0%
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>Loisirs;220.45 EUR;17.6%
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>Housing;400.00 EUR;32.0%
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>Leisure;220.45 EUR;17.6%
 </code></pre></div>
 <hr />
 <h3 id="get-monthlypdf">GET /monthly/pdf<a class="headerlink" href="#get-monthlypdf" title="Permanent link">&para;</a></h3>
-<p>Génère et exporte le rapport PDF mensuel avec graphiques.</p>
+<p>Generates and exports the monthly PDF report with charts.</p>
 <p><strong>Query Parameters:</strong></p>
 <table>
 <thead>
 <tr>
-<th>Paramètre</th>
+<th>Parameter</th>
 <th>Type</th>
-<th>Obligatoire</th>
+<th>Required</th>
 <th>Description</th>
 </tr>
 </thead>
@@ -1559,34 +1559,34 @@
 <tr>
 <td>year</td>
 <td>int</td>
-<td>Oui</td>
-<td>Année du rapport (2000-2100)</td>
+<td>Yes</td>
+<td>Report year (2000-2100)</td>
 </tr>
 <tr>
 <td>month</td>
 <td>int</td>
-<td>Oui</td>
-<td>Mois du rapport (1-12)</td>
+<td>Yes</td>
+<td>Report month (1-12)</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Response (200):</strong>
 - Content-Type: <code>application/pdf</code>
-- Content-Disposition: <code>attachment; filename="bilan_*.pdf"</code></p>
+- Content-Disposition: <code>attachment; filename="report_*.pdf"</code></p>
 <div class="admonition note">
-<p class="admonition-title">Contenu du rapport</p>
-<p>Le rapport PDF mensuel inclut un résumé financier, des graphiques de répartition par catégorie (donut), d'évolution mensuelle, des tops dépenses et marchands, ainsi qu'un suivi budgétaire.</p>
+<p class="admonition-title">Report Content</p>
+<p>The monthly PDF report includes a financial summary, category breakdown charts (donut), monthly evolution, top expenses and merchants, as well as budget tracking.</p>
 </div>
 <hr />
 <h3 id="get-annualpdf">GET /annual/pdf<a class="headerlink" href="#get-annualpdf" title="Permanent link">&para;</a></h3>
-<p>Génère et exporte le rapport PDF annuel récapitulatif.</p>
+<p>Generates and exports the annual summary PDF report.</p>
 <p><strong>Query Parameters:</strong></p>
 <table>
 <thead>
 <tr>
-<th>Paramètre</th>
+<th>Parameter</th>
 <th>Type</th>
-<th>Obligatoire</th>
+<th>Required</th>
 <th>Description</th>
 </tr>
 </thead>
@@ -1594,28 +1594,28 @@
 <tr>
 <td>year</td>
 <td>int</td>
-<td>Oui</td>
-<td>Année du rapport (2000-2100)</td>
+<td>Yes</td>
+<td>Report year (2000-2100)</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Response (200):</strong>
 - Content-Type: <code>application/pdf</code>
-- Content-Disposition: <code>attachment; filename="bilan_annuel_*.pdf"</code></p>
+- Content-Disposition: <code>attachment; filename="annual_report_*.pdf"</code></p>
 <div class="admonition note">
-<p class="admonition-title">Contenu du rapport</p>
-<p>Le rapport PDF annuel contient un résumé de l'année, l'évolution mensuelle (graphique ligne), un tableau comparatif mois par mois, la répartition annuelle par catégorie et les tops dépenses/marchands.</p>
+<p class="admonition-title">Report Content</p>
+<p>The annual PDF report contains a summary of the year, monthly evolution (line chart), a month-by-month comparison table, annual category breakdown, and top 10 expenses/merchants of the year.</p>
 </div>
 <hr />
 <h3 id="get-chartchart_type">GET /chart/{chart_type}<a class="headerlink" href="#get-chartchart_type" title="Permanent link">&para;</a></h3>
-<p>Exporte un graphique individuel en PNG.</p>
+<p>Exports an individual chart in PNG format.</p>
 <p><strong>Path Parameters:</strong></p>
 <table>
 <thead>
 <tr>
-<th>Paramètre</th>
+<th>Parameter</th>
 <th>Type</th>
-<th>Obligatoire</th>
+<th>Required</th>
 <th>Description</th>
 </tr>
 </thead>
@@ -1623,8 +1623,8 @@
 <tr>
 <td>chart_type</td>
 <td>string</td>
-<td>Oui</td>
-<td>Type de graphique : <code>pie</code>, <code>bar</code>, <code>line</code>, <code>donut</code>, <code>area</code></td>
+<td>Yes</td>
+<td>Chart type: <code>pie</code>, <code>bar</code>, <code>line</code>, <code>donut</code>, <code>area</code></td>
 </tr>
 </tbody>
 </table>
@@ -1632,9 +1632,9 @@
 <table>
 <thead>
 <tr>
-<th>Paramètre</th>
+<th>Parameter</th>
 <th>Type</th>
-<th>Obligatoire</th>
+<th>Required</th>
 <th>Description</th>
 </tr>
 </thead>
@@ -1642,83 +1642,83 @@
 <tr>
 <td>month</td>
 <td>string</td>
-<td>Non</td>
-<td>Mois à filtrer pour le graphique (format YYYY-MM)</td>
+<td>No</td>
+<td>Month to filter for the chart (YYYY-MM format)</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Response (200):</strong>
 - Content-Type: <code>image/png</code>
-- Content-Disposition: <code>attachment; filename="graphique_*.png"</code></p>
+- Content-Disposition: <code>attachment; filename="chart_*.png"</code></p>
 <hr />
-<h2 id="exemples-dutilisation">Exemples d'utilisation<a class="headerlink" href="#exemples-dutilisation" title="Permanent link">&para;</a></h2>
-<h3 id="export-avec-curl">Export avec cURL<a class="headerlink" href="#export-avec-curl" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Export basique</span>
+<h2 id="usage-examples">Usage Examples<a class="headerlink" href="#usage-examples" title="Permanent link">&para;</a></h2>
+<h3 id="export-with-curl">Export with cURL<a class="headerlink" href="#export-with-curl" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Basic export</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">     </span><span class="s2">&quot;http://localhost:8000/api/v1/export/documents/csv&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">     </span>-o<span class="w"> </span>documents.csv
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># Export avec filtres</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># Export with filters</span>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">     </span><span class="s2">&quot;http://localhost:8000/api/v1/export/documents/csv?start_date=2024-01-01&amp;end_date=2024-01-31&amp;tag_ids=1&amp;tag_ids=2&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">     </span>-o<span class="w"> </span>janvier.csv
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">     </span>-o<span class="w"> </span>january.csv
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="c1"># Export avec détail des articles</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="c1"># Export with item details</span>
 <a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">     </span><span class="s2">&quot;http://localhost:8000/api/v1/export/documents/csv?include_items=true&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">     </span>-o<span class="w"> </span>documents_details.csv
 <a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="c1"># Export résumé mensuel CSV</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="c1"># Export monthly summary CSV</span>
 <a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">     </span><span class="s2">&quot;http://localhost:8000/api/v1/export/monthly/csv?year=2024&amp;month=1&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">     </span>-o<span class="w"> </span>resume_janvier.csv
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">     </span>-o<span class="w"> </span>january_summary.csv
 <a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>
-<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="c1"># Export rapport mensuel PDF</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="c1"># Export monthly PDF report</span>
 <a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">     </span><span class="s2">&quot;http://localhost:8000/api/v1/export/monthly/pdf?year=2024&amp;month=1&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="w">     </span>-o<span class="w"> </span>rapport_janvier.pdf
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="w">     </span>-o<span class="w"> </span>january_report.pdf
 <a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>
-<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="c1"># Export rapport annuel PDF</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="c1"># Export annual PDF report</span>
 <a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="w">     </span><span class="s2">&quot;http://localhost:8000/api/v1/export/annual/pdf?year=2024&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="w">     </span>-o<span class="w"> </span>rapport_annuel_2024.pdf
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="w">     </span>-o<span class="w"> </span>annual_report_2024.pdf
 <a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>
-<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="c1"># Export graphique camembert PNG pour un mois</span>
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="c1"># Export donut chart PNG for a month</span>
 <a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a><span class="w">     </span><span class="s2">&quot;http://localhost:8000/api/v1/export/chart/pie?month=2024-01&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a><span class="w">     </span>-o<span class="w"> </span>graphique_janvier_camembert.png
+<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a><span class="w">     </span><span class="s2">&quot;http://localhost:8000/api/v1/export/chart/donut?month=2024-01&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a><span class="w">     </span>-o<span class="w"> </span>january_donut_chart.png
 </code></pre></div>
-<h3 id="export-avec-javascript">Export avec JavaScript<a class="headerlink" href="#export-avec-javascript" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// Télécharger l&#39;export documents</span>
+<h3 id="export-with-javascript">Export with JavaScript<a class="headerlink" href="#export-with-javascript" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// Download documents export</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">await</span><span class="w"> </span><span class="nx">exportApi</span><span class="p">.</span><span class="nx">documentsCSV</span><span class="p">({</span>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nx">start_date</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2024-01-01&quot;</span><span class="p">,</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nx">end_date</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2024-01-31&quot;</span><span class="p">,</span>
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nx">tag_ids</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">],</span>
 <a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="nx">include_items</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span>
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="p">});</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="c1">// Le fichier est téléchargé automatiquement</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="c1">// The file is downloaded automatically</span>
 <a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1">// Télécharger le résumé mensuel CSV</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1">// Download monthly summary CSV</span>
 <a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="k">await</span><span class="w"> </span><span class="nx">exportApi</span><span class="p">.</span><span class="nx">monthlyCSV</span><span class="p">(</span><span class="mf">2024</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
 <a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="c1">// Télécharger le rapport mensuel PDF</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="c1">// Download monthly PDF report</span>
 <a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="k">await</span><span class="w"> </span><span class="nx">exportApi</span><span class="p">.</span><span class="nx">monthlyPDF</span><span class="p">(</span><span class="mf">2024</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
 <a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>
-<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="c1">// Télécharger le rapport annuel PDF</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="c1">// Download annual PDF report</span>
 <a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="k">await</span><span class="w"> </span><span class="nx">exportApi</span><span class="p">.</span><span class="nx">annualPDF</span><span class="p">(</span><span class="mf">2024</span><span class="p">);</span>
 <a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>
-<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="c1">// Télécharger un graphique PNG</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="c1">// Download a chart PNG</span>
 <a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="k">await</span><span class="w"> </span><span class="nx">exportApi</span><span class="p">.</span><span class="nx">exportChart</span><span class="p">(</span><span class="s1">&#39;donut&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;2024-01&#39;</span><span class="p">);</span>
 </code></pre></div>
 <hr />
 <h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h2>
 <div class="admonition info">
-<p class="admonition-title">Séparateur</p>
-<p>Le séparateur utilisé est le point-virgule (<code>;</code>) pour une meilleure compatibilité avec Excel en version française.</p>
+<p class="admonition-title">Separator</p>
+<p>The separator used is the semicolon (<code>;</code>) for better compatibility with Excel (French version).</p>
 </div>
 <div class="admonition info">
-<p class="admonition-title">Encodage</p>
-<p>Les fichiers sont encodés en UTF-8 avec BOM pour garantir l'affichage correct des caractères accentués dans Excel.</p>
+<p class="admonition-title">Encoding</p>
+<p>Files are UTF-8 encoded with BOM to ensure correct display of accented characters in Excel.</p>
 </div>
 
 

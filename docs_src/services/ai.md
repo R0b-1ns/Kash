@@ -1,23 +1,23 @@
-# Service IA
+# AI Service
 
-Le service IA utilise **Ollama** avec le modèle **Mistral** pour analyser le texte OCR et extraire des données structurées.
+The AI service uses **Ollama** with the **Mistral** model to analyze OCR text and extract structured data.
 
-## Fichier source
+## Source File
 
 `backend/app/services/ai_service.py`
 
-## Fonctionnalités
+## Features
 
-- Analyse du texte brut extrait par OCR
-- Extraction structurée des informations
-- Catégorisation automatique du type de document
-- Identification des articles individuels
+- Analysis of raw text extracted by OCR
+- Structured information extraction
+- Automatic document type categorization
+- Identification of individual items
 
 ## Classes
 
 ### ExtractionResult
 
-Résultat de l'extraction IA.
+AI extraction result.
 
 ```python
 @dataclass
@@ -36,7 +36,7 @@ class ExtractionResult:
 
 ### ExtractedItem
 
-Article extrait d'un document.
+Item extracted from a document.
 
 ```python
 @dataclass
@@ -51,12 +51,12 @@ class ExtractedItem:
 
 ### AIService
 
-Service principal d'analyse.
+Main analysis service.
 
 ```python
 class AIService:
     def __init__(self):
-        """Initialise le client Ollama."""
+        """Initializes the Ollama client."""
         self.client = httpx.AsyncClient(
             base_url=settings.ollama_host,
             timeout=120.0
@@ -65,101 +65,101 @@ class AIService:
 
     async def extract_structured_data(self, raw_text: str) -> ExtractionResult:
         """
-        Analyse le texte OCR et extrait les données.
+        Analyzes OCR text and extracts data.
 
         Args:
-            raw_text: Texte brut issu de l'OCR
+            raw_text: Raw text from OCR
 
         Returns:
-            ExtractionResult avec toutes les données extraites
+            ExtractionResult with all extracted data
         """
 ```
 
-## Prompt d'extraction
+## Extraction Prompt
 
-Le prompt utilisé pour l'extraction :
+The prompt used for extraction:
 
 ```
-Tu es un assistant spécialisé dans l'analyse de documents financiers.
-Analyse le texte suivant extrait par OCR d'un document et retourne les informations au format JSON.
+You are an assistant specialized in financial document analysis.
+Analyze the following text extracted by OCR from a document and return the information in JSON format.
 
-Le JSON doit contenir :
+The JSON must contain:
 - doc_type: "receipt" | "invoice" | "payslip" | "other"
-- date: "YYYY-MM-DD" ou null
-- time: "HH:MM:SS" ou null
-- merchant: nom du commerce/entreprise ou null
-- location: adresse/ville ou null
-- items: liste d'articles [{ name, quantity, unit, unit_price, total_price, category }]
-- total_amount: montant total ou null
-- currency: code devise (EUR, USD...) défaut EUR
-- is_income: true si c'est un revenu (salaire, remboursement...), false sinon
+- date: "YYYY-MM-DD" or null
+- time: "HH:MM:SS" or null
+- merchant: name of the business/company or null
+- location: address/city or null
+- items: list of items [{ name, quantity, unit, unit_price, total_price, category }]
+- total_amount: total amount or null
+- currency: currency code (EUR, USD...) default EUR
+- is_income: true if it's income (salary, refund...), false otherwise
 
-Texte à analyser :
+Text to analyze:
 {raw_text}
 
-Réponds UNIQUEMENT avec le JSON, sans texte avant ou après.
+Respond ONLY with the JSON, without text before or after.
 ```
 
-## Utilisation
+## Usage
 
 ```python
 from app.services.ai_service import get_ai_service
 
-# Obtenir une instance du service
+# Get a service instance
 ai = get_ai_service()
 
-# Analyser du texte OCR
+# Analyze OCR text
 result = await ai.extract_structured_data("""
 CARREFOUR
 Paris 15e
 15/01/2024 14:30
 
-Pommes Golden 1.5kg    4.49
+Golden Apples 1.5kg    4.49
 Baguette x2            2.40
-Lait 1L                1.10
+Milk 1L                1.10
 
 TOTAL                  7.99
 CB ****1234
 """)
 
-print(f"Marchand: {result.merchant}")  # Carrefour
+print(f"Merchant: {result.merchant}")  # Carrefour
 print(f"Total: {result.total_amount}")  # 7.99
-print(f"Articles: {len(result.items)}")  # 3
+print(f"Items: {len(result.items)}")  # 3
 ```
 
 ## Configuration
 
-### Variables d'environnement
+### Environment Variables
 
 ```bash
 OLLAMA_HOST=http://ollama:11434
 OLLAMA_MODEL=mistral
 ```
 
-### Modèles supportés
+### Supported Models
 
-| Modèle | Taille | Performance | Notes |
+| Model | Size | Performance | Notes |
 |--------|--------|-------------|-------|
-| mistral | 4.1 GB | Excellent | Recommandé |
-| llama2 | 3.8 GB | Bon | Alternative |
-| phi | 1.6 GB | Correct | Léger |
+| mistral | 4.1 GB | Excellent | Recommended |
+| llama2 | 3.8 GB | Good | Alternative |
+| phi | 1.6 GB | Correct | Lightweight |
 
-## Gestion des erreurs
+## Error Handling
 
 ```python
 try:
     result = await ai.extract_structured_data(text)
 except httpx.ConnectError:
-    # Ollama non accessible
+    # Ollama not accessible
 except httpx.TimeoutException:
     # Timeout (>2 min)
 except json.JSONDecodeError:
-    # Réponse non-JSON du modèle
+    # Non-JSON response from model
 ```
 
 ## Fallback
 
-En cas d'échec de l'IA, le service retourne un résultat minimal :
+If AI fails, the service returns a minimal result:
 
 ```python
 ExtractionResult(
@@ -171,34 +171,34 @@ ExtractionResult(
 )
 ```
 
-Le document est quand même créé avec le texte OCR brut, permettant une correction manuelle ultérieure.
+The document is still created with the raw OCR text, allowing for later manual correction.
 
-## Performances
+## Performance
 
-| Type de document | Temps moyen | Précision |
+| Document Type | Average Time | Accuracy |
 |------------------|-------------|-----------|
-| Ticket simple | 3-5s | 90%+ |
-| Facture complexe | 5-10s | 85%+ |
-| Fiche de paie | 8-15s | 80%+ |
+| Simple Receipt | 3-5s | 90%+ |
+| Complex Invoice | 5-10s | 85%+ |
+| Pay Stub | 8-15s | 80%+ |
 
-## Amélioration des résultats
+## Improving Results
 
-### Prétraitement du texte
+### Text Preprocessing
 
 ```python
 def preprocess_ocr_text(text: str) -> str:
-    """Nettoie le texte OCR avant analyse."""
-    # Supprimer les lignes vides multiples
+    """Cleans OCR text before analysis."""
+    # Remove multiple empty lines
     text = re.sub(r'\n{3,}', '\n\n', text)
-    # Corriger les espaces multiples
+    # Correct multiple spaces
     text = re.sub(r' {2,}', ' ', text)
     return text.strip()
 ```
 
-### Post-traitement
+### Post-processing
 
-Après extraction, des validations sont appliquées :
+After extraction, validations are applied:
 
-- Dates impossibles corrigées (ex: 32/01 → null)
-- Montants négatifs signalés
-- Devises non reconnues → EUR par défaut
+- Impossible dates corrected (e.g., 32/01 → null)
+- Negative amounts flagged
+- Unrecognized currencies → EUR by default

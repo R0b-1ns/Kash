@@ -1,21 +1,21 @@
 # Kash
 
-**Gestionnaire de finances personnelles avec OCR et IA locale.**
+**Personal finance manager with OCR and local AI.**
 
-Kash centralise vos factures, tickets de caisse et fiches de paie. Il extrait automatiquement les données grâce à l'OCR et l'IA, puis génère des dashboards et bilans mensuels.
+Kash centralizes your invoices, receipts, and pay stubs. It automatically extracts data using OCR and AI, then generates dashboards and monthly summaries.
 
-## Fonctionnalités
+## Features
 
-- **Upload de documents** : Photos de tickets, PDFs de factures, fiches de paie
-- **Extraction automatique** : OCR (PaddleOCR) + IA (Mistral 7B via Ollama)
-- **Données extraites** : Date, marchand, articles, montants, devise
-- **Dashboard** : Graphiques, évolution mensuelle, répartition par catégorie
-- **Budgets** : Limites mensuelles par tag avec alertes visuelles
-- **Tags** : Organisation personnalisée (pas de catégories fixes)
-- **Multi-devise** : EUR, USD, GBP, CHF... avec conversion
-- **Export** : CSV des documents et résumés mensuels
-- **Rapports PDF** : Rapports mensuels et annuels avec graphiques.
-- **Sync NAS** : Sauvegarde automatique vers NAS (SMB)
+- **Document Upload**: Photos of receipts, PDF invoices, pay stubs
+- **Automatic Extraction**: OCR (PaddleOCR) + AI (Mistral 7B via Ollama)
+- **Extracted Data**: Date, merchant, items, amounts, currency
+- **Dashboard**: Graphs, monthly evolution, category breakdown
+- **Budgets**: Monthly limits per tag with visual alerts
+- **Tags**: Personalized organization (no fixed categories)
+- **Multi-currency**: EUR, USD, GBP, CHF... with conversion
+- **Export**: CSV of documents and monthly summaries
+- **PDF Reports**: Monthly and annual reports with charts.
+- **NAS Sync**: Automatic backup to Network Attached Storage (SMB)
 
 ## Architecture
 
@@ -35,148 +35,148 @@ Kash centralise vos factures, tickets de caisse et fiches de paie. Il extrait au
              └───────────┘ └───────────┘ └───────────┘
 ```
 
-## Stack technique
+## Tech Stack
 
-| Composant | Technologie |
+| Component | Technology |
 |-----------|-------------|
 | Frontend | React 18 + Vite + Tailwind CSS |
 | Backend | Python 3.11 + FastAPI |
-| Base de données | PostgreSQL 15 |
+| Database | PostgreSQL 15 |
 | OCR | PaddleOCR (microservice) |
-| IA | Ollama + Mistral 7B |
-| Graphiques | Recharts |
+| AI | Ollama + Mistral 7B |
+| Charts | Recharts |
 | Auth | JWT |
-| Conteneurs | Docker Compose |
+| Containers | Docker Compose |
 
 ## Installation
 
-### Prérequis
+### Prerequisites
 
-- Un PC standard est suffisant pour faire tourner l'application.
-- Une carte graphique (GPU) est recommandée pour l'accélération matérielle des modèles d'IA (Ollama).
+- A standard PC is sufficient to run the application.
+- A graphics card (GPU) is recommended for hardware acceleration of AI models (Ollama).
 - Docker Desktop.
-- 8 Go de RAM minimum.
+- Minimum 8 GB RAM.
 
-### Démarrage rapide
+### Quick Start
 
 ```bash
-# Cloner le repo
-git clone https://github.com/votre-user/kash.git
+# Clone the repository
+git clone https://github.com/your-user/kash.git
 cd kash
 
-# Configurer l'environnement
+# Configure the environment
 cp .env.example .env
-# Éditer .env avec vos paramètres
+# Edit .env with your settings
 
-# Lancer l'application
+# Start the application
 docker compose up -d
 
-# Appliquer les migrations
+# Apply migrations
 docker compose exec backend alembic upgrade head
 ```
 
-L'application est accessible sur :
-- **Frontend** : http://localhost:3000
-- **API** : http://localhost:8000
-- **API Docs** : http://localhost:8000/docs
+The application is accessible at:
+- **Frontend**: http://localhost:3000
+- **API**: http://localhost:8000
+- **API Docs**: http://localhost:8000/docs
 
-### Configuration NAS (optionnel)
+### NAS Configuration (optional)
 
 ```bash
-# Monter le partage SMB sur Mac
+# Mount the SMB share on Mac
 mount -t smbfs //user:pass@nas-ip/share /Volumes/NAS
 
-# Configurer dans .env
+# Configure in .env
 NAS_LOCAL_PATH=/Volumes/NAS/finance
 NAS_MOUNT_PATH=/app/nas_backup
 ```
 
-## Utilisation
+## Usage
 
-### 1. Créer un compte
+### 1. Create an account
 
-Accédez à http://localhost:3000 et créez votre compte.
+Go to http://localhost:3000 and create your account.
 
-### 2. Configurer vos tags
+### 2. Configure your tags
 
-Créez des tags pour organiser vos documents (ex: Courses, Restaurant, Transport...).n
-### 3. Uploader des documents
+Create tags to organize your documents (e.g., Groceries, Restaurant, Transport...).n
+### 3. Upload documents
 
-Glissez-déposez vos tickets et factures. L'extraction est automatique :
-- OCR extrait le texte
-- L'IA analyse et structure les données
-- Les articles sont détaillés individuellement
+Drag and drop your receipts and invoices. Extraction is automatic:
+- OCR extracts text
+- AI analyzes and structures data
+- Items are detailed individually
 
-### 4. Suivre vos finances
+### 4. Track your finances
 
-Le dashboard affiche :
-- Solde du mois (revenus - dépenses)
-- Évolution mensuelle
-- Répartition par catégorie
-- Progression des budgets
-- Articles les plus achetés
+The dashboard displays:
+- Monthly balance (income - expenses)
+- Monthly evolution
+- Category breakdown
+- Budget progress
+- Most frequently purchased items
 
 ## Documentation
 
-La documentation technique est disponible dans `docs_src/` :
+Technical documentation is available in `docs_src/`:
 
 | Section | Description |
 |---------|-------------|
-| [Architecture](docs_src/architecture/overview.md) | Vue d'ensemble du système |
-| [API](docs_src/api/) | Documentation des endpoints |
-| [Services](docs_src/services/) | OCR, IA, Export, NAS Sync |
-| [Configuration](docs_src/getting-started/configuration.md) | Variables d'environnement |
+| [Architecture](docs_src/architecture/overview.md) | System overview |
+| [API](docs_src/api/) | Endpoints documentation |
+| [Services](docs_src/services/) | OCR, AI, Export, NAS Sync |
+| [Configuration](docs_src/getting-started/configuration.md) | Environment variables |
 
-## Commandes utiles
+## Useful Commands
 
 ```bash
-# Logs en temps réel
+# Real-time logs
 docker compose logs -f backend
 
-# Reconstruire après modifications
+# Rebuild after modifications
 docker compose up -d --build
 
-# Arrêter l'application
+# Stop the application
 docker compose down
 
-# Réinitialiser la base de données
+# Reset the database
 docker compose down -v
 docker compose up -d
 docker compose exec backend alembic upgrade head
 ```
 
-## Structure du projet
+## Project Structure
 
 ```
 kash/
 ├── backend/
 │   ├── app/
 │   │   ├── api/routes/      # Endpoints FastAPI
-│   │   ├── core/            # Config, sécurité, BDD
-│   │   ├── models/          # Modèles SQLAlchemy
-│   │   ├── schemas/         # Schémas Pydantic
-│   │   └── services/        # OCR, IA, Export, Sync, PDF
+│   │   ├── core/            # Config, security, DB
+│   │   ├── models/          # SQLAlchemy Models
+│   │   ├── schemas/         # Pydantic Schemas
+│   │   └── services/        # OCR, AI, Export, Sync, PDF
 │   └── alembic/             # Migrations
 ├── frontend/
 │   ├── src/
-│   │   ├── components/      # Composants React
-│   │   ├── pages/           # Pages de l'app
-│   │   ├── hooks/           # Hooks personnalisés
-│   │   └── services/        # Client API
+│   │   ├── components/      # React Components
+│   │   ├── pages/           # App Pages
+│   │   ├── hooks/           # Custom Hooks
+│   │   └── services/        # API Client
 │   └── package.json
-├── ocr_service/             # Microservice OCR
+├── ocr_service/             # OCR Microservice
 ├── docs_src/                # Documentation
 ├── docker compose.yml
 └── .env.example
 ```
 
-## Améliorations prévues
+## Planned Improvements
 
-- Intégration de notifications pour les alertes de budget via :
+- Integration of notifications for budget alerts via:
   - Email
   - Discord
   - Telegram
 
 ## Licence
 
-Projet personnel - Tous droits réservés.
+Personal project - All rights reserved.

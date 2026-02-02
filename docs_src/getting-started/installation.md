@@ -1,130 +1,130 @@
 # Installation
 
-## Prérequis
+## Prerequisites
 
-- **Docker** et **Docker Compose** installés
-- **Mac M1/M2** ou Linux (architecture ARM64 ou AMD64)
-- Au moins **8 Go de RAM** (pour Ollama)
-- **10 Go d'espace disque** (modèles IA + données)
+- **Docker** and **Docker Compose** installed
+- **Mac M1/M2** or Linux (ARM64 or AMD64 architecture)
+- At least **8 GB RAM** (for Ollama)
+- **10 GB disk space** (AI models + data)
 
-## Installation avec Docker
+## Installation with Docker
 
-### 1. Cloner le projet
+### 1. Clone the Project
 
 ```bash
 git clone <repository-url>
 cd gestionnaireDeFinance
 ```
 
-### 2. Configurer l'environnement
+### 2. Configure the Environment
 
 ```bash
-# Copier le fichier d'exemple
+# Copy example file
 cp .env.example .env
 
-# Éditer les variables (optionnel)
+# Edit variables (optional)
 nano .env
 ```
 
-Variables importantes :
+Important variables:
 
-| Variable | Description | Défaut |
+| Variable | Description | Default |
 |----------|-------------|--------|
-| `SECRET_KEY` | Clé secrète JWT | À changer en production |
-| `DATABASE_URL` | URL PostgreSQL | Configuré pour Docker |
-| `OLLAMA_MODEL` | Modèle LLM | `mistral` |
-| `NAS_HOST` | IP du NAS | Vide (optionnel) |
+| `SECRET_KEY` | Secret JWT key | Change in production |
+| `DATABASE_URL` | PostgreSQL URL | Configured for Docker |
+| `OLLAMA_MODEL` | LLM Model | `mistral` |
+| `NAS_HOST` | NAS IP | Empty (optional) |
 
-### 3. Lancer les services
+### 3. Launch Services
 
 ```bash
-# Démarrer tous les services
+# Start all services
 docker compose up -d
 
-# Voir les logs
+# View logs
 docker compose logs -f
 ```
 
-### 4. Initialiser la base de données
+### 4. Initialize Database
 
 ```bash
-# Exécuter les migrations
+# Run migrations
 docker compose exec backend alembic upgrade head
 ```
 
-### 5. Télécharger le modèle IA
+### 5. Download AI Model
 
 ```bash
-# Télécharger Mistral (3.8 Go)
+# Download Mistral (3.8 GB)
 docker compose exec ollama ollama pull mistral
 ```
 
-!!! note "Premier téléchargement"
-    Le téléchargement du modèle peut prendre plusieurs minutes selon votre connexion.
+!!! note "First Download"
+    Model download may take several minutes depending on your connection.
 
-## Vérification
+## Verification
 
-### Accès aux services
+### Service Access
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| Frontend | http://localhost:3000 | Interface utilisateur |
-| Backend | http://localhost:8000 | API REST |
-| Swagger | http://localhost:8000/docs | Documentation API |
-| Ollama | http://localhost:11434 | API LLM |
+| Frontend | http://localhost:3000 | User Interface |
+| Backend | http://localhost:8000 | REST API |
+| Swagger | http://localhost:8000/docs | API Documentation |
+| Ollama | http://localhost:11434 | LLM API |
 
-### Test de l'API
+### API Test
 
 ```bash
-# Vérifier que l'API répond
+# Check if API is responding
 curl http://localhost:8000/health
 
-# Réponse attendue
+# Expected response
 {"status": "healthy"}
 ```
 
-## Commandes utiles
+## Useful Commands
 
 ```bash
-# Arrêter les services
+# Stop services
 docker compose down
 
-# Reconstruire les images
+# Rebuild images
 docker compose build --no-cache
 
-# Voir l'état des conteneurs
+# View container status
 docker compose ps
 
-# Accéder au shell du backend
+# Access backend shell
 docker compose exec backend bash
 
-# Voir les logs d'un service
+# View service logs
 docker compose logs -f backend
 ```
 
-## Dépannage
+## Troubleshooting
 
-### Erreur de connexion à PostgreSQL
+### PostgreSQL Connection Error
 
 ```bash
-# Vérifier que postgres est démarré
+# Check if postgres is running
 docker compose ps postgres
 
-# Recréer le conteneur si nécessaire
+# Recreate container if necessary
 docker compose rm -f postgres
 docker compose up -d postgres
 ```
 
-### Ollama ne répond pas
+### Ollama Not Responding
 
 ```bash
-# Vérifier les logs
+# Check logs
 docker compose logs ollama
 
-# Le modèle est-il téléchargé ?
+# Is the model downloaded?
 docker compose exec ollama ollama list
 ```
 
-### OCR lent sur Mac M1
+### Slow OCR on Mac M1
 
-PaddleOCR utilise le CPU par défaut. Les performances sont acceptables mais pas optimales. Pour des documents complexes, prévoyez quelques secondes de traitement.
+PaddleOCR uses the CPU by default. Performance is acceptable but not optimal. For complex documents, allow a few seconds for processing.

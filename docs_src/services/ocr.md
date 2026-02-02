@@ -1,6 +1,6 @@
-# Service OCR (Microservice)
+# OCR Service (Microservice)
 
-Le service OCR est un **microservice indépendant** qui utilise **PaddleOCR** pour extraire le texte des documents.
+The OCR service is an **independent microservice** that uses **PaddleOCR** to extract text from documents.
 
 ## Architecture
 
@@ -8,7 +8,7 @@ Le service OCR est un **microservice indépendant** qui utilise **PaddleOCR** po
 ┌─────────────────────────────────────────────────────────────┐
 │                         BACKEND                              │
 │  ┌───────────────────────────────────────────────────────┐  │
-│  │              ocr_service.py (Client HTTP)              │  │
+│  │              ocr_service.py (HTTP Client)             │  │
 │  │                                                        │  │
 │  │  async def extract_text(file_path):                   │  │
 │  │      response = await client.post(                     │  │
@@ -38,53 +38,53 @@ Le service OCR est un **microservice indépendant** qui utilise **PaddleOCR** po
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Fichiers sources
+## Source Files
 
-| Fichier | Description |
+| File | Description |
 |---------|-------------|
-| `ocr_service/app.py` | Microservice Flask avec endpoint `/ocr` |
-| `ocr_service/Dockerfile` | Image Docker avec PaddleOCR |
-| `ocr_service/requirements.txt` | Dépendances Python |
-| `backend/app/services/ocr_service.py` | Client HTTP (côté backend) |
+| `ocr_service/app.py` | Flask microservice with `/ocr` endpoint |
+| `ocr_service/Dockerfile` | Docker image with PaddleOCR |
+| `ocr_service/requirements.txt` | Python dependencies |
+| `backend/app/services/ocr_service.py` | HTTP Client (backend side) |
 
-## API du microservice
+## Microservice API
 
 ### POST /ocr
 
-Extrait le texte d'un fichier.
+Extracts text from a file.
 
-**Requête :**
+**Request:**
 ```json
 {
   "file_path": "/app/uploads/abc123.jpg"
 }
 ```
 
-**Réponse (succès) :**
+**Response (success):**
 ```json
 {
   "success": true,
-  "text": "CARREFOUR\nTicket de caisse\n...",
+  "text": "CARREFOUR\nReceipt\n...",
   "confidence": 92.5,
   "error": null
 }
 ```
 
-**Réponse (erreur) :**
+**Response (error):**
 ```json
 {
   "success": false,
   "text": "",
   "confidence": 0,
-  "error": "Fichier introuvable"
+  "error": "File not found"
 }
 ```
 
 ### GET /health
 
-Vérification de santé du service.
+Service health check.
 
-**Réponse :**
+**Response:**
 ```json
 {
   "status": "healthy",
@@ -92,24 +92,24 @@ Vérification de santé du service.
 }
 ```
 
-## Client côté Backend
+## Backend Client
 
 ### OCRResult
 
-Résultat d'une extraction OCR.
+Result of an OCR extraction.
 
 ```python
 @dataclass
 class OCRResult:
-    text: str           # Texte extrait
-    confidence: float   # Score de confiance (0-100)
-    success: bool       # Extraction réussie
-    error: str | None   # Message d'erreur si échec
+    text: str           # Extracted text
+    confidence: float   # Confidence score (0-100)
+    success: bool       # Extraction successful
+    error: str | None   # Error message if failed
 ```
 
 ### OCRService
 
-Client HTTP vers le microservice.
+HTTP client to the microservice.
 
 ```python
 class OCRService:
@@ -119,13 +119,13 @@ class OCRService:
 
     async def extract_text(self, file_path: str) -> OCRResult:
         """
-        Appelle le microservice OCR pour extraire le texte.
+        Calls the OCR microservice to extract text.
 
         Args:
-            file_path: Chemin absolu vers le fichier
+            file_path: Absolute path to the file
 
         Returns:
-            OCRResult avec le texte et le score de confiance
+            OCRResult with text and confidence score
         """
         response = await self._client.post(
             f"{self.service_url}/ocr",
@@ -135,50 +135,50 @@ class OCRService:
         return OCRResult(**data)
 ```
 
-## Utilisation
+## Usage
 
 ```python
 from app.services.ocr_service import get_ocr_service
 
-# Obtenir une instance du service
+# Get a service instance
 ocr = get_ocr_service()
 
-# Extraire le texte d'une image (appel HTTP async)
-result = await ocr.extract_text("/app/uploads/ticket.jpg")
+# Extract text from an image (async HTTP call)
+result = await ocr.extract_text("/app/uploads/receipt.jpg")
 
 if result.success:
-    print(f"Texte: {result.text}")
-    print(f"Confiance: {result.confidence}%")
+    print(f"Text: {result.text}")
+    print(f"Confidence: {result.confidence}%")
 else:
-    print(f"Erreur: {result.error}")
+    print(f"Error: {result.error}")
 ```
 
 ## Configuration
 
-### Variables d'environnement
+### Environment Variables
 
 ```bash
-# URL du microservice OCR (dans le backend)
+# OCR microservice URL (in backend)
 OCR_SERVICE_URL=http://ocr-service:5001
 ```
 
-### Paramètres PaddleOCR
+### PaddleOCR Parameters
 
-| Paramètre | Valeur | Description |
+| Parameter | Value | Description |
 |-----------|--------|-------------|
-| use_angle_cls | True | Détection et correction de l'orientation |
-| lang | fr | Langue du modèle |
-| use_gpu | False | Utilisation CPU (compatible M1) |
-| show_log | False | Logs désactivés |
+| use_angle_cls | True | Orientation detection and correction |
+| lang | fr | Model language |
+| use_gpu | False | CPU usage (M1 compatible) |
+| show_log | False | Logs disabled |
 
 ## Docker
 
-### Dockerfile du microservice
+### Microservice Dockerfile
 
 ```dockerfile
 FROM python:3.11-slim
 
-# Dépendances système pour OpenCV
+# System dependencies for OpenCV
 RUN apt-get update && apt-get install -y \
     libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 \
     && rm -rf /var/lib/apt/lists/*
@@ -203,41 +203,41 @@ ocr-service:
   ports:
     - "5001:5001"
   volumes:
-    - ./uploads:/app/uploads  # Accès aux fichiers uploadés
+    - ./uploads:/app/uploads  # Access to uploaded files
   restart: unless-stopped
 ```
 
-## Formats supportés
+## Supported Formats
 
 | Format | Extension | Notes |
 |--------|-----------|-------|
-| JPEG | .jpg, .jpeg | Format recommandé |
-| PNG | .png | Bonne qualité |
+| JPEG | .jpg, .jpeg | Recommended format |
+| PNG | .png | Good quality |
 | WebP | .webp | Compact |
-| GIF | .gif | Première frame |
-| PDF | .pdf | Converti en images |
+| GIF | .gif | First frame |
+| PDF | .pdf | Converted to images |
 
-## Performances
+## Performance
 
-| Type de document | Temps moyen | Confiance moyenne |
+| Document Type | Average Time | Average Confidence |
 |------------------|-------------|-------------------|
-| Ticket de caisse | 1-2s | 85-95% |
-| Facture PDF | 2-4s | 90-98% |
-| Photo floue | 2-3s | 60-80% |
+| Receipt | 1-2s | 85-95% |
+| PDF Invoice | 2-4s | 90-98% |
+| Blurry Photo | 2-3s | 60-80% |
 
-## Avantages du microservice
+## Microservice Advantages
 
-1. **Isolation** : PaddleOCR et ses dépendances lourdes (numpy, opencv) sont isolées
-2. **Scalabilité** : Peut être répliqué indépendamment
-3. **Maintenance** : Mise à jour sans toucher au backend
-4. **Ressources** : Gestion mémoire séparée (PaddleOCR est gourmand)
-5. **Compatibilité** : Évite les conflits de dépendances avec le backend
+1. **Isolation** : PaddleOCR and its heavy dependencies (numpy, opencv) are isolated
+2. **Scalability** : Can be scaled independently
+3. **Maintenance** : Update without touching the backend
+4. **Resources** : Separate memory management (PaddleOCR is memory intensive)
+5. **Compatibility** : Avoids dependency conflicts with the backend
 
-## Gestion des erreurs
+## Error Handling
 
-| Erreur | Cause | Solution |
+| Error | Cause | Solution |
 |--------|-------|----------|
-| Connection refused | Service non démarré | `docker compose up ocr-service` |
-| File not found | Chemin invalide | Vérifier le montage des volumes |
-| Timeout | Fichier trop gros | Augmenter le timeout (défaut: 60s) |
-| Low confidence | Image floue | Améliorer la qualité de scan |
+| Connection refused | Service not started | `docker compose up ocr-service` |
+| File not found | Invalid path | Check volume mounts |
+| Timeout | File too large | Increase timeout (default: 60s) |
+| Low confidence | Blurry image | Improve scan quality |

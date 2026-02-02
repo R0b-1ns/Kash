@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#api-tags" class="md-skip">
+        <a href="#tags-api" class="md-skip">
           Aller au contenu
         </a>
       
@@ -882,10 +882,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#couleurs-suggerees" class="md-nav__link">
+  <a href="#suggested-colors" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Couleurs suggérées
+        Suggested Colors
       
     </span>
   </a>
@@ -893,10 +893,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#icones-suggerees" class="md-nav__link">
+  <a href="#suggested-icons" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Icônes suggérées
+        Suggested Icons
       
     </span>
   </a>
@@ -1303,10 +1303,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#couleurs-suggerees" class="md-nav__link">
+  <a href="#suggested-colors" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Couleurs suggérées
+        Suggested Colors
       
     </span>
   </a>
@@ -1314,10 +1314,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#icones-suggerees" class="md-nav__link">
+  <a href="#suggested-icons" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Icônes suggérées
+        Suggested Icons
       
     </span>
   </a>
@@ -1341,17 +1341,17 @@
 
 
 
-<h1 id="api-tags">API Tags<a class="headerlink" href="#api-tags" title="Permanent link">&para;</a></h1>
+<h1 id="tags-api">Tags API<a class="headerlink" href="#tags-api" title="Permanent link">&para;</a></h1>
 <p>Base URL: <code>/api/v1/tags</code></p>
-<p>Les tags permettent de catégoriser les documents de manière flexible.</p>
+<p>Tags allow flexible categorization of documents.</p>
 <h2 id="endpoints">Endpoints<a class="headerlink" href="#endpoints" title="Permanent link">&para;</a></h2>
 <h3 id="get">GET /<a class="headerlink" href="#get" title="Permanent link">&para;</a></h3>
-<p>Liste tous les tags de l'utilisateur.</p>
+<p>Lists all user tags.</p>
 <p><strong>Response (200):</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">[</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="p">{</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Courses&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Groceries&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">&quot;color&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#22c55e&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">&quot;icon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shopping-cart&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">&quot;created_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-15T10:30:00Z&quot;</span>
@@ -1367,10 +1367,10 @@
 </code></pre></div></p>
 <hr />
 <h3 id="post">POST /<a class="headerlink" href="#post" title="Permanent link">&para;</a></h3>
-<p>Crée un nouveau tag.</p>
+<p>Creates a new tag.</p>
 <p><strong>Request Body:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Loisirs&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Leisure&quot;</span><span class="p">,</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">&quot;color&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#f59e0b&quot;</span><span class="p">,</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">&quot;icon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gamepad&quot;</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="p">}</span>
@@ -1378,9 +1378,9 @@
 <table>
 <thead>
 <tr>
-<th>Champ</th>
+<th>Field</th>
 <th>Type</th>
-<th>Obligatoire</th>
+<th>Required</th>
 <th>Description</th>
 </tr>
 </thead>
@@ -1388,33 +1388,33 @@
 <tr>
 <td>name</td>
 <td>string</td>
-<td>Oui</td>
-<td>Nom du tag (unique par utilisateur)</td>
+<td>Yes</td>
+<td>Tag name (unique per user)</td>
 </tr>
 <tr>
 <td>color</td>
 <td>string</td>
-<td>Oui</td>
-<td>Couleur hexadécimale (#RRGGBB)</td>
+<td>Yes</td>
+<td>Hexadecimal color (#RRGGBB)</td>
 </tr>
 <tr>
 <td>icon</td>
 <td>string</td>
-<td>Non</td>
-<td>Nom de l'icône (optionnel)</td>
+<td>No</td>
+<td>Icon name (optional)</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Response (201):</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Loisirs&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Leisure&quot;</span><span class="p">,</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">&quot;color&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#f59e0b&quot;</span><span class="p">,</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">&quot;icon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gamepad&quot;</span><span class="p">,</span>
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">&quot;created_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-15T11:00:00Z&quot;</span>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">}</span>
 </code></pre></div></p>
-<p><strong>Erreurs:</strong></p>
+<p><strong>Errors:</strong></p>
 <table>
 <thead>
 <tr>
@@ -1425,21 +1425,21 @@
 <tbody>
 <tr>
 <td>400</td>
-<td>Nom de tag déjà utilisé</td>
+<td>Tag name already used</td>
 </tr>
 <tr>
 <td>422</td>
-<td>Données invalides</td>
+<td>Invalid data</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h3 id="get-id">GET /{id}<a class="headerlink" href="#get-id" title="Permanent link">&para;</a></h3>
-<p>Récupère un tag par son ID.</p>
+<p>Retrieves a tag by its ID.</p>
 <p><strong>Response (200):</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Courses&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Groceries&quot;</span><span class="p">,</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">&quot;color&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#22c55e&quot;</span><span class="p">,</span>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">&quot;icon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shopping-cart&quot;</span><span class="p">,</span>
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nt">&quot;created_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-15T10:30:00Z&quot;</span>
@@ -1447,89 +1447,89 @@
 </code></pre></div></p>
 <hr />
 <h3 id="put-id">PUT /{id}<a class="headerlink" href="#put-id" title="Permanent link">&para;</a></h3>
-<p>Met à jour un tag.</p>
+<p>Updates a tag.</p>
 <p><strong>Request Body:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Alimentation&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Food&quot;</span><span class="p">,</span>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">&quot;color&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#16a34a&quot;</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="p">}</span>
 </code></pre></div></p>
-<p>Tous les champs sont optionnels.</p>
-<p><strong>Response (200):</strong> Tag mis à jour</p>
+<p>All fields are optional.</p>
+<p><strong>Response (200):</strong> Tag updated</p>
 <hr />
 <h3 id="delete-id">DELETE /{id}<a class="headerlink" href="#delete-id" title="Permanent link">&para;</a></h3>
-<p>Supprime un tag.</p>
+<p>Deletes a tag.</p>
 <div class="admonition warning">
-<p class="admonition-title">Attention</p>
-<p>La suppression d'un tag le retire de tous les documents associés.
-Les budgets liés à ce tag sont également supprimés.</p>
+<p class="admonition-title">Warning</p>
+<p>Deleting a tag removes it from all associated documents.
+Budgets linked to this tag are also deleted.</p>
 </div>
 <p><strong>Response (204):</strong> No Content</p>
 <hr />
-<h2 id="couleurs-suggerees">Couleurs suggérées<a class="headerlink" href="#couleurs-suggerees" title="Permanent link">&para;</a></h2>
+<h2 id="suggested-colors">Suggested Colors<a class="headerlink" href="#suggested-colors" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Catégorie</th>
-<th>Couleur</th>
+<th>Category</th>
+<th>Color</th>
 <th>Hex</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Courses</td>
-<td>Vert</td>
+<td>Groceries</td>
+<td>Green</td>
 <td><code>#22c55e</code></td>
 </tr>
 <tr>
 <td>Transport</td>
-<td>Bleu</td>
+<td>Blue</td>
 <td><code>#3b82f6</code></td>
 </tr>
 <tr>
-<td>Logement</td>
-<td>Violet</td>
+<td>Housing</td>
+<td>Purple</td>
 <td><code>#8b5cf6</code></td>
 </tr>
 <tr>
-<td>Loisirs</td>
+<td>Leisure</td>
 <td>Orange</td>
 <td><code>#f59e0b</code></td>
 </tr>
 <tr>
-<td>Santé</td>
-<td>Rose</td>
+<td>Health</td>
+<td>Pink</td>
 <td><code>#ec4899</code></td>
 </tr>
 <tr>
 <td>Restaurant</td>
-<td>Rouge</td>
+<td>Red</td>
 <td><code>#ef4444</code></td>
 </tr>
 <tr>
-<td>Voyage</td>
+<td>Travel</td>
 <td>Cyan</td>
 <td><code>#06b6d4</code></td>
 </tr>
 <tr>
-<td>Revenus</td>
-<td>Émeraude</td>
+<td>Income</td>
+<td>Emerald</td>
 <td><code>#10b981</code></td>
 </tr>
 </tbody>
 </table>
-<h2 id="icones-suggerees">Icônes suggérées<a class="headerlink" href="#icones-suggerees" title="Permanent link">&para;</a></h2>
-<p>Les icônes sont optionnelles et utilisent les noms de <a href="https://lucide.dev/">Lucide Icons</a>.</p>
+<h2 id="suggested-icons">Suggested Icons<a class="headerlink" href="#suggested-icons" title="Permanent link">&para;</a></h2>
+<p>Icons are optional and use names from <a href="https://lucide.dev/">Lucide Icons</a>.</p>
 <table>
 <thead>
 <tr>
-<th>Catégorie</th>
-<th>Icône</th>
+<th>Category</th>
+<th>Icon</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Courses</td>
+<td>Groceries</td>
 <td><code>shopping-cart</code></td>
 </tr>
 <tr>
@@ -1537,15 +1537,15 @@ Les budgets liés à ce tag sont également supprimés.</p>
 <td><code>car</code></td>
 </tr>
 <tr>
-<td>Logement</td>
+<td>Housing</td>
 <td><code>home</code></td>
 </tr>
 <tr>
-<td>Loisirs</td>
+<td>Leisure</td>
 <td><code>gamepad</code></td>
 </tr>
 <tr>
-<td>Santé</td>
+<td>Health</td>
 <td><code>heart-pulse</code></td>
 </tr>
 <tr>
@@ -1553,11 +1553,11 @@ Les budgets liés à ce tag sont également supprimés.</p>
 <td><code>utensils</code></td>
 </tr>
 <tr>
-<td>Voyage</td>
+<td>Travel</td>
 <td><code>plane</code></td>
 </tr>
 <tr>
-<td>Salaire</td>
+<td>Salary</td>
 <td><code>banknote</code></td>
 </tr>
 </tbody>

@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#api-authentification" class="md-skip">
+        <a href="#authentication-api" class="md-skip">
           Aller au contenu
         </a>
       
@@ -804,22 +804,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#authentification-jwt" class="md-nav__link">
+  <a href="#jwt-authentication" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Authentification JWT
+        JWT Authentication
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Authentification JWT">
+    <nav class="md-nav" aria-label="JWT Authentication">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#format-du-token" class="md-nav__link">
+  <a href="#token-format" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Format du token
+        Token Format
       
     </span>
   </a>
@@ -827,10 +827,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#utilisation" class="md-nav__link">
+  <a href="#usage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Utilisation
+        Usage
       
     </span>
   </a>
@@ -1287,22 +1287,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#authentification-jwt" class="md-nav__link">
+  <a href="#jwt-authentication" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Authentification JWT
+        JWT Authentication
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Authentification JWT">
+    <nav class="md-nav" aria-label="JWT Authentication">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#format-du-token" class="md-nav__link">
+  <a href="#token-format" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Format du token
+        Token Format
       
     </span>
   </a>
@@ -1310,10 +1310,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#utilisation" class="md-nav__link">
+  <a href="#usage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Utilisation
+        Usage
       
     </span>
   </a>
@@ -1353,11 +1353,11 @@
 
 
 
-<h1 id="api-authentification">API Authentification<a class="headerlink" href="#api-authentification" title="Permanent link">&para;</a></h1>
+<h1 id="authentication-api">Authentication API<a class="headerlink" href="#authentication-api" title="Permanent link">&para;</a></h1>
 <p>Base URL: <code>/api/v1/auth</code></p>
 <h2 id="endpoints">Endpoints<a class="headerlink" href="#endpoints" title="Permanent link">&para;</a></h2>
 <h3 id="post-register">POST /register<a class="headerlink" href="#post-register" title="Permanent link">&para;</a></h3>
-<p>Crée un nouveau compte utilisateur.</p>
+<p>Creates a new user account.</p>
 <p><strong>Request Body:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user@example.com&quot;</span><span class="p">,</span>
@@ -1373,7 +1373,7 @@
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">&quot;created_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-15T10:30:00Z&quot;</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">}</span>
 </code></pre></div></p>
-<p><strong>Erreurs:</strong></p>
+<p><strong>Errors:</strong></p>
 <table>
 <thead>
 <tr>
@@ -1384,17 +1384,17 @@
 <tbody>
 <tr>
 <td>400</td>
-<td>Email déjà utilisé</td>
+<td>Email already registered</td>
 </tr>
 <tr>
 <td>422</td>
-<td>Données invalides</td>
+<td>Invalid data</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h3 id="post-login">POST /login<a class="headerlink" href="#post-login" title="Permanent link">&para;</a></h3>
-<p>Authentifie un utilisateur et retourne un token JWT.</p>
+<p>Authenticates a user and returns a JWT token.</p>
 <p><strong>Request Body:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user@example.com&quot;</span><span class="p">,</span>
@@ -1407,7 +1407,7 @@
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">&quot;token_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bearer&quot;</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">}</span>
 </code></pre></div></p>
-<p><strong>Erreurs:</strong></p>
+<p><strong>Errors:</strong></p>
 <table>
 <thead>
 <tr>
@@ -1418,21 +1418,21 @@
 <tbody>
 <tr>
 <td>401</td>
-<td>Email ou mot de passe incorrect</td>
+<td>Incorrect email or password</td>
 </tr>
 <tr>
 <td>422</td>
-<td>Données invalides</td>
+<td>Invalid data</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h3 id="get-me">GET /me<a class="headerlink" href="#get-me" title="Permanent link">&para;</a></h3>
-<p>Récupère les informations de l'utilisateur connecté.</p>
+<p>Retrieves information about the logged-in user.</p>
 <p><strong>Headers:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Authorization: Bearer &lt;token&gt;
 </code></pre></div></p>
-<p><strong>Response (200):</strong>
+<p>**Response (200):</b>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user@example.com&quot;</span><span class="p">,</span>
@@ -1440,7 +1440,7 @@
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="nt">&quot;created_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-15T10:30:00Z&quot;</span>
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="p">}</span>
 </code></pre></div></p>
-<p><strong>Erreurs:</strong></p>
+<p><strong>Errors:</strong></p>
 <table>
 <thead>
 <tr>
@@ -1451,31 +1451,31 @@
 <tbody>
 <tr>
 <td>401</td>
-<td>Token invalide ou expiré</td>
+<td>Invalid or expired token</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="authentification-jwt">Authentification JWT<a class="headerlink" href="#authentification-jwt" title="Permanent link">&para;</a></h2>
-<h3 id="format-du-token">Format du token<a class="headerlink" href="#format-du-token" title="Permanent link">&para;</a></h3>
-<p>Les tokens JWT sont signés avec l'algorithme HS256 et contiennent :</p>
+<h2 id="jwt-authentication">JWT Authentication<a class="headerlink" href="#jwt-authentication" title="Permanent link">&para;</a></h2>
+<h3 id="token-format">Token Format<a class="headerlink" href="#token-format" title="Permanent link">&para;</a></h3>
+<p>JWT tokens are signed with the HS256 algorithm and contain:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">&quot;sub&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user@example.com&quot;</span><span class="p">,</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">&quot;exp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1705320000</span>
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="p">}</span>
 </code></pre></div>
 <ul>
-<li><code>sub</code> : Email de l'utilisateur</li>
-<li><code>exp</code> : Timestamp d'expiration (7 jours par défaut)</li>
+<li><code>sub</code>: User email</li>
+<li><code>exp</code>: Expiration timestamp (7 days by default)</li>
 </ul>
-<h3 id="utilisation">Utilisation<a class="headerlink" href="#utilisation" title="Permanent link">&para;</a></h3>
-<p>Inclure le token dans le header <code>Authorization</code> :</p>
+<h3 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h3>
+<p>Include the token in the <code>Authorization</code> header:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer eyJhbGciOiJIUzI1NiIs...&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">     </span>http://localhost:8000/api/v1/auth/me
 </code></pre></div>
 <h3 id="expiration">Expiration<a class="headerlink" href="#expiration" title="Permanent link">&para;</a></h3>
-<p>Les tokens expirent après 7 jours (configurable via <code>ACCESS_TOKEN_EXPIRE_MINUTES</code>).</p>
-<p>Lorsqu'un token expire, l'API retourne une erreur 401 et le client doit redemander une authentification.</p>
+<p>Tokens expire after 7 days (configurable via <code>ACCESS_TOKEN_EXPIRE_MINUTES</code>).</p>
+<p>When a token expires, the API returns a 401 error and the client must re-authenticate.</p>
 
 
 

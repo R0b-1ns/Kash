@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#api-documents" class="md-skip">
+        <a href="#documents-api" class="md-skip">
           Aller au contenu
         </a>
       
@@ -887,10 +887,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#exemple-dupload-avec-curl" class="md-nav__link">
+  <a href="#example-upload-with-curl" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exemple d'upload avec cURL
+        Example upload with cURL
       
     </span>
   </a>
@@ -898,10 +898,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#exemple-dupload-avec-javascript" class="md-nav__link">
+  <a href="#example-upload-with-javascript" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exemple d'upload avec JavaScript
+        Example upload with JavaScript
       
     </span>
   </a>
@@ -1369,10 +1369,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#exemple-dupload-avec-curl" class="md-nav__link">
+  <a href="#example-upload-with-curl" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exemple d'upload avec cURL
+        Example upload with cURL
       
     </span>
   </a>
@@ -1380,10 +1380,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#exemple-dupload-avec-javascript" class="md-nav__link">
+  <a href="#example-upload-with-javascript" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exemple d'upload avec JavaScript
+        Example upload with JavaScript
       
     </span>
   </a>
@@ -1407,17 +1407,17 @@
 
 
 
-<h1 id="api-documents">API Documents<a class="headerlink" href="#api-documents" title="Permanent link">&para;</a></h1>
+<h1 id="documents-api">Documents API<a class="headerlink" href="#documents-api" title="Permanent link">&para;</a></h1>
 <p>Base URL: <code>/api/v1/documents</code></p>
-<p>Tous les endpoints nécessitent une authentification (header <code>Authorization: Bearer &lt;token&gt;</code>).</p>
+<p>All endpoints require authentication (header <code>Authorization: Bearer &lt;token&gt;</code>).</p>
 <h2 id="endpoints">Endpoints<a class="headerlink" href="#endpoints" title="Permanent link">&para;</a></h2>
 <h3 id="get">GET /<a class="headerlink" href="#get" title="Permanent link">&para;</a></h3>
-<p>Liste les documents de l'utilisateur connecté.</p>
+<p>Lists documents for the logged-in user.</p>
 <p><strong>Query Parameters:</strong></p>
 <table>
 <thead>
 <tr>
-<th>Paramètre</th>
+<th>Parameter</th>
 <th>Type</th>
 <th>Description</th>
 </tr>
@@ -1426,62 +1426,62 @@
 <tr>
 <td>search</td>
 <td>string</td>
-<td>Recherche textuelle (marchand, lieu, nom du fichier)</td>
+<td>Text search (merchant, location, filename)</td>
 </tr>
 <tr>
 <td>ocr_search</td>
 <td>string</td>
-<td>Recherche textuelle dans le contenu OCR</td>
+<td>Text search in raw OCR content</td>
 </tr>
 <tr>
 <td>min_amount</td>
 <td>float</td>
-<td>Montant total minimum</td>
+<td>Minimum total amount</td>
 </tr>
 <tr>
 <td>max_amount</td>
 <td>float</td>
-<td>Montant total maximum</td>
+<td>Maximum total amount</td>
 </tr>
 <tr>
 <td>tag_ids</td>
 <td>string</td>
-<td>IDs de tags séparés par des virgules</td>
+<td>Comma-separated tag IDs</td>
 </tr>
 <tr>
 <td>min_confidence</td>
 <td>float</td>
-<td>Score de confiance OCR minimum (0-100)</td>
+<td>Minimum OCR confidence score (0-100)</td>
 </tr>
 <tr>
 <td>skip</td>
 <td>int</td>
-<td>Offset pour pagination (défaut: 0)</td>
+<td>Offset for pagination (default: 0)</td>
 </tr>
 <tr>
 <td>limit</td>
 <td>int</td>
-<td>Nombre max de résultats (défaut: 100)</td>
+<td>Max number of items to return (default: 100)</td>
 </tr>
 <tr>
 <td>start_date</td>
 <td>date</td>
-<td>Filtrer à partir de cette date</td>
+<td>Filter from this date</td>
 </tr>
 <tr>
 <td>end_date</td>
 <td>date</td>
-<td>Filtrer jusqu'à cette date</td>
+<td>Filter up to this date</td>
 </tr>
 <tr>
 <td>is_income</td>
 <td>bool</td>
-<td>Filtrer revenus/dépenses</td>
+<td>Filter income/expenses</td>
 </tr>
 <tr>
 <td>doc_type</td>
 <td>string</td>
-<td>Filtrer par type (receipt, invoice...)</td>
+<td>Filter by type (receipt, invoice...)</td>
 </tr>
 </tbody>
 </table>
@@ -1498,20 +1498,20 @@
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nt">&quot;is_income&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="nt">&quot;created_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-15T10:30:00Z&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="nt">&quot;tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Courses&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;color&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#22c55e&quot;</span><span class="p">}</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Groceries&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;color&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#22c55e&quot;</span><span class="p">}</span>
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="p">]</span>
 <a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">  </span><span class="p">}</span>
 <a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="p">]</span>
 </code></pre></div></p>
 <hr />
 <h3 id="post-upload">POST /upload<a class="headerlink" href="#post-upload" title="Permanent link">&para;</a></h3>
-<p>Upload un nouveau document (image ou PDF).</p>
+<p>Uploads a new document (image or PDF).</p>
 <p><strong>Content-Type:</strong> <code>multipart/form-data</code></p>
 <p><strong>Form Data:</strong></p>
 <table>
 <thead>
 <tr>
-<th>Champ</th>
+<th>Field</th>
 <th>Type</th>
 <th>Description</th>
 </tr>
@@ -1520,12 +1520,12 @@
 <tr>
 <td>file</td>
 <td>File</td>
-<td>Fichier à uploader (obligatoire)</td>
+<td>File to upload (required)</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Formats acceptés:</strong> JPG, JPEG, PNG, WEBP, BMP, PDF</p>
-<p><strong>Taille max:</strong> 50 Mo</p>
+<p><strong>Accepted Formats:</strong> JPG, JPEG, PNG, WEBP, BMP, PDF</p>
+<p><strong>Max size:</strong> 50 MB</p>
 <p><strong>Response (201):</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
@@ -1547,7 +1547,7 @@
 <a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">  </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">    </span><span class="p">{</span>
 <a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">      </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Pommes Golden&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Golden Apples&quot;</span><span class="p">,</span>
 <a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">      </span><span class="nt">&quot;quantity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.5</span><span class="p">,</span>
 <a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">      </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;kg&quot;</span><span class="p">,</span>
 <a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">      </span><span class="nt">&quot;unit_price&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.99</span><span class="p">,</span>
@@ -1558,15 +1558,15 @@
 <a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="p">}</span>
 </code></pre></div></p>
 <div class="admonition note">
-<p class="admonition-title">Traitement automatique</p>
-<p>L'upload déclenche automatiquement :
-1. OCR (extraction du texte)
-2. IA (analyse et extraction des données)
-3. Création des items (articles)</p>
+<p class="admonition-title">Automatic Processing</p>
+<p>Upload automatically triggers:
+1. OCR (text extraction)
+2. AI (data analysis and extraction)
+3. Item creation (articles)</p>
 </div>
 <hr />
 <h3 id="get-id">GET /{id}<a class="headerlink" href="#get-id" title="Permanent link">&para;</a></h3>
-<p>Récupère le détail d'un document.</p>
+<p>Retrieves details of a document.</p>
 <p><strong>Response (200):</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
@@ -1583,7 +1583,7 @@
 <a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">  </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="err">...</span><span class="p">]</span>
 <a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="p">}</span>
 </code></pre></div></p>
-<p><strong>Erreurs:</strong></p>
+<p><strong>Errors:</strong></p>
 <table>
 <thead>
 <tr>
@@ -1594,13 +1594,13 @@
 <tbody>
 <tr>
 <td>404</td>
-<td>Document non trouvé</td>
+<td>Document not found</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h3 id="put-id">PUT /{id}<a class="headerlink" href="#put-id" title="Permanent link">&para;</a></h3>
-<p>Met à jour un document.</p>
+<p>Updates a document.</p>
 <p><strong>Request Body:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">&quot;doc_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;invoice&quot;</span><span class="p">,</span>
@@ -1611,22 +1611,22 @@
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="nt">&quot;is_income&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
 <a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">}</span>
 </code></pre></div></p>
-<p>Tous les champs sont optionnels.</p>
-<p><strong>Response (200):</strong> Document mis à jour</p>
+<p>All fields are optional.</p>
+<p><strong>Response (200):</strong> Document updated</p>
 <hr />
 <h3 id="delete-id">DELETE /{id}<a class="headerlink" href="#delete-id" title="Permanent link">&para;</a></h3>
-<p>Supprime un document et ses items associés.</p>
+<p>Deletes a document and its associated items.</p>
 <p><strong>Response (204):</strong> No Content</p>
 <hr />
 <h3 id="post-idreprocess">POST /{id}/reprocess<a class="headerlink" href="#post-idreprocess" title="Permanent link">&para;</a></h3>
-<p>Relance l'extraction OCR/IA sur un document existant.</p>
-<p>Utile si l'extraction initiale a échoué ou pour réanalyser après mise à jour du modèle IA.</p>
-<p><strong>Response (200):</strong> Document avec nouvelles données extraites</p>
+<p>Re-runs OCR/AI extraction on an existing document.</p>
+<p>Useful if initial extraction failed or to re-analyze after AI model update.</p>
+<p><strong>Response (200):</strong> Document with new extracted data</p>
 <hr />
 <h3 id="post-idtagstag_id">POST /{id}/tags/{tag_id}<a class="headerlink" href="#post-idtagstag_id" title="Permanent link">&para;</a></h3>
-<p>Ajoute un tag à un document.</p>
-<p><strong>Response (200):</strong> Document avec le tag ajouté</p>
-<p><strong>Erreurs:</strong></p>
+<p>Adds a tag to a document.</p>
+<p><strong>Response (200):</strong> Document with tag added</p>
+<p><strong>Errors:</strong></p>
 <table>
 <thead>
 <tr>
@@ -1637,25 +1637,25 @@
 <tbody>
 <tr>
 <td>404</td>
-<td>Document ou tag non trouvé</td>
+<td>Document or tag not found</td>
 </tr>
 <tr>
 <td>400</td>
-<td>Tag déjà associé</td>
+<td>Tag already associated</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h3 id="delete-idtagstag_id">DELETE /{id}/tags/{tag_id}<a class="headerlink" href="#delete-idtagstag_id" title="Permanent link">&para;</a></h3>
-<p>Retire un tag d'un document.</p>
-<p><strong>Response (200):</strong> Document sans le tag</p>
+<p>Removes a tag from a document.</p>
+<p><strong>Response (200):</strong> Document without the tag</p>
 <hr />
-<h2 id="exemple-dupload-avec-curl">Exemple d'upload avec cURL<a class="headerlink" href="#exemple-dupload-avec-curl" title="Permanent link">&para;</a></h2>
+<h2 id="example-upload-with-curl">Example upload with cURL<a class="headerlink" href="#example-upload-with-curl" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">&quot;http://localhost:8000/api/v1/documents/upload&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;file=@/path/to/ticket.jpg&quot;</span>
 </code></pre></div>
-<h2 id="exemple-dupload-avec-javascript">Exemple d'upload avec JavaScript<a class="headerlink" href="#exemple-dupload-avec-javascript" title="Permanent link">&para;</a></h2>
+<h2 id="example-upload-with-javascript">Example upload with JavaScript<a class="headerlink" href="#example-upload-with-javascript" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">formData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">FormData</span><span class="p">();</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nx">formData</span><span class="p">.</span><span class="nx">append</span><span class="p">(</span><span class="s1">&#39;file&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">fileInput</span><span class="p">.</span><span class="nx">files</span><span class="p">[</span><span class="mf">0</span><span class="p">]);</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>

@@ -1,72 +1,72 @@
 # Configuration
 
-## Variables d'environnement
+## Environment Variables
 
-### Fichier `.env`
+### `.env` file
 
-Le fichier `.env` à la racine du projet contient toutes les configurations :
+The `.env` file at the root of the project contains all configurations:
 
 ```bash
 # ===========================================
-# Sécurité
+# Security
 # ===========================================
 
-# Clé secrète pour signer les tokens JWT
-# IMPORTANT: Changez cette valeur en production !
+# Secret key for signing JWT tokens
+# IMPORTANT: Change this value in production!
 SECRET_KEY=your-super-secret-key-change-this-in-production
 
 # ===========================================
-# Base de données
+# Database
 # ===========================================
 
-# URL de connexion PostgreSQL
+# PostgreSQL connection URL
 # Format: postgresql://user:password@host:port/database
 DATABASE_URL=postgresql://finance:finance@postgres:5432/finance_db
 
 # ===========================================
-# Ollama (IA)
+# Ollama (AI)
 # ===========================================
 
-# URL du service Ollama
+# Ollama service URL
 OLLAMA_HOST=http://ollama:11434
 
-# Modèle à utiliser pour l'extraction
+# Model to use for extraction
 # Options: mistral, llama2, codellama, etc.
 OLLAMA_MODEL=mistral
 
 # ===========================================
-# Synchronisation NAS (optionnel)
+# NAS Synchronization (optional)
 # ===========================================
 
-# Chemin du montage SMB sur le Mac hôte
+# SMB mount path on the host Mac
 NAS_LOCAL_PATH=/Volumes/NAS/finance
 
-# Chemin dans le container Docker (monté via volume)
+# Path in the Docker container (mounted via volume)
 NAS_MOUNT_PATH=/app/nas_backup
 ```
 
-## Configuration du NAS
+## NAS Configuration
 
-### Prérequis
+### Prerequisites
 
-1. **Partage SMB/CIFS** activé sur votre NAS
-2. **Utilisateur dédié** avec droits d'écriture sur le dossier finance
+1.  **SMB/CIFS share** enabled on your NAS
+2.  **Dedicated user** with write permissions on the finance folder
 
-### Montage SMB sur macOS
+### SMB Mount on macOS
 
 ```bash
-# Créer le point de montage
+# Create mount point
 sudo mkdir -p /Volumes/NAS
 
-# Monter le partage SMB
-mount -t smbfs //utilisateur:motdepasse@IP-NAS/partage /Volumes/NAS
+# Mount SMB share
+mount -t smbfs //username:password@NAS-IP/share /Volumes/NAS
 
-# Ou via Finder : Cmd+K → smb://IP-NAS/partage
+# Or via Finder: Cmd+K → smb://NAS-IP/share
 ```
 
-### Configuration Docker
+### Docker Configuration
 
-Le montage SMB doit être accessible par Docker. Dans `docker compose.yml` :
+The SMB mount must be accessible by Docker. In `docker compose.yml`:
 
 ```yaml
 backend:
@@ -76,19 +76,19 @@ backend:
     - NAS_MOUNT_PATH=${NAS_MOUNT_PATH:-}
 ```
 
-### Structure des dossiers NAS
+### NAS Folder Structure
 
-Les fichiers sont organisés par **année/mois/type** :
+Files are organized by **year/month/type**:
 
 ```
 /Volumes/NAS/finance/
 ├── 2024/
 │   ├── 01/
-│   │   ├── factures/
+│   │   ├── invoices/
 │   │   │   └── abc123.pdf
-│   │   ├── tickets/
+│   │   ├── receipts/
 │   │   │   └── def456.jpg
-│   │   └── salaires/
+│   │   └── salaries/
 │   │       └── ghi789.pdf
 │   └── 02/
 │       └── ...
@@ -98,63 +98,63 @@ Les fichiers sont organisés par **année/mois/type** :
     └── ...
 ```
 
-### Montage automatique (optionnel)
+### Automatic Mounting (optional)
 
-Pour monter automatiquement au démarrage du Mac, ajoutez dans `/etc/fstab` :
+To mount automatically on Mac startup, add to `/etc/fstab`:
 
 ```
 //user:pass@nas-ip/share /Volumes/NAS smbfs 0 0
 ```
 
-## Configuration des budgets
+## Budget Configuration
 
-### Création d'un budget
+### Creating a Budget
 
-1. Créez d'abord les **tags** correspondant à vos catégories
-2. Allez dans **Budgets** > **Nouveau budget**
-3. Sélectionnez le tag et définissez la limite mensuelle
+1.  First, create **tags** corresponding to your categories
+2.  Go to **Budgets** > **New Budget**
+3.  Select the tag and set the monthly limit
 
-### Alertes visuelles
+### Visual Alerts
 
-| Pourcentage utilisé | Couleur | Signification |
-|---------------------|---------|---------------|
-| 0-50% | Vert | Tout va bien |
-| 50-75% | Jaune | Attention |
-| 75-90% | Orange | Proche de la limite |
-| 90%+ | Rouge | Limite dépassée |
+| Usage Percentage | Color | Meaning       |
+|------------------|-------|---------------|
+| 0-50%            | Green | All good      |
+| 50-75%           | Yellow | Warning       |
+| 75-90%           | Orange | Close to limit |
+| 90%+             | Red | Limit exceeded |
 
-## Configuration frontend
+## Frontend Configuration
 
-### Fichier `frontend/.env`
+### `frontend/.env` file
 
 ```bash
-# URL de l'API backend
+# Backend API URL
 VITE_API_URL=http://localhost:8000/api/v1
 ```
 
-### Build de production
+### Production Build
 
 ```bash
 cd frontend
 npm run build
 ```
 
-Les fichiers statiques sont générés dans `frontend/dist/`.
+Static files are generated in `frontend/dist/`.
 
-## Personnalisation
+## Customization
 
-### Modifier les devises par défaut
+### Modify default currencies
 
-Éditez la migration `backend/alembic/versions/001_initial_schema.py` avant la première exécution pour modifier les devises :
+Edit the migration `backend/alembic/versions/001_initial_schema.py` before the first execution to modify currencies:
 
 ```python
 currencies = [
     {"code": "EUR", "name": "Euro", "symbol": "€", "rate_to_eur": 1.0},
-    {"code": "USD", "name": "Dollar US", "symbol": "$", "rate_to_eur": 0.92},
-    # Ajoutez vos devises ici
+    {"code": "USD", "name": "US Dollar", "symbol": "$", "rate_to_eur": 0.92},
+    # Add your currencies here
 ]
 ```
 
-### Modifier le prompt IA
+### Modify AI Prompt
 
-Le prompt d'extraction est dans `backend/app/services/ai_service.py`. Vous pouvez l'adapter pour améliorer l'extraction selon vos types de documents.
+The extraction prompt is in `backend/app/services/ai_service.py`. You can adapt it to improve extraction based on your document types.

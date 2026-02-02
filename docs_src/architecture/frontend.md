@@ -1,36 +1,36 @@
-# Architecture Frontend
+# Frontend Architecture
 
-## Stack technique
+## Tech Stack
 
-| Technologie | Version | Usage |
+| Technology | Version | Usage |
 |-------------|---------|-------|
 | React | 18.2 | UI Framework |
-| TypeScript | 5.3 | Typage statique |
+| TypeScript | 5.3 | Static Typing |
 | Vite | 5.0 | Build tool |
 | Tailwind CSS | 3.4 | Styling |
 | React Router | 6.21 | Navigation |
 | Axios | 1.6 | HTTP client |
-| Recharts | 2.10 | Graphiques |
-| Lucide React | 0.312 | Icônes |
+| Recharts | 2.10 | Charts |
+| Lucide React | 0.312 | Icons |
 
-## Structure des dossiers
+## Folder Structure
 
 ```
 frontend/src/
-├── main.tsx                 # Point d'entrée
-├── App.tsx                  # Router principal
+├── main.tsx                 # Entry Point
+├── App.tsx                  # Main Router
 ├── types/
-│   └── index.ts             # Interfaces TypeScript
+│   └── index.ts             # TypeScript Interfaces
 ├── services/
-│   └── api.ts               # Client Axios + endpoints
+│   └── api.ts               # Axios Client + Endpoints
 ├── hooks/
-│   ├── useAuth.tsx          # Context d'authentification
-│   └── useDebounce.ts       # Hook pour le debouncing
+│   ├── useAuth.tsx          # Authentication Context
+│   └── useDebounce.ts       # Debouncing Hook
 ├── components/
-│   ├── Layout.tsx           # Layout avec sidebar
-│   ├── ProtectedRoute.tsx   # Garde de route
-│   ├── DocumentFilters.tsx  # Panneau de filtres pour les documents
-│   └── dashboard/           # Composants du dashboard
+│   ├── Layout.tsx           # Layout with Sidebar
+│   ├── ProtectedRoute.tsx   # Route Guard
+│   ├── DocumentFilters.tsx  # Document Filters Panel
+│   └── dashboard/           # Dashboard Components
 │       ├── StatCard.tsx
 │       ├── MonthlyChart.tsx
 │       ├── TagPieChart.tsx
@@ -47,9 +47,9 @@ frontend/src/
     └── SettingsPage.tsx
 ```
 
-## Types TypeScript
+## TypeScript Types
 
-### Entités principales
+### Main Entities
 
 ```typescript
 interface User {
@@ -89,7 +89,7 @@ interface Budget {
 }
 ```
 
-### Types de statistiques
+### Statistics Types
 
 ```typescript
 interface StatsSummary {
@@ -110,9 +110,9 @@ interface BudgetWithSpending {
 }
 ```
 
-## Client API
+## API Client
 
-### Configuration Axios
+### Axios Configuration
 
 ```typescript
 const apiClient = axios.create({
@@ -120,7 +120,7 @@ const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Intercepteur : ajoute le token JWT
+// Interceptor: adds JWT token
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('finance_manager_token');
   if (token) {
@@ -129,7 +129,7 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Intercepteur : gère les erreurs 401
+// Interceptor: handles 401 errors
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -142,10 +142,10 @@ apiClient.interceptors.response.use(
 );
 ```
 
-### Endpoints disponibles
+### Available Endpoints
 
 ```typescript
-// Authentification
+// Authentication
 auth.register(data: RegisterData): Promise<User>
 auth.login(credentials: LoginCredentials): Promise<AuthResponse>
 auth.getMe(): Promise<User>
@@ -170,13 +170,13 @@ budgets.create(data: BudgetCreate): Promise<Budget>
 budgets.update(id: number, data: BudgetUpdate): Promise<Budget>
 budgets.delete(id: number): Promise<void>
 
-// Statistiques
+// Statistics
 stats.getSummary(month?: string): Promise<StatsSummary>
 stats.getByTag(month?: string): Promise<StatsByTag[]>
 stats.getMonthly(months?: number): Promise<MonthlyStats[]>
 stats.getTopItems(params?): Promise<TopItem[]>
 
-// Synchronisation
+// Synchronization
 sync.getStatus(): Promise<SyncStatus>
 sync.testConnection(): Promise<SyncResult>
 sync.runSync(): Promise<SyncRunResult>
@@ -189,11 +189,11 @@ exportApi.annualPDF(year: number): Promise<void>
 exportApi.exportChart(chartType: ChartType, month?: string): Promise<void>
 ```
 
-## Composants
+## Components
 
 ### Layout
 
-Le layout principal avec sidebar responsive :
+The main layout with responsive sidebar:
 
 ```tsx
 <Layout>
@@ -211,7 +211,7 @@ Le layout principal avec sidebar responsive :
 
 ### ProtectedRoute
 
-Composant qui protège les routes authentifiées :
+Component that protects authenticated routes:
 
 ```tsx
 <ProtectedRoute>
@@ -219,26 +219,26 @@ Composant qui protège les routes authentifiées :
 </ProtectedRoute>
 ```
 
-Si l'utilisateur n'est pas connecté, il est redirigé vers `/login`.
+If the user is not logged in, they are redirected to `/login`.
 
-### Composants Dashboard
+### Dashboard Components
 
-| Composant | Description |
+| Component | Description |
 |-----------|-------------|
-| `StatCard` | Carte statistique avec icône et valeur |
-| `MonthlyChart` | Graphique barres dépenses/revenus |
-| `TagPieChart` | Camembert répartition par tag |
-| `BudgetProgress` | Barres de progression budgets |
-| `TopExpenses` | Liste dernières dépenses |
-| `TopItems` | Articles les plus fréquents |
+| `StatCard` | Statistic card with icon and value |
+| `MonthlyChart` | Bar chart of expenses/income |
+| `TagPieChart` | Donut chart of category breakdown |
+| `BudgetProgress` | Budget progress bars |
+| `TopExpenses` | List of latest expenses |
+| `TopItems` | Most frequent items |
 
-## Pages Frontend importantes
+## Important Frontend Pages
 
-*   **`SettingsPage.tsx`**: Cette page a été étendue pour inclure les nouvelles interfaces utilisateur d'exportation de rapports PDF mensuels et annuels, ainsi que l'exportation de graphiques individuels au format PNG. Elle permet aux utilisateurs de choisir les périodes et les types de graphiques pour leurs exports.
+*   **`SettingsPage.tsx`**: This page has been extended to include new user interfaces for exporting monthly and annual PDF reports, as well as exporting individual charts in PNG format. It allows users to choose periods and chart types for their exports.
 
-## Authentification
+## Authentication
 
-### Context Auth
+### Auth Context
 
 ```tsx
 const AuthContext = createContext<AuthContextType>(null);
@@ -247,7 +247,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Vérifie le token au démarrage
+  // Checks token on startup
   useEffect(() => {
     const token = getToken();
     if (token) {
@@ -276,7 +276,7 @@ export function AuthProvider({ children }) {
 }
 ```
 
-### Utilisation
+### Usage
 
 ```tsx
 function MyComponent() {
@@ -288,9 +288,9 @@ function MyComponent() {
 
   return (
     <div>
-      <p>Bonjour {user.name}</p>
-      <button onClick={logout}>Déconnexion</button>
-    </div>
+      <p>Hello {user.name}</p>
+      <button onClick={logout}>Logout</button>
+    }
   );
 }
 ```
@@ -299,16 +299,16 @@ function MyComponent() {
 
 ### Tailwind CSS
 
-Classes utilitaires principales :
+Main utility classes:
 
 ```tsx
-// Carte
+// Card
 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
 
-// Bouton primaire
+// Primary button
 <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
 
-// Bouton secondaire
+// Secondary button
 <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
 
 // Badge/Tag
@@ -316,10 +316,10 @@ Classes utilitaires principales :
       style={{ backgroundColor: tag.color }}>
 ```
 
-### Palette de couleurs
+### Color Palette
 
-| Usage | Couleur |
-|-------|---------|
+| Usage | Color |
+|-------|-------|
 | Primary | `blue-600` |
 | Success | `green-500` |
 | Warning | `amber-500` |

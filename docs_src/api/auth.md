@@ -1,4 +1,4 @@
-# API Authentification
+# Authentication API
 
 Base URL: `/api/v1/auth`
 
@@ -6,7 +6,7 @@ Base URL: `/api/v1/auth`
 
 ### POST /register
 
-Crée un nouveau compte utilisateur.
+Creates a new user account.
 
 **Request Body:**
 ```json
@@ -27,18 +27,18 @@ Crée un nouveau compte utilisateur.
 }
 ```
 
-**Erreurs:**
+**Errors:**
 
 | Code | Description |
 |------|-------------|
-| 400 | Email déjà utilisé |
-| 422 | Données invalides |
+| 400 | Email already registered |
+| 422 | Invalid data |
 
 ---
 
 ### POST /login
 
-Authentifie un utilisateur et retourne un token JWT.
+Authenticates a user and returns a JWT token.
 
 **Request Body:**
 ```json
@@ -56,25 +56,25 @@ Authentifie un utilisateur et retourne un token JWT.
 }
 ```
 
-**Erreurs:**
+**Errors:**
 
 | Code | Description |
 |------|-------------|
-| 401 | Email ou mot de passe incorrect |
-| 422 | Données invalides |
+| 401 | Incorrect email or password |
+| 422 | Invalid data |
 
 ---
 
 ### GET /me
 
-Récupère les informations de l'utilisateur connecté.
+Retrieves information about the logged-in user.
 
 **Headers:**
 ```
 Authorization: Bearer <token>
 ```
 
-**Response (200):**
+**Response (200):</b>
 ```json
 {
   "id": 1,
@@ -84,19 +84,19 @@ Authorization: Bearer <token>
 }
 ```
 
-**Erreurs:**
+**Errors:**
 
 | Code | Description |
 |------|-------------|
-| 401 | Token invalide ou expiré |
+| 401 | Invalid or expired token |
 
 ---
 
-## Authentification JWT
+## JWT Authentication
 
-### Format du token
+### Token Format
 
-Les tokens JWT sont signés avec l'algorithme HS256 et contiennent :
+JWT tokens are signed with the HS256 algorithm and contain:
 
 ```json
 {
@@ -105,12 +105,12 @@ Les tokens JWT sont signés avec l'algorithme HS256 et contiennent :
 }
 ```
 
-- `sub` : Email de l'utilisateur
-- `exp` : Timestamp d'expiration (7 jours par défaut)
+- `sub`: User email
+- `exp`: Expiration timestamp (7 days by default)
 
-### Utilisation
+### Usage
 
-Inclure le token dans le header `Authorization` :
+Include the token in the `Authorization` header:
 
 ```bash
 curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
@@ -119,6 +119,6 @@ curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
 
 ### Expiration
 
-Les tokens expirent après 7 jours (configurable via `ACCESS_TOKEN_EXPIRE_MINUTES`).
+Tokens expire after 7 days (configurable via `ACCESS_TOKEN_EXPIRE_MINUTES`).
 
-Lorsqu'un token expire, l'API retourne une erreur 401 et le client doit redemander une authentification.
+When a token expires, the API returns a 401 error and the client must re-authenticate.

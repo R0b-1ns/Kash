@@ -1,8 +1,8 @@
-# Vue d'ensemble de l'architecture
+# Architecture Overview
 
-## Architecture globale
+## Global Architecture
 
-Finance Manager est une application web moderne avec une **architecture microservices** :
+Finance Manager is a modern web application with a **microservices architecture**:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -50,21 +50,21 @@ Finance Manager est une application web moderne avec une **architecture microser
 └─────────────────┘ └─────────────────┘    └─────────────────────────────┘
 ```
 
-## Services Docker
+## Docker Services
 
 | Service | Port | Image | Description |
 |---------|------|-------|-------------|
-| `frontend` | 3000 | Node 20 | Application React + Vite |
-| `backend` | 8000 | Python 3.11 | API FastAPI |
-| `postgres` | 5432 | postgres:15-alpine | Base de données |
-| `ollama` | 11434 | ollama/ollama | Serveur LLM (Mistral) |
-| `ocr-service` | 5001 | Python 3.11 | Microservice OCR (PaddleOCR) |
+| `frontend` | 3000 | Node 20 | React + Vite Application |
+| `backend` | 8000 | Python 3.11 | FastAPI API |
+| `postgres` | 5432 | postgres:15-alpine | Database |
+| `ollama` | 11434 | ollama/ollama | LLM Server (Mistral) |
+| `ocr-service` | 5001 | Python 3.11 | OCR Microservice (PaddleOCR) |
 
-## Communication entre services
+## Inter-service Communication
 
 ### Backend ↔ OCR Service
 
-Le backend communique avec le microservice OCR via HTTP :
+The backend communicates with the OCR microservice via HTTP:
 
 ```python
 # backend/app/services/ocr_service.py
@@ -78,7 +78,7 @@ async def extract_text(self, file_path: str) -> OCRResult:
 
 ### Backend ↔ Ollama
 
-Le backend communique avec Ollama via son API REST :
+The backend communicates with Ollama via its REST API:
 
 ```python
 # backend/app/services/ai_service.py
@@ -90,59 +90,59 @@ response = await client.post(
 
 ### Backend ↔ NAS
 
-La synchronisation utilise un montage SMB (pas de SSH/rsync) :
+Synchronization uses an SMB mount (no SSH/rsync):
 
 ```python
 # backend/app/services/nas_sync_service.py
-# Simple copie de fichiers vers le montage SMB
+# Simple file copy to the SMB mount
 shutil.copy2(document.file_path, dest_path)
 ```
 
-## Flux de données
+## Data Flow
 
-### Upload d'un document
+### Document Upload
 
 ```mermaid
 sequenceDiagram
-    participant U as Utilisateur
+    participant U as User
     participant F as Frontend
     participant B as Backend
     participant OCR as OCR Service
     participant AI as Ollama
     participant D as PostgreSQL
 
-    U->>F: Upload fichier
+    U->>F: Upload file
     F->>B: POST /documents/upload
-    B->>D: Créer Document
+    B->>D: Create Document
     B->>OCR: POST /ocr (file_path)
     OCR-->>B: {text, confidence}
-    B->>D: Sauvegarder texte OCR
-    B->>AI: POST /api/generate (prompt + texte)
-    AI-->>B: JSON structuré
-    B->>D: Mettre à jour Document + créer Items
-    B-->>F: Document complet
-    F-->>U: Afficher résultat
+    B->>D: Save OCR text
+    B->>AI: POST /api/generate (prompt + text)
+    AI-->>B: Structured JSON
+    B->>D: Update Document + create Items
+    B-->>F: Complete Document
+    F-->>U: Display result
 ```
 
-### Synchronisation NAS
+### NAS Synchronization
 
 ```mermaid
 sequenceDiagram
-    participant U as Utilisateur
+    participant U as User
     participant B as Backend
-    participant NAS as Montage SMB
+    participant NAS as SMB Mount
 
     U->>B: POST /sync/run
-    B->>B: Récupérer documents non sync
-    loop Pour chaque document
+    B->>B: Retrieve unsynced documents
+    loop For each document
         B->>NAS: shutil.copy2(src, dest)
-        Note over NAS: Structure: année/mois/type/
+        Note over NAS: Structure: year/month/type/
         B->>B: synced_to_nas = true
     end
     B-->>U: {synced: N, failed: M}
 ```
 
-## Modèle de données
+## Data Model
 
 ```
 ┌──────────────┐       ┌──────────────┐       ┌──────────────┐
@@ -161,7 +161,7 @@ sequenceDiagram
                        │ synced_to_nas│
                        └──────┬───────┘
                               │
-                              │ M:N
+                              │ Many-to-Many
                               ▼
 ┌──────────────┐       ┌──────────────┐
 │     Tag      │<──────│ DocumentTag  │
@@ -181,43 +181,43 @@ sequenceDiagram
                        └──────────────┘
 ```
 
-## Sécurité
+## Security
 
-### Authentification
+### Authentication
 
-- **JWT** (JSON Web Tokens) avec algorithme HS256
-- Tokens valides 7 jours par défaut
-- Stockage dans localStorage côté frontend
+- **JWT** (JSON Web Tokens) with HS256 algorithm
+- Tokens valid for 7 days by default
+- Stored in localStorage on the frontend
 
-### Autorisation
+### Authorization
 
-- Chaque ressource est liée à un `user_id`
-- Vérification systématique dans les routes
-- Pas d'accès aux données d'autres utilisateurs
+- Each resource is linked to a `user_id`
+- Systematic verification in routes
+- No access to other users' data
 
-### Protection des données
+### Data Protection
 
-- Mots de passe hashés avec **bcrypt**
-- Validation des entrées avec **Pydantic**
-- Échappement SQL avec **SQLAlchemy**
+- Passwords hashed with **bcrypt**
+- Input validation with **Pydantic**
+- SQL escaping with **SQLAlchemy**
 
 ## Configuration
 
-### Variables d'environnement
+### Environment Variables
 
 ```bash
-# Sécurité
+# Security
 SECRET_KEY=your-super-secret-key
 
-# Base de données
+# Database
 DATABASE_URL=postgresql://finance:finance@postgres:5432/finance_db
 
-# Services internes
+# Internal Services
 OLLAMA_HOST=http://ollama:11434
 OLLAMA_MODEL=mistral
 OCR_SERVICE_URL=http://ocr-service:5001
 
-# NAS (montage SMB)
+# NAS (SMB mount)
 NAS_LOCAL_PATH=/Volumes/NAS/finance
 NAS_MOUNT_PATH=/app/nas_backup
 ```

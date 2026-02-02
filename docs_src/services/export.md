@@ -1,33 +1,33 @@
-# Services d'Export et Rapports
+# Export and Report Services
 
-Ce module regroupe les services backend pour l'exportation de données en différents formats (CSV, PDF) et la génération de rapports avec des graphiques.
+This module gathers backend services for exporting data in different formats (CSV, PDF) and generating reports with charts.
 
-## Fichiers sources
+## Source Files
 
 - `backend/app/services/export_service.py`
 - `backend/app/services/pdf_service.py`
 
-## Fonctionnalités
+## Features
 
-- Export des documents en CSV
-- Export du résumé mensuel en CSV
-- Génération de rapports mensuels PDF avec graphiques
-- Génération de rapports annuels PDF avec graphiques
-- Export de graphiques individuels en PNG
-- Filtrage par dates, tags (pour CSV)
-- Option détail des articles (pour CSV)
+- Export documents as CSV
+- Export monthly summary as CSV
+- Generate monthly PDF reports with charts
+- Generate annual PDF reports with charts
+- Export individual charts as PNG
+- Filtering by dates, tags (for CSV)
+- Option to include item details (for CSV)
 
-## Classe ExportService
+## ExportService Class
 
 ```python
 class ExportService:
     def __init__(self, db: Session, user_id: int):
         """
-        Initialise le service d'export.
+        Initializes the export service.
 
         Args:
-            db: Session de base de données
-            user_id: ID de l'utilisateur (filtre les données)
+            db: Database session
+            user_id: User ID (filters data)
         """
 
     def export_documents_csv(
@@ -38,10 +38,10 @@ class ExportService:
         include_items: bool = False
     ) -> str:
         """
-        Exporte les documents en CSV.
+        Exports documents as CSV.
 
         Returns:
-            Contenu CSV sous forme de chaîne
+            CSV content as a string
         """
 
     def export_monthly_summary_csv(
@@ -50,21 +50,21 @@ class ExportService:
         month: int
     ) -> str:
         """
-        Exporte le résumé mensuel en CSV.
+        Exports the monthly summary as CSV.
 
         Returns:
-            Contenu CSV avec totaux et répartition
+            CSV content with totals and breakdown
         """
 ```
 
-## Classe PDFReportService
+## PDFReportService Class
 
-Le `PDFReportService` est responsable de la génération de rapports PDF détaillés et de l'exportation de graphiques individuels au format PNG. Il utilise `ReportLab` pour la mise en page des PDF et `Matplotlib` pour créer des visualisations de données.
+The `PDFReportService` is responsible for generating detailed PDF reports and exporting individual charts in PNG format. It uses `ReportLab` for PDF layout and `Matplotlib` to create data visualizations.
 
 ```python
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use('Agg') # Utilisation du backend sans GUI
+matplotlib.use('Agg') # Using non-GUI backend
 from io import BytesIO
 
 from reportlab.lib.pagesizes import A4
@@ -74,53 +74,53 @@ from reportlab.lib.styles import getSampleStyleSheet
 class PDFReportService:
     def __init__(self, db: Session, user_id: int):
         """
-        Initialise le service de rapports PDF.
+        Initializes the PDF report service.
 
         Args:
-            db: Session de base de données
-            user_id: ID de l'utilisateur (filtre les données)
+            db: Database session
+            user_id: User ID (filters data)
         """
 
     def generate_monthly_report(self, year: int, month: int) -> bytes:
         """
-        Génère un rapport financier mensuel complet en PDF avec graphiques.
+        Generates a complete monthly financial report in PDF with charts.
 
         Returns:
-            Contenu du fichier PDF sous forme de bytes.
+            PDF file content as bytes.
         """
 
     def generate_annual_report(self, year: int) -> bytes:
         """
-        Génère un rapport financier annuel complet en PDF avec graphiques.
+        Generates a complete annual financial report in PDF with charts.
 
         Returns:
-            Contenu du fichier PDF sous forme de bytes.
+            PDF file content as bytes.
         """
 
     def export_chart(self, chart_type: str, params: dict) -> bytes:
         """
-        Exporte un graphique individuel (pie, bar, line, donut, area) en PNG.
+        Exports an individual chart (pie, bar, line, donut, area) as PNG.
 
         Args:
-            chart_type: Type de graphique à générer.
-            params: Paramètres spécifiques au graphique (ex: 'month').
+            chart_type: Type of chart to generate.
+            params: Chart-specific parameters (e.g., 'month').
 
         Returns:
-            Contenu du fichier PNG sous forme de bytes.
+            PNG file content as bytes.
         """
 ```
 
-## Utilisation
+## Usage
 
 ```python
 from app.services.export_service import get_export_service
 from app.services.pdf_service import get_pdf_service
 
-# Créer les services
+# Create services
 export_service = get_export_service(db, user_id=1)
 pdf_service = get_pdf_service(db, user_id=1)
 
-# Export des documents CSV
+# Export documents CSV
 csv_content = export_service.export_documents_csv(
     start_date=date(2024, 1, 1),
     end_date=date(2024, 1, 31),
@@ -128,94 +128,94 @@ csv_content = export_service.export_documents_csv(
     include_items=True
 )
 
-# Sauvegarder le fichier CSV
+# Save CSV file
 with open("export.csv", "w", encoding="utf-8-sig") as f:
     f.write(csv_content)
 
-# Générer un rapport mensuel PDF
+# Generate monthly PDF report
 pdf_content = pdf_service.generate_monthly_report(2024, 1)
 
-# Sauvegarder le fichier PDF
-with open("rapport_mensuel.pdf", "wb") as f:
+# Save PDF file
+with open("monthly_report.pdf", "wb") as f:
     f.write(pdf_content)
 
-# Exporter un graphique PNG
+# Export chart PNG
 png_content = pdf_service.export_chart("donut", {"month": "2024-01"})
 
-# Sauvegarder le fichier PNG
-with open("graphique_donut.png", "wb") as f:
+# Save PNG file
+with open("donut_chart.png", "wb") as f:
     f.write(png_content)
 ```
 
-## Formats de sortie
+## Output Formats
 
-### Export documents (sans items)
+### Export documents (without items)
 
 ```csv
-ID;Date;Heure;Marchand;Lieu;Type;Montant;Devise;Type transaction;Tags;Fichier original
-1;2024-01-15;14:30:00;Carrefour;Paris;receipt;45.67;EUR;Dépense;Courses;ticket.jpg
+ID;Date;Time;Merchant;Location;Type;Amount;Currency;Transaction Type;Tags;Original File
+1;2024-01-15;14:30:00;Carrefour;Paris;receipt;45.67;EUR;Expense;Groceries;ticket.jpg
 ```
 
-| Colonne | Description |
+| Column | Description |
 |---------|-------------|
-| ID | Identifiant unique |
-| Date | Date du document (YYYY-MM-DD) |
-| Heure | Heure si disponible (HH:MM:SS) |
-| Marchand | Nom du commerce |
-| Lieu | Adresse/ville |
-| Type | Type de document |
-| Montant | Montant total |
-| Devise | Code devise (EUR, USD...) |
-| Type transaction | Revenu ou Dépense |
-| Tags | Tags séparés par virgule |
-| Fichier original | Nom du fichier uploadé |
+| ID | Unique identifier |
+| Date | Document date (YYYY-MM-DD) |
+| Time | Time if available (HH:MM:SS) |
+| Merchant | Business name |
+| Location | Address/city |
+| Type | Document type |
+| Amount | Total amount |
+| Currency | Currency code (EUR, USD...) |
+| Transaction Type | Income or Expense |
+| Tags | Comma-separated tags |
+| Original File | Name of the uploaded file |
 
-### Export documents (avec items)
+### Export documents (with items)
 
 ```csv
-ID Document;Date;Marchand;Article;Quantité;Unité;Prix unitaire;Prix total;Catégorie article;Tags document
-1;2024-01-15;Carrefour;Pommes Golden;1.50;kg;2.99;4.49;Fruits;Courses
-1;2024-01-15;Carrefour;Baguette;2.00;;1.20;2.40;Boulangerie;Courses
+Document ID;Date;Merchant;Item;Quantity;Unit;Unit Price;Total Price;Item Category;Document Tags
+1;2024-01-15;Carrefour;Golden Apples;1.50;kg;2.99;4.49;Fruits;Groceries
+1;2024-01-15;Carrefour;Baguette;2.00;;1.20;2.40;Bakery;Groceries
 ```
 
-### Export mensuel CSV
+### Monthly CSV Export
 
 ```csv
-Résumé mensuel;2024-01
+Monthly Summary;2024-01
 
-Métrique;Valeur
-Total dépenses;1250.75 EUR
-Total revenus;3500.00 EUR
-Solde;2249.25 EUR
-Nombre de transactions;42
+Metric;Value
+Total Expenses;1250.75 EUR
+Total Income;3500.00 EUR
+Balance;2249.25 EUR
+Number of Transactions;42
 
-Dépenses par catégorie
-Tag;Montant;Pourcentage
-Courses;450.30 EUR;36.0%
+Expenses by Category
+Tag;Amount;Percentage
+Groceries;450.30 EUR;36.0%
 Transport;180.00 EUR;14.4%
 ```
 
-### Rapports PDF
+### PDF Reports
 
-Les rapports PDF (mensuels et annuels) offrent une mise en page structurée avec un résumé financier, des tableaux et des graphiques générés dynamiquement.
+PDF reports (monthly and annual) provide a structured layout with a financial summary, tables, and dynamically generated charts.
 
-### Graphiques PNG
+### PNG Charts
 
-Les exports de graphiques PNG fournissent des images haute résolution des visualisations de données.
+PNG chart exports provide high-resolution images of data visualizations.
 
-## Configuration CSV
+## CSV Configuration
 
 ```python
-# Séparateur : point-virgule (Excel FR)
+# Separator: semicolon (Excel FR)
 writer = csv.writer(output, delimiter=';', quoting=csv.QUOTE_MINIMAL)
 ```
 
-## Encodage
+## Encoding
 
-Les fichiers sont générés en UTF-8 avec BOM pour compatibilité Excel :
+Files are generated in UTF-8 with BOM for Excel compatibility:
 
 ```python
-# Dans la route API
+# In the API route
 return StreamingResponse(
     iter([csv_content]),
     media_type="text/csv; charset=utf-8",
@@ -225,12 +225,12 @@ return StreamingResponse(
 )
 ```
 
-## Performances
+## Performance
 
-| Nombre de documents | Temps de génération |
+| Number of Documents | Generation Time |
 |---------------------|---------------------|
 | 100 | < 1s |
 | 1000 | 2-3s |
 | 10000 | 10-15s |
 
-Pour les gros exports, la génération est faite en streaming pour éviter les problèmes de mémoire.
+For large exports, generation is streamed to avoid memory issues.

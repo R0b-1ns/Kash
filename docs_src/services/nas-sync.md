@@ -1,6 +1,6 @@
-# Service NAS Sync (SMB)
+# NAS Sync Service (SMB)
 
-Le service de synchronisation NAS transfère les fichiers vers un NAS via un **montage SMB/CIFS**.
+The NAS synchronization service transfers files to a NAS via an **SMB/CIFS mount**.
 
 ## Architecture
 
@@ -13,17 +13,17 @@ Le service de synchronisation NAS transfère les fichiers vers un NAS via un **m
 │  │  def sync_file(document):                             │  │
 │  │      dest = get_destination_path(document)            │  │
 │  │      os.makedirs(dest_dir, exist_ok=True)             │  │
-│  │      shutil.copy2(src, dest)  # Simple copie!         │  │
+│  │      shutil.copy2(src, dest)  # Simple copy!          │  │
 │  └────────────────────────┬──────────────────────────────┘  │
 └───────────────────────────┼─────────────────────────────────┘
-                            │ Copie fichier local
+                            │ Local file copy
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    MONTAGE SMB                               │
+│                    SMB MOUNT                                │
 │  ┌───────────────────────────────────────────────────────┐  │
-│  │  /app/nas_backup (dans le container)                   │  │
+│  │  /app/nas_backup (in container)                         │  │
 │  │       │                                                │  │
-│  │       └── monté depuis /Volumes/NAS/finance (Mac)     │  │
+│  │       └── mounted from /Volumes/NAS/finance (Mac)     │  │
 │  └───────────────────────────────────────────────────────┘  │
 │                           │                                  │
 │                    ┌──────▼──────┐                          │
@@ -33,41 +33,41 @@ Le service de synchronisation NAS transfère les fichiers vers un NAS via un **m
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Fichier source
+## Source File
 
 `backend/app/services/nas_sync_service.py`
 
-## Avantages par rapport à SSH/rsync
+## Advantages over SSH/rsync
 
-| Critère | SSH/rsync (ancien) | SMB (nouveau) |
-|---------|-------------------|---------------|
-| Configuration | Complexe (clés SSH) | Simple (montage) |
-| Authentification | Clé SSH | Identifiants SMB natifs |
-| Performance | Bonne | Bonne |
-| Compatibilité NAS | Variable | Universelle |
-| Code Python | subprocess + rsync | shutil.copy2 |
+| Criterion | SSH/rsync (old) | SMB (new) |
+|-----------|-------------------|---------------|
+| Configuration | Complex (SSH keys) | Simple (mount) |
+| Authentication | SSH key | Native SMB credentials |
+| Performance | Good | Good |
+| NAS Compatibility | Variable | Universal |
+| Python Code | subprocess + rsync | shutil.copy2 |
 
 ## Configuration
 
-### 1. Monter le partage SMB sur le Mac
+### 1. Mount the SMB share on Mac
 
 ```bash
-# Créer le point de montage
+# Create mount point
 sudo mkdir -p /Volumes/NAS
 
-# Monter le partage SMB
-mount -t smbfs //utilisateur:motdepasse@IP-NAS/partage /Volumes/NAS
+# Mount SMB share
+mount -t smbfs //username:password@NAS-IP/share /Volumes/NAS
 
-# Ou via Finder : Cmd+K → smb://IP-NAS/partage
+# Or via Finder: Cmd+K → smb://NAS-IP/share
 ```
 
-### 2. Variables d'environnement (.env)
+### 2. Environment Variables (.env)
 
 ```bash
-# Chemin sur le Mac (montage SMB)
+# Path on Mac (SMB mount)
 NAS_LOCAL_PATH=/Volumes/NAS/finance
 
-# Chemin dans le container Docker
+# Path in Docker container
 NAS_MOUNT_PATH=/app/nas_backup
 ```
 
@@ -81,19 +81,19 @@ backend:
     - NAS_MOUNT_PATH=${NAS_MOUNT_PATH:-}
 ```
 
-## Structure des fichiers sur le NAS
+## File Structure on NAS
 
-Les fichiers sont organisés par **année/mois/type** :
+Files are organized by **year/month/type**:
 
 ```
 /Volumes/NAS/finance/
 ├── 2024/
 │   ├── 01/
-│   │   ├── factures/
+│   │   ├── invoices/
 │   │   │   └── abc123.pdf
-│   │   ├── tickets/
+│   │   ├── receipts/
 │   │   │   └── def456.jpg
-│   │   └── salaires/
+│   │   └── salaries/
 │   │       └── ghi789.pdf
 │   ├── 02/
 │   │   └── ...
@@ -102,18 +102,18 @@ Les fichiers sont organisés par **année/mois/type** :
 │   └── ...
 └── 2026/
     └── 01/
-        ├── factures/
-        └── tickets/
+        ├── invoices/
+        └── receipts/
 ```
 
-### Mapping des types de documents
+### Document Type Mapping
 
-| Type (BDD) | Dossier NAS |
-|------------|-------------|
-| receipt | tickets |
-| invoice | factures |
-| payslip | salaires |
-| other | autres |
+| Type (DB) | NAS Folder |
+|-----------|------------|
+| receipt | receipts |
+| invoice | invoices |
+| payslip | salaries |
+| other | others |
 
 ## Classes
 
@@ -122,39 +122,39 @@ Les fichiers sont organisés par **année/mois/type** :
 ```python
 class NASSyncService:
     def is_configured(self) -> bool:
-        """Vérifie si le montage NAS est accessible."""
+        """Checks if the NAS mount is accessible."""
 
     def get_config_status(self) -> dict:
-        """Retourne le statut de la configuration."""
+        """Returns the configuration status."""
 
     def test_connection(self) -> tuple[bool, str]:
-        """Teste l'accès en écriture au montage."""
+        """Tests write access to the mount."""
 
     def sync_file(self, document: Document) -> tuple[bool, str]:
-        """Synchronise un fichier spécifique."""
+        """Synchronizes a specific file."""
 
     def sync_all_pending(self, user_id: int) -> dict:
-        """Synchronise tous les fichiers en attente."""
+        """Synchronizes all pending files."""
 
     def get_sync_stats(self, user_id: int) -> dict:
-        """Retourne les statistiques de synchronisation."""
+        """Returns synchronization statistics."""
 ```
 
-### Méthodes internes
+### Internal Methods
 
 ```python
 def _get_doc_type_folder(self, doc_type: str) -> str:
-    """Convertit le type de document en nom de dossier."""
+    """Converts document type to folder name."""
     type_mapping = {
-        "receipt": "tickets",
-        "invoice": "factures",
-        "payslip": "salaires",
-        "other": "autres",
+        "receipt": "receipts",
+        "invoice": "invoices",
+        "payslip": "salaries",
+        "other": "others",
     }
-    return type_mapping.get(doc_type, "autres")
+    return type_mapping.get(doc_type, "others")
 
 def _get_destination_path(self, document: Document) -> str:
-    """Construit le chemin: {nas}/{année}/{mois}/{type}/{fichier}"""
+    """Builds the path: {nas}/{year}/{month}/{type}/{file}"""
     doc_date = document.date or document.created_at.date()
     year = str(doc_date.year)
     month = str(doc_date.month).zfill(2)
@@ -163,40 +163,40 @@ def _get_destination_path(self, document: Document) -> str:
     return os.path.join(self.nas_mount_path, year, month, type_folder, filename)
 ```
 
-## Utilisation
+## Usage
 
 ```python
 from app.services.nas_sync_service import get_nas_sync_service
 
-# Créer le service
+# Create the service
 sync_service = get_nas_sync_service(db)
 
-# Vérifier la configuration
+# Check configuration
 if not sync_service.is_configured():
-    print("Montage NAS non accessible")
+    print("NAS mount not accessible")
     return
 
-# Tester l'accès
+# Test access
 success, message = sync_service.test_connection()
 if not success:
-    print(f"Erreur: {message}")
+    print(f"Error: {message}")
     return
 
-# Synchroniser un document
+# Synchronize a document
 document = db.query(Document).get(1)
 success, message = sync_service.sync_file(document)
 
-# Synchroniser tous les documents en attente
+# Synchronize all pending documents
 results = sync_service.sync_all_pending(user_id=1)
-print(f"Synchronisés: {results['synced']}")
-print(f"Échecs: {results['failed']}")
+print(f"Synced: {results['synced']}")
+print(f"Failures: {results['failed']}")
 ```
 
 ## API Endpoints
 
 ### GET /sync/status
 
-Statistiques de synchronisation.
+Synchronization statistics.
 
 ```json
 {
@@ -211,7 +211,7 @@ Statistiques de synchronisation.
 
 ### GET /sync/config
 
-Statut de la configuration.
+NAS configuration status.
 
 ```json
 {
@@ -226,53 +226,53 @@ Statut de la configuration.
 }
 ```
 
-### POST /sync/test
+### POST /test
 
-Tester l'accès au montage.
+Tests mount access.
 
 ```json
 {
   "success": true,
-  "message": "Montage NAS accessible en lecture/écriture"
+  "message": "NAS mount accessible for read/write"
 }
 ```
 
-### POST /sync/run
+### POST /run
 
-Lancer la synchronisation de tous les documents en attente.
+Starts synchronization of all pending documents.
 
 ```json
 {
   "total": 8,
   "synced": 7,
   "failed": 1,
-  "errors": ["Document 42: Permission refusée"]
+  "errors": ["Document 42: Permission denied"]
 }
 ```
 
-### POST /sync/document/{id}
+### POST /document/{document_id}
 
-Synchroniser un document spécifique.
+Synchronizes a specific document.
 
 ```json
 {
   "success": true,
-  "message": "Synchronisé vers /app/nas_backup/2024/01/factures/abc.pdf"
+  "message": "Synchronized to /app/nas_backup/2024/01/invoices/abc.pdf"
 }
 ```
 
-## Gestion des erreurs
+## Error Handling
 
-| Erreur | Cause | Solution |
+| Error | Cause | Solution |
 |--------|-------|----------|
-| NAS non configuré | NAS_MOUNT_PATH vide | Définir la variable dans .env |
-| Chemin inexistant | Montage non fait | Monter le partage SMB sur le Mac |
-| Permission refusée | Droits insuffisants | Vérifier les permissions SMB |
-| Espace disque | NAS plein | Libérer de l'espace |
+| NAS not configured | NAS_MOUNT_PATH empty | Define variable in .env |
+| Path non-existent | Mount not performed | Mount SMB share on Mac |
+| Permission denied | Insufficient rights | Check SMB permissions |
+| Disk space | NAS full | Free up space |
 
-## Mise à jour en base
+## Database Update
 
-Après synchronisation réussie :
+After successful synchronization:
 
 ```python
 document.synced_to_nas = True
@@ -280,26 +280,26 @@ document.synced_at = datetime.utcnow()
 db.commit()
 ```
 
-## Bonnes pratiques
+## Best Practices
 
-### Montage automatique (macOS)
+### Automatic Mounting (macOS)
 
-Pour monter automatiquement au démarrage, ajouter dans `/etc/fstab` :
+To mount automatically on startup, add to `/etc/fstab`:
 
 ```
 //user:pass@nas-ip/share /Volumes/NAS smbfs 0 0
 ```
 
-Ou utiliser l'app "Automator" pour un script au login.
+Or use the "Automator" app for a login script.
 
-### Sécurité
+### Security
 
-- Créer un utilisateur SMB dédié sur le NAS
-- Limiter les permissions au dossier finance uniquement
-- Ne pas exposer le NAS sur Internet
+- Create a dedicated SMB user on the NAS
+- Limit permissions to the finance folder only
+- Do not expose the NAS to the Internet
 
-### Fiabilité
+### Reliability
 
-- Vérifier que le montage est actif avant de lancer Docker
-- Monitorer l'espace disque NAS
-- Sauvegarder régulièrement le NAS
+- Check if the mount is active before starting Docker
+- Monitor NAS disk space
+- Back up the NAS regularly

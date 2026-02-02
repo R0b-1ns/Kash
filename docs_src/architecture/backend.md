@@ -1,23 +1,23 @@
-# Architecture Backend
+# Backend Architecture
 
-## Structure des dossiers
+## Folder Structure
 
 ```
 backend/
 ├── app/
-│   ├── main.py              # Point d'entrée FastAPI
-│   ├── core/                # Configuration centrale
-│   │   ├── config.py        # Variables d'environnement
-│   │   ├── database.py      # Connexion PostgreSQL
+│   ├── main.py              # FastAPI Entry Point
+│   ├── core/                # Central Configuration
+│   │   ├── config.py        # Environment Variables
+│   │   ├── database.py      # PostgreSQL Connection
 │   │   └── security.py      # JWT, bcrypt
-│   ├── models/              # Modèles SQLAlchemy
+│   ├── models/              # SQLAlchemy Models
 │   │   ├── user.py
 │   │   ├── document.py
 │   │   ├── item.py
 │   │   ├── tag.py
 │   │   ├── budget.py
 │   │   └── currency.py
-│   ├── schemas/             # Schémas Pydantic
+│   ├── schemas/             # Pydantic Schemas
 │   │   ├── user.py
 │   │   ├── document.py
 │   │   ├── item.py
@@ -25,8 +25,8 @@ backend/
 │   │   ├── budget.py
 │   │   └── currency.py
 │   ├── api/
-│   │   ├── deps.py          # Dépendances (get_db, get_current_user)
-│   │   └── routes/          # Endpoints API
+│   │   ├── deps.py          # Dependencies (get_db, get_current_user)
+│   │   └── routes/          # API Endpoints
 │   │       ├── auth.py
 │   │       ├── documents.py
 │   │       ├── tags.py
@@ -36,32 +36,32 @@ backend/
 │   │       ├── currencies.py
 │   │       ├── export.py
 │   │       └── sync.py
-│   └── services/            # Logique métier
+│   └── services/            # Business Logic
 │       ├── ocr_service.py
 │       ├── ai_service.py
 │       ├── document_processor.py
 │       ├── export_service.py
 │       ├── nas_sync_service.py
 │       ├── currency_service.py
-│       └── pdf_service.py     # Nouveau service de génération PDF
-├── alembic/                 # Migrations BDD
+│       └── pdf_service.py     # New PDF Generation Service
+├── alembic/                 # DB Migrations
 │   └── versions/
 │       └── 001_initial_schema.py
 ├── Dockerfile
 └── requirements.txt
 ```
 
-## Modèles de données
+## Data Models
 
 ### User
 
 ```python
 class User(Base):
-    id: int                  # Clé primaire
-    email: str               # Email unique
-    password_hash: str       # Mot de passe hashé (bcrypt)
-    name: str | None         # Nom affiché
-    created_at: datetime     # Date de création
+    id: int                  # Primary Key
+    email: str               # Unique Email
+    password_hash: str       # Hashed Password (bcrypt)
+    name: str | None         # Display Name
+    created_at: datetime     # Creation Date
 ```
 
 ### Document
@@ -69,11 +69,11 @@ class User(Base):
 ```python
 class Document(Base):
     id: int
-    user_id: int             # Propriétaire
+    user_id: int             # Owner
 
-    # Fichier
-    file_path: str           # Chemin sur le serveur
-    original_name: str       # Nom original
+    # File
+    file_path: str           # Path on server
+    original_name: str       # Original filename
     file_type: str           # MIME type
 
     # Extraction
@@ -83,20 +83,20 @@ class Document(Base):
     merchant: str
     location: str
 
-    # Finances
+    # Finance
     total_amount: Decimal
-    currency: str            # Code ISO (EUR, USD...)
+    currency: str            # ISO Code (EUR, USD...)
     is_income: bool
 
     # OCR
-    ocr_raw_text: str        # Texte brut extrait
-    ocr_confidence: Decimal  # Score de confiance (0-100)
+    ocr_raw_text: str        # Raw extracted text
+    ocr_confidence: Decimal  # Confidence score (0-100)
 
     # Sync
     synced_to_nas: bool
     synced_at: datetime
 
-    # Relations
+    # Relationships
     items: List[Item]
     tags: List[Tag]
 ```
@@ -108,31 +108,31 @@ class Item(Base):
     id: int
     document_id: int
 
-    name: str                # Nom de l'article
-    quantity: Decimal        # Quantité
-    unit: str                # Unité (kg, L, pièce...)
-    unit_price: Decimal      # Prix unitaire
-    total_price: Decimal     # Prix total
-    category: str            # Catégorie de l'article
+    name: str                # Item Name
+    quantity: Decimal        # Quantity
+    unit: str                # Unit (kg, L, piece...)
+    unit_price: Decimal      # Unit Price
+    total_price: Decimal     # Total Price
+    category: str            # Item Category
 ```
 
 ## Services
 
-### OCRService (Client HTTP)
+### OCRService (HTTP Client)
 
-Client HTTP vers le **microservice OCR** séparé (PaddleOCR dans un container dédié).
+HTTP Client to the **separate OCR microservice** (PaddleOCR in a dedicated container).
 
 ```python
 class OCRService:
     async def extract_text(self, file_path: str) -> OCRResult:
         """
-        Appelle le microservice OCR via HTTP.
+        Calls the OCR microservice via HTTP.
 
-        Le microservice est accessible sur http://ocr-service:5001
-        et utilise PaddleOCR pour l'extraction.
+        The microservice is accessible at http://ocr-service:5001
+        and uses PaddleOCR for extraction.
 
-        Retourne:
-            OCRResult avec texte brut et score de confiance
+        Returns:
+            OCRResult with raw text and confidence score
         """
         response = await self._client.post(
             f"{self.service_url}/ocr",
@@ -141,54 +141,54 @@ class OCRService:
         return OCRResult(**response.json())
 ```
 
-Formats supportés :
-- Images : JPG, JPEG, PNG, WEBP, BMP
-- Documents : PDF (converti en images)
+Supported formats:
+- Images: JPG, JPEG, PNG, WEBP, BMP
+- Documents: PDF (converted to images)
 
 !!! note "Architecture"
-    L'OCR est isolé dans un microservice séparé (`ocr_service/`) pour :
+    OCR is isolated in a separate microservice (`ocr_service/`) for:
 
-    - Isolation des dépendances lourdes (PaddleOCR, OpenCV)
-    - Scalabilité indépendante
-    - Gestion mémoire séparée
+    - Isolation of heavy dependencies (PaddleOCR, OpenCV)
+    - Independent scalability
+    - Separate memory management
 
 ### AIService
 
-Analyse du texte et extraction structurée.
+Text analysis and structured extraction.
 
 ```python
 class AIService:
     async def extract_structured_data(self, raw_text: str) -> ExtractionResult:
         """
-        Analyse le texte OCR et extrait les données structurées.
+        Analyzes OCR text and extracts structured data.
 
-        Utilise Ollama/Mistral pour l'analyse.
+        Uses Ollama/Mistral for analysis.
 
-        Retourne:
-            ExtractionResult avec toutes les informations extraites
+        Returns:
+            ExtractionResult with all extracted information
         """
 ```
 
 ### DocumentProcessor
 
-Pipeline complet de traitement.
+Complete processing pipeline.
 
 ```python
 class DocumentProcessor:
     async def process(self, document_id: int) -> Document:
         """
-        Pipeline complet:
-        1. OCR → Extraction texte
-        2. IA → Analyse et structuration
-        3. BDD → Mise à jour Document + Items
+        Complete pipeline:
+        1. OCR → Text Extraction
+        2. AI → Analysis and Structuring
+        3. DB → Document + Items Update
         """
 ```
 
 ### PDFReportService
 
-Service de génération de rapports PDF avec graphiques.
+PDF report generation service with charts.
 
-Ce service utilise `ReportLab` pour la création de documents PDF et `Matplotlib` pour la génération de graphiques intégrés.
+This service uses `ReportLab` for PDF document creation and `Matplotlib` for integrating charts.
 
 ```python
 class PDFReportService:
@@ -205,82 +205,82 @@ class PDFReportService:
         # ...
 ```
 
-## Routes API
+## API Routes
 
-### Authentification (`/auth`)
+### Authentication (`/auth`)
 
-| Méthode | Endpoint | Description |
-|---------|----------|-------------|
-| POST | `/register` | Créer un compte |
-| POST | `/login` | Se connecter |
-| GET | `/me` | Infos utilisateur |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST   | `/register` | Create account |
+| POST   | `/login` | Log in |
+| GET    | `/me` | User info |
 
 ### Documents (`/documents`)
 
-| Méthode | Endpoint | Description |
-|---------|----------|-------------|
-| GET | `/` | Liste documents (avec recherche avancée et filtres) |
-| POST | `/upload` | Upload fichier |
-| GET | `/{id}` | Détail document |
-| PUT | `/{id}` | Modifier document |
-| DELETE | `/{id}` | Supprimer document |
-| POST | `/{id}/reprocess` | Relancer OCR/IA |
-| POST | `/{id}/tags/{tag_id}` | Ajouter tag |
-| DELETE | `/{id}/tags/{tag_id}` | Retirer tag |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/` | List documents (with advanced search and filters) |
+| POST   | `/upload` | Upload file |
+| GET    | `/{id}` | Document details |
+| PUT    | `/{id}` | Modify document |
+| DELETE | `/{id}` | Delete document |
+| POST   | `/{id}/reprocess` | Re-run OCR/AI |
+| POST   | `/{id}/tags/{tag_id}` | Add tag |
+| DELETE | `/{id}/tags/{tag_id}` | Remove tag |
 
 ### Tags (`/tags`)
 
-| Méthode | Endpoint | Description |
-|---------|----------|-------------|
-| GET | `/` | Liste tags |
-| POST | `/` | Créer tag |
-| GET | `/{id}` | Détail tag |
-| PUT | `/{id}` | Modifier tag |
-| DELETE | `/{id}` | Supprimer tag |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/` | List tags |
+| POST   | `/` | Create tag |
+| GET    | `/{id}` | Tag details |
+| PUT    | `/{id}` | Modify tag |
+| DELETE | `/{id}` | Delete tag |
 
 ### Budgets (`/budgets`)
 
-| Méthode | Endpoint | Description |
-|---------|----------|-------------|
-| GET | `/` | Liste budgets |
-| GET | `/current` | Budgets du mois avec dépenses |
-| POST | `/` | Créer budget |
-| PUT | `/{id}` | Modifier budget |
-| DELETE | `/{id}` | Supprimer budget |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/` | List budgets |
+| GET    | `/current` | Monthly budgets with spending |
+| POST   | `/` | Create budget |
+| PUT    | `/{id}` | Modify budget |
+| DELETE | `/{id}` | Delete budget |
 
-### Statistiques (`/stats`)
+### Statistics (`/stats`)
 
-| Méthode | Endpoint | Description |
-|---------|----------|-------------|
-| GET | `/summary` | Résumé du mois |
-| GET | `/by-tag` | Dépenses par tag |
-| GET | `/monthly` | Évolution mensuelle |
-| GET | `/top-items` | Articles fréquents |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/summary` | Monthly summary |
+| GET    | `/by-tag` | Spending by tag |
+| GET    | `/monthly` | Monthly evolution |
+| GET    | `/top-items` | Frequent items |
 
 ### Export (`/export`)
 
-| Méthode | Endpoint | Description |
-|---------|----------|-------------|
-| GET | `/documents/csv` | Export CSV documents |
-| GET | `/monthly/csv` | Export résumé mensuel |
-| GET | `/monthly/pdf` | Export PDF rapport mensuel |
-| GET | `/annual/pdf` | Export PDF rapport annuel |
-| GET | `/chart/{chart_type}` | Export graphique PNG |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/documents/csv` | Export documents CSV |
+| GET    | `/monthly/csv` | Export monthly summary CSV |
+| GET    | `/monthly/pdf` | Export monthly PDF report |
+| GET    | `/annual/pdf` | Export annual PDF report |
+| GET    | `/chart/{chart_type}` | Export chart PNG |
 
-### Synchronisation (`/sync`)
+### Synchronization (`/sync`)
 
-| Méthode | Endpoint | Description |
-|---------|----------|-------------|
-| GET | `/status` | Statut synchronisation |
-| GET | `/config` | Config NAS |
-| POST | `/test` | Tester connexion |
-| POST | `/run` | Lancer sync |
-| POST | `/document/{id}` | Sync un document |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/status` | Sync status |
+| GET    | `/config` | NAS config |
+| POST   | `/test` | Test connection |
+| POST   | `/run` | Run sync |
+| POST   | `/document/{id}` | Sync a document |
 
-## Dépendances
+## Dependencies
 
 ```python
-# Injection de la session BDD
+# DB Session Injection
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
@@ -288,12 +288,12 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()
 
-# Récupération de l'utilisateur depuis le token JWT
+# Retrieve user from JWT token
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ) -> User:
-    # Décode le token
-    # Récupère l'utilisateur
-    # Retourne ou lève 401
+    # Decode token
+    # Retrieve user
+    # Return or raise 401
 ```

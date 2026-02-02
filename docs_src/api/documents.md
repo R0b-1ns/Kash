@@ -1,31 +1,31 @@
-# API Documents
+# Documents API
 
 Base URL: `/api/v1/documents`
 
-Tous les endpoints nécessitent une authentification (header `Authorization: Bearer <token>`).
+All endpoints require authentication (header `Authorization: Bearer <token>`).
 
 ## Endpoints
 
 ### GET /
 
-Liste les documents de l'utilisateur connecté.
+Lists documents for the logged-in user.
 
 **Query Parameters:**
 
-| Paramètre | Type | Description |
+| Parameter | Type | Description |
 |-----------|------|-------------|
-| search | string | Recherche textuelle (marchand, lieu, nom du fichier) |
-| ocr_search | string | Recherche textuelle dans le contenu OCR |
-| min_amount | float | Montant total minimum |
-| max_amount | float | Montant total maximum |
-| tag_ids | string | IDs de tags séparés par des virgules |
-| min_confidence | float | Score de confiance OCR minimum (0-100) |
-| skip | int | Offset pour pagination (défaut: 0) |
-| limit | int | Nombre max de résultats (défaut: 100) |
-| start_date | date | Filtrer à partir de cette date |
-| end_date | date | Filtrer jusqu'à cette date |
-| is_income | bool | Filtrer revenus/dépenses |
-| doc_type | string | Filtrer par type (receipt, invoice...) |
+| search | string | Text search (merchant, location, filename) |
+| ocr_search | string | Text search in raw OCR content |
+| min_amount | float | Minimum total amount |
+| max_amount | float | Maximum total amount |
+| tag_ids | string | Comma-separated tag IDs |
+| min_confidence | float | Minimum OCR confidence score (0-100) |
+| skip | int | Offset for pagination (default: 0) |
+| limit | int | Max number of items to return (default: 100) |
+| start_date | date | Filter from this date |
+| end_date | date | Filter up to this date |
+| is_income | bool | Filter income/expenses |
+| doc_type | string | Filter by type (receipt, invoice...) |
 
 **Response (200):**
 ```json
@@ -41,7 +41,7 @@ Liste les documents de l'utilisateur connecté.
     "is_income": false,
     "created_at": "2024-01-15T10:30:00Z",
     "tags": [
-      {"id": 1, "name": "Courses", "color": "#22c55e"}
+      {"id": 1, "name": "Groceries", "color": "#22c55e"}
     ]
   }
 ]
@@ -51,19 +51,19 @@ Liste les documents de l'utilisateur connecté.
 
 ### POST /upload
 
-Upload un nouveau document (image ou PDF).
+Uploads a new document (image or PDF).
 
 **Content-Type:** `multipart/form-data`
 
 **Form Data:**
 
-| Champ | Type | Description |
+| Field | Type | Description |
 |-------|------|-------------|
-| file | File | Fichier à uploader (obligatoire) |
+| file | File | File to upload (required) |
 
-**Formats acceptés:** JPG, JPEG, PNG, WEBP, BMP, PDF
+**Accepted Formats:** JPG, JPEG, PNG, WEBP, BMP, PDF
 
-**Taille max:** 50 Mo
+**Max size:** 50 MB
 
 **Response (201):**
 ```json
@@ -87,7 +87,7 @@ Upload un nouveau document (image ou PDF).
   "items": [
     {
       "id": 1,
-      "name": "Pommes Golden",
+      "name": "Golden Apples",
       "quantity": 1.5,
       "unit": "kg",
       "unit_price": 2.99,
@@ -98,17 +98,17 @@ Upload un nouveau document (image ou PDF).
 }
 ```
 
-!!! note "Traitement automatique"
-    L'upload déclenche automatiquement :
-    1. OCR (extraction du texte)
-    2. IA (analyse et extraction des données)
-    3. Création des items (articles)
+!!! note "Automatic Processing"
+    Upload automatically triggers:
+    1. OCR (text extraction)
+    2. AI (data analysis and extraction)
+    3. Item creation (articles)
 
 ---
 
 ### GET /{id}
 
-Récupère le détail d'un document.
+Retrieves details of a document.
 
 **Response (200):**
 ```json
@@ -128,17 +128,17 @@ Récupère le détail d'un document.
 }
 ```
 
-**Erreurs:**
+**Errors:**
 
 | Code | Description |
 |------|-------------|
-| 404 | Document non trouvé |
+| 404 | Document not found |
 
 ---
 
 ### PUT /{id}
 
-Met à jour un document.
+Updates a document.
 
 **Request Body:**
 ```json
@@ -152,15 +152,15 @@ Met à jour un document.
 }
 ```
 
-Tous les champs sont optionnels.
+All fields are optional.
 
-**Response (200):** Document mis à jour
+**Response (200):** Document updated
 
 ---
 
 ### DELETE /{id}
 
-Supprime un document et ses items associés.
+Deletes a document and its associated items.
 
 **Response (204):** No Content
 
@@ -168,38 +168,38 @@ Supprime un document et ses items associés.
 
 ### POST /{id}/reprocess
 
-Relance l'extraction OCR/IA sur un document existant.
+Re-runs OCR/AI extraction on an existing document.
 
-Utile si l'extraction initiale a échoué ou pour réanalyser après mise à jour du modèle IA.
+Useful if initial extraction failed or to re-analyze after AI model update.
 
-**Response (200):** Document avec nouvelles données extraites
+**Response (200):** Document with new extracted data
 
 ---
 
 ### POST /{id}/tags/{tag_id}
 
-Ajoute un tag à un document.
+Adds a tag to a document.
 
-**Response (200):** Document avec le tag ajouté
+**Response (200):** Document with tag added
 
-**Erreurs:**
+**Errors:**
 
 | Code | Description |
 |------|-------------|
-| 404 | Document ou tag non trouvé |
-| 400 | Tag déjà associé |
+| 404 | Document or tag not found |
+| 400 | Tag already associated |
 
 ---
 
 ### DELETE /{id}/tags/{tag_id}
 
-Retire un tag d'un document.
+Removes a tag from a document.
 
-**Response (200):** Document sans le tag
+**Response (200):** Document without the tag
 
 ---
 
-## Exemple d'upload avec cURL
+## Example upload with cURL
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/documents/upload" \
@@ -207,7 +207,7 @@ curl -X POST "http://localhost:8000/api/v1/documents/upload" \
   -F "file=@/path/to/ticket.jpg"
 ```
 
-## Exemple d'upload avec JavaScript
+## Example upload with JavaScript
 
 ```javascript
 const formData = new FormData();
