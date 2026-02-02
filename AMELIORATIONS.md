@@ -12,8 +12,11 @@ Roadmap des fonctionnalités à implémenter.
 | 2 | Gestion des articles (édition, suppression, ajout dans la visionneuse) | v0.1 |
 | 2b | Regroupement d'articles similaires (alias, suggestions automatiques) | v0.1 |
 | 3 | Upload asynchrone avec file d'attente (toast, multi-upload) | v0.2 |
+| 4 | Documents récurrents / Abonnements (génération mensuelle, dashboard) | v0.3 |
 | 5 | Entrées financières manuelles (sans document) | v0.1 |
+| 6 | Amélioration du Dashboard (10 widgets, stats avancées, comparaisons) | v0.4 |
 | 8 | Recherche et filtres avancés sur les documents | v0.2 |
+| 10 | Recherche et filtres avancés sur les articles | v0.3 |
 | - | Templates de budget (sauvegarder/charger) | v0.1 |
 | - | Duplication de documents | v0.1 |
 | - | Tri des colonnes (date, montant, marchand) | v0.1 |
@@ -58,9 +61,9 @@ Actuellement, l'upload bloque l'interface pendant tout le traitement (upload + O
 
 ---
 
-## 4. Documents récurrents (abonnements)
+## ~~4. Documents récurrents (abonnements)~~ (IMPLÉMENTÉ v0.3)
 
-**Priorité:** Haute
+**Priorité:** ~~Haute~~ FAIT
 
 **Description:**
 Permettre de marquer un document comme "récurrent" pour les abonnements mensuels (Netflix, Spotify, loyer, assurance, etc.). Le document est automatiquement dupliqué chaque mois sans avoir à re-scanner la facture.
@@ -108,16 +111,27 @@ Permettre de marquer un document comme "récurrent" pour les abonnements mensuel
 
 ---
 
-## 6. Amélioration du Dashboard
+## ~~6. Amélioration du Dashboard~~ (IMPLÉMENTÉ v0.4)
 
-**Priorité:** Moyenne
+**Priorité:** ~~Moyenne~~ FAIT
 
 **Description:**
-Améliorer l'affichage des articles fréquents dans le dashboard.
+Dashboard enrichi avec 10 nouvelles fonctionnalités d'analyse.
 
-**Fonctionnalités:**
+**Fonctionnalités implémentées:**
+- 6 StatCards principales : Solde, Dépenses (±%), Revenus (±%), Taux d'épargne, Moyenne/jour, Projection fin de mois
+- 2 StatCards secondaires : Abonnements, Transactions
+- Graphique d'évolution par catégorie (stacked area, 6 mois)
+- Graphique récurrent vs ponctuel (donut)
+- Graphique dépenses par jour de la semaine (bar chart)
+- Top 5 marchands avec barres de progression
+- Top 5 plus grosses dépenses du mois
+- Articles fréquents par quantité ET par montant
+- Comparaison avec le mois précédent (variation %)
+- 5 nouveaux endpoints backend pour les statistiques
+
+**Fonctionnalités à ajouter plus tard:**
 - Cliquer sur un article pour voir les documents associés
-- Filtrer par période
 - Affichage des articles regroupés (voir #2b)
 
 ---
@@ -244,9 +258,9 @@ Voir les détails : http://localhost:3000/budgets
 
 ---
 
-## 10. Recherche et filtres avancés sur les Articles (Items)
+## ~~10. Recherche et filtres avancés sur les Articles (Items)~~ (IMPLÉMENTÉ v0.3)
 
-**Priorité:** Haute
+**Priorité:** ~~Haute~~ FAIT
 
 **Description:**
 Ajouter un système de recherche et de filtres avancés sur la page Articles, similaire à celui implémenté pour les documents. Permet de retrouver rapidement des articles par catégorie, tag, période, etc.

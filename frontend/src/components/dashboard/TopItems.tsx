@@ -1,11 +1,11 @@
 /**
  * Liste des articles les plus achetés.
  *
- * Affiche les produits par montant total dépensé.
+ * Affiche les produits triés par montant ou quantité.
  */
 
-import React from 'react';
-import { Package } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Package, ShoppingCart } from 'lucide-react';
 
 // ============================================
 // Types
@@ -29,6 +29,10 @@ interface TopItemsProps {
   limit?: number;
   /** État de chargement */
   isLoading?: boolean;
+  /** Mode de tri: par montant dépensé ou par quantité */
+  sortBy?: 'spent' | 'quantity';
+  /** Titre personnalisé */
+  title?: string;
 }
 
 // ============================================
@@ -62,8 +66,33 @@ const formatQuantity = (qty: number | string): string => {
 export default function TopItems({
   items,
   limit = 5,
-  isLoading = false
+  isLoading = false,
+  sortBy = 'spent',
+  title,
 }: TopItemsProps) {
+  // Déterminer le titre et l'icône en fonction du mode
+  const displayTitle = title || (sortBy === 'quantity' ? 'Articles fréquents (quantité)' : 'Articles fréquents (montant)');
+  const Icon = sortBy === 'quantity' ? ShoppingCart : Package;
+  const bgColor = sortBy === 'quantity' ? 'bg-green-50' : 'bg-blue-50';
+  const iconBgColor = sortBy === 'quantity' ? 'bg-green-100' : 'bg-blue-100';
+  const iconColor = sortBy === 'quantity' ? 'text-green-600' : 'text-blue-600';
+
+  // Trier les articles selon le mode
+  const sortedItems = useMemo(() => {
+    const sorted = [...items].sort((a, b) => {
+      if (sortBy === 'quantity') {
+        const qtyA = typeof a.total_quantity === 'string' ? parseFloat(a.total_quantity) : a.total_quantity;
+        const qtyB = typeof b.total_quantity === 'string' ? parseFloat(b.total_quantity) : b.total_quantity;
+        return qtyB - qtyA;
+      } else {
+        const spentA = typeof a.total_spent === 'string' ? parseFloat(a.total_spent) : a.total_spent;
+        const spentB = typeof b.total_spent === 'string' ? parseFloat(b.total_spent) : b.total_spent;
+        return spentB - spentA;
+      }
+    });
+    return sorted.slice(0, limit);
+  }, [items, sortBy, limit]);
+
   // Skeleton de chargement
   if (isLoading) {
     return (
@@ -90,7 +119,7 @@ export default function TopItems({
     return (
       <div className="bg-white rounded-xl shadow-sm p-6">
         <h3 className="text-lg font-semibold text-slate-800 mb-4">
-          Articles fréquents
+          {displayTitle}
         </h3>
         <div className="py-8 text-center text-slate-400">
           Aucun article enregistré
@@ -99,41 +128,44 @@ export default function TopItems({
     );
   }
 
-  // Limiter et calculer le max pour les barres
-  const displayedItems = items.slice(0, limit);
-  const maxSpent = Math.max(...displayedItems.map((i) =>
-    typeof i.total_spent === 'string' ? parseFloat(i.total_spent) : i.total_spent
-  ));
+  // Calculer le max pour les barres (selon le mode)
+  const maxValue = sortBy === 'quantity'
+    ? Math.max(...sortedItems.map((i) =>
+        typeof i.total_quantity === 'string' ? parseFloat(i.total_quantity) : i.total_quantity
+      ))
+    : Math.max(...sortedItems.map((i) =>
+        typeof i.total_spent === 'string' ? parseFloat(i.total_spent) : i.total_spent
+      ));
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
       <h3 className="text-lg font-semibold text-slate-800 mb-4">
-        Articles fréquents
+        {displayTitle}
       </h3>
 
       <div className="space-y-3">
-        {displayedItems.map((item, index) => {
+        {sortedItems.map((item, index) => {
           const spent = typeof item.total_spent === 'string' ? parseFloat(item.total_spent) : item.total_spent;
-          const barWidth = (spent / maxSpent) * 100;
+          const quantity = typeof item.total_quantity === 'string' ? parseFloat(item.total_quantity) : item.total_quantity;
+          const currentValue = sortBy === 'quantity' ? quantity : spent;
+          const barWidth = maxValue > 0 ? (currentValue / maxValue) * 100 : 0;
 
           return (
             <div key={index} className="relative">
               {/* Barre de fond */}
               <div
-                className="absolute inset-0 bg-blue-50 rounded-lg"
+                className={`absolute inset-0 ${bgColor} rounded-lg`}
                 style={{ width: `${barWidth}%` }}
               />
 
               {/* Contenu */}
               <div className="relative flex items-center gap-3 p-2">
-                {/* Rang */}
-                <div className="w-6 h-6 bg-slate-100 rounded flex items-center justify-center">
-                  <span className="text-xs font-medium text-slate-500">
-                    {index + 1}
-                  </span>
+                {/* Icône */}
+                <div className={`w-6 h-6 ${iconBgColor} rounded flex items-center justify-center`}>
+                  <Icon className={`w-3.5 h-3.5 ${iconColor}`} />
                 </div>
 
-                {/* Nom et quantité */}
+                {/* Nom et détails */}
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-slate-700 truncate text-sm">
                     {item.name}
@@ -143,9 +175,12 @@ export default function TopItems({
                   </p>
                 </div>
 
-                {/* Montant */}
+                {/* Valeur principale selon le mode */}
                 <span className="font-semibold text-slate-800 text-sm">
-                  {formatCurrency(item.total_spent)}
+                  {sortBy === 'quantity'
+                    ? `${formatQuantity(item.total_quantity)} u.`
+                    : formatCurrency(item.total_spent)
+                  }
                 </span>
               </div>
             </div>

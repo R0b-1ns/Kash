@@ -2,15 +2,16 @@
  * Page Dashboard - Vue d'ensemble des finances
  *
  * Affiche :
- * - Cartes statistiques (solde, dépenses, revenus, transactions)
+ * - Cartes statistiques (solde, dépenses, revenus, épargne, moyenne/jour, projection)
+ * - Évolution par catégorie (stacked area)
  * - Graphique d'évolution mensuelle
- * - Répartition par catégorie (donut)
+ * - Répartition par tag + Récurrent/Ponctuel + Dépenses par jour
  * - Suivi des budgets
- * - Dernières dépenses
- * - Articles fréquents
+ * - Dernières dépenses + Plus grosses dépenses + Top marchands
+ * - Articles fréquents (quantité et montant)
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Wallet,
   TrendingDown,
@@ -19,12 +20,16 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  Repeat,
+  PiggyBank,
+  Calendar,
+  Target,
 } from 'lucide-react';
-import { format, subMonths, addMonths, parseISO } from 'date-fns';
+import { format, subMonths, addMonths, parseISO, getDaysInMonth, getDate } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 // Services
-import { stats, budgets, documents } from '../services/api';
+import { stats, budgets, documents, recurring } from '../services/api';
 
 // Composants du dashboard
 import {
@@ -34,6 +39,11 @@ import {
   BudgetProgress,
   TopExpenses,
   TopItems,
+  TopMerchants,
+  RecurringBreakdown,
+  TagEvolutionChart,
+  DayOfWeekChart,
+  TopTransactions,
 } from '../components/dashboard';
 
 // Types
@@ -42,7 +52,12 @@ import type { TagSpendingData } from '../components/dashboard/TagPieChart';
 import type { BudgetData } from '../components/dashboard/BudgetProgress';
 import type { ExpenseData } from '../components/dashboard/TopExpenses';
 import type { TopItemData } from '../components/dashboard/TopItems';
-import type { StatsSummary } from '../types';
+import type { TopMerchantData } from '../components/dashboard/TopMerchants';
+import type { RecurringBreakdownData } from '../components/dashboard/RecurringBreakdown';
+import type { TagEvolutionData } from '../components/dashboard/TagEvolutionChart';
+import type { DayOfWeekData } from '../components/dashboard/DayOfWeekChart';
+import type { TopTransactionData } from '../components/dashboard/TopTransactions';
+import type { StatsSummaryWithComparison } from '../types';
 
 // ============================================
 // Helpers
@@ -87,12 +102,19 @@ export default function DashboardPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Données
-  const [summary, setSummary] = useState<StatsSummary | null>(null);
+  const [summary, setSummary] = useState<StatsSummaryWithComparison | null>(null);
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [tagData, setTagData] = useState<TagSpendingData[]>([]);
   const [budgetData, setBudgetData] = useState<BudgetData[]>([]);
   const [recentExpenses, setRecentExpenses] = useState<ExpenseData[]>([]);
   const [topItems, setTopItems] = useState<TopItemData[]>([]);
+  const [recurringTotal, setRecurringTotal] = useState<number | null>(null);
+  // Nouvelles données
+  const [topMerchants, setTopMerchants] = useState<TopMerchantData[]>([]);
+  const [recurringBreakdown, setRecurringBreakdown] = useState<RecurringBreakdownData | null>(null);
+  const [tagEvolution, setTagEvolution] = useState<TagEvolutionData[]>([]);
+  const [dayOfWeekData, setDayOfWeekData] = useState<DayOfWeekData[]>([]);
+  const [topTransactions, setTopTransactions] = useState<TopTransactionData[]>([]);
 
   // ============================================
   // Chargement des données
@@ -107,17 +129,42 @@ export default function DashboardPage() {
 
     try {
       // Charger toutes les données en parallèle
-      const [summaryRes, monthlyRes, tagRes, budgetRes, docsRes, itemsRes] = await Promise.all([
-        stats.getSummary(monthString).catch(() => null),
+      const [
+        summaryRes,
+        monthlyRes,
+        tagRes,
+        budgetRes,
+        docsRes,
+        itemsRes,
+        recurringRes,
+        // Nouvelles données
+        topMerchantsRes,
+        recurringBreakdownRes,
+        tagEvolutionRes,
+        dayOfWeekRes,
+        topTransactionsRes,
+      ] = await Promise.all([
+        stats.getSummary(monthString, true).catch(() => null),
         stats.getMonthly(6).catch(() => []),
         stats.getByTag(monthString).catch(() => []),
         budgets.getCurrent(monthString).catch(() => []),
         documents.list({ limit: 10, is_income: false }).catch(() => []),
-        stats.getTopItems({ month: monthString, limit: 5 }).catch(() => []),
+        stats.getTopItems({ month: monthString, limit: 10 }).catch(() => []),
+        recurring.getSummary(monthString).catch(() => null),
+        // Nouvelles requêtes
+        stats.getTopMerchants({ month: monthString, limit: 5 }).catch(() => []),
+        stats.getRecurringBreakdown(monthString).catch(() => null),
+        stats.getTagEvolution(6).catch(() => []),
+        stats.getByDayOfWeek(monthString).catch(() => []),
+        stats.getTopTransactions({ month: monthString, limit: 5 }).catch(() => []),
       ]);
 
       if (summaryRes) {
         setSummary(summaryRes);
+      }
+
+      if (recurringRes) {
+        setRecurringTotal(recurringRes.total_monthly);
       }
 
       setMonthlyData(monthlyRes.map(m => ({
@@ -152,6 +199,13 @@ export default function DashboardPage() {
       );
 
       setTopItems(itemsRes);
+
+      // Nouvelles données
+      setTopMerchants(topMerchantsRes);
+      setRecurringBreakdown(recurringBreakdownRes);
+      setTagEvolution(tagEvolutionRes);
+      setDayOfWeekData(dayOfWeekRes);
+      setTopTransactions(topTransactionsRes);
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
     } finally {
@@ -186,6 +240,43 @@ export default function DashboardPage() {
   };
 
   const isCurrentMonth = getMonthString(selectedMonth) === getMonthString(new Date());
+
+  // ============================================
+  // Calculs dérivés pour les nouvelles StatCards
+  // ============================================
+
+  // Taux d'épargne: (revenus - dépenses) / revenus * 100
+  const savingsRate = useMemo(() => {
+    if (!summary || summary.total_income === 0) return null;
+    return ((summary.total_income - summary.total_expenses) / summary.total_income) * 100;
+  }, [summary]);
+
+  // Moyenne journalière: dépenses / jours écoulés dans le mois
+  const dailyAverage = useMemo(() => {
+    if (!summary) return null;
+    const today = new Date();
+    const monthDate = parseISO(`${monthString}-01`);
+    const daysInSelectedMonth = getDaysInMonth(monthDate);
+
+    // Si mois actuel, utiliser le jour courant, sinon tous les jours du mois
+    let daysElapsed: number;
+    if (isCurrentMonth) {
+      daysElapsed = getDate(today);
+    } else {
+      daysElapsed = daysInSelectedMonth;
+    }
+
+    if (daysElapsed === 0) return null;
+    return summary.total_expenses / daysElapsed;
+  }, [summary, monthString, isCurrentMonth]);
+
+  // Projection fin de mois: moyenne * jours dans le mois
+  const projection = useMemo(() => {
+    if (dailyAverage === null) return null;
+    const monthDate = parseISO(`${monthString}-01`);
+    const daysInMonth = getDaysInMonth(monthDate);
+    return dailyAverage * daysInMonth;
+  }, [dailyAverage, monthString]);
 
   // ============================================
   // Rendu
@@ -243,9 +334,9 @@ export default function DashboardPage() {
       </div>
 
       {/* ============================================ */}
-      {/* Cartes statistiques */}
+      {/* Cartes statistiques - Ligne 1 */}
       {/* ============================================ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         <StatCard
           title="Solde du mois"
           value={summary ? formatCurrency(summary.balance) : '—'}
@@ -258,6 +349,8 @@ export default function DashboardPage() {
           value={summary ? formatCurrency(summary.total_expenses) : '—'}
           icon={TrendingDown}
           color="orange"
+          change={summary?.expense_change_percent ?? undefined}
+          changeLabel="vs mois dernier"
           isLoading={isLoading}
         />
         <StatCard
@@ -265,6 +358,42 @@ export default function DashboardPage() {
           value={summary ? formatCurrency(summary.total_income) : '—'}
           icon={TrendingUp}
           color="green"
+          change={summary?.income_change_percent ?? undefined}
+          changeLabel="vs mois dernier"
+          isLoading={isLoading}
+        />
+        <StatCard
+          title="Taux d'épargne"
+          value={savingsRate !== null ? `${savingsRate.toFixed(0)}%` : '—'}
+          icon={PiggyBank}
+          color={savingsRate !== null && savingsRate >= 0 ? 'green' : 'red'}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title="Moyenne/jour"
+          value={dailyAverage !== null ? formatCurrency(dailyAverage) : '—'}
+          icon={Calendar}
+          color="blue"
+          isLoading={isLoading}
+        />
+        <StatCard
+          title="Projection"
+          value={projection !== null ? formatCurrency(projection) : '—'}
+          icon={Target}
+          color="purple"
+          isLoading={isLoading}
+        />
+      </div>
+
+      {/* ============================================ */}
+      {/* Cartes statistiques - Ligne 2 */}
+      {/* ============================================ */}
+      <div className="grid grid-cols-2 gap-4">
+        <StatCard
+          title="Abonnements"
+          value={recurringTotal !== null ? formatCurrency(recurringTotal) : '—'}
+          icon={Repeat}
+          color="purple"
           isLoading={isLoading}
         />
         <StatCard
@@ -277,28 +406,64 @@ export default function DashboardPage() {
       </div>
 
       {/* ============================================ */}
+      {/* Évolution par catégorie (full width) */}
+      {/* ============================================ */}
+      <TagEvolutionChart data={tagEvolution} isLoading={isLoading} />
+
+      {/* ============================================ */}
       {/* Graphique d'évolution mensuelle */}
       {/* ============================================ */}
       <MonthlyChart data={monthlyData} isLoading={isLoading} />
 
       {/* ============================================ */}
-      {/* Répartition par tag + Budgets */}
+      {/* Répartition par tag + Récurrent/Ponctuel + Dépenses par jour */}
       {/* ============================================ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <TagPieChart data={tagData} isLoading={isLoading} />
-        <BudgetProgress budgets={budgetData} isLoading={isLoading} />
+        <RecurringBreakdown data={recurringBreakdown} isLoading={isLoading} />
+        <DayOfWeekChart data={dayOfWeekData} isLoading={isLoading} />
       </div>
 
       {/* ============================================ */}
-      {/* Dernières dépenses + Top articles */}
+      {/* Suivi des budgets */}
       {/* ============================================ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <BudgetProgress budgets={budgetData} isLoading={isLoading} />
+
+      {/* ============================================ */}
+      {/* Dernières dépenses + Plus grosses dépenses + Top marchands */}
+      {/* ============================================ */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <TopExpenses
           expenses={recentExpenses}
           title="Dernières dépenses"
           isLoading={isLoading}
         />
-        <TopItems items={topItems} isLoading={isLoading} />
+        <TopTransactions
+          transactions={topTransactions}
+          isLoading={isLoading}
+        />
+        <TopMerchants
+          merchants={topMerchants}
+          isLoading={isLoading}
+        />
+      </div>
+
+      {/* ============================================ */}
+      {/* Articles fréquents (quantité) + Articles fréquents (montant) */}
+      {/* ============================================ */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TopItems
+          items={topItems}
+          sortBy="quantity"
+          title="Articles fréquents (quantité)"
+          isLoading={isLoading}
+        />
+        <TopItems
+          items={topItems}
+          sortBy="spent"
+          title="Articles fréquents (montant)"
+          isLoading={isLoading}
+        />
       </div>
     </div>
   );

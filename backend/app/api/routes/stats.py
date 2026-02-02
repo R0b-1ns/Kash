@@ -79,13 +79,69 @@ class TopItem(BaseModel):
     purchase_count: int
 
 
+class TopMerchant(BaseModel):
+    """Marchand avec le plus de dépenses."""
+    merchant: str
+    total_spent: Decimal
+    visit_count: int
+
+
+class RecurringBreakdown(BaseModel):
+    """Répartition récurrent vs ponctuel."""
+    recurring_total: Decimal
+    one_time_total: Decimal
+    recurring_count: int
+    one_time_count: int
+    recurring_percentage: float
+
+
+class TagEvolutionEntry(BaseModel):
+    """Entrée d'évolution pour un tag."""
+    tag_id: int
+    tag_name: str
+    tag_color: str
+    amount: Decimal
+
+
+class TagEvolutionMonth(BaseModel):
+    """Évolution des dépenses par tag sur un mois."""
+    month: str
+    tags: List[TagEvolutionEntry]
+
+
+class DayOfWeekSpending(BaseModel):
+    """Dépenses par jour de la semaine."""
+    day: int
+    day_name: str
+    total: Decimal
+    count: int
+
+
+class TopTransaction(BaseModel):
+    """Plus grande transaction individuelle."""
+    id: int
+    merchant: Optional[str]
+    total_amount: Decimal
+    date: Optional[str]
+    doc_type: Optional[str]
+
+
 # =============================================================================
 # Endpoints
 # =============================================================================
 
-@router.get("/summary", response_model=MonthlySummary)
+class MonthlySummaryWithComparison(MonthlySummary):
+    """Résumé mensuel avec comparaison au mois précédent."""
+    previous_expenses: Optional[Decimal] = None
+    previous_income: Optional[Decimal] = None
+    expense_change_percent: Optional[float] = None
+    income_change_percent: Optional[float] = None
+
+
+@router.get("/summary")
 def get_monthly_summary(
     month: Optional[str] = Query(None, pattern=r"^\d{4}-\d{2}$", description="Mois (YYYY-MM), défaut: actuel"),
+    include_previous: bool = Query(False, description="Inclure la comparaison avec le mois précédent"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -97,6 +153,7 @@ def get_monthly_summary(
     - Total des revenus
     - Solde (revenus - dépenses)
     - Nombre de transactions
+    - (Optionnel) Comparaison avec le mois précédent
     """
     # Mois par défaut = actuel
     if not month:
@@ -128,13 +185,55 @@ def get_monthly_summary(
     # Nombre de transactions
     count = base_query.count()
 
-    return MonthlySummary(
-        month=month,
-        total_expenses=Decimal(str(expenses)),
-        total_income=Decimal(str(income)),
-        balance=Decimal(str(income)) - Decimal(str(expenses)),
-        transaction_count=count
-    )
+    result = {
+        "month": month,
+        "total_expenses": Decimal(str(expenses)),
+        "total_income": Decimal(str(income)),
+        "balance": Decimal(str(income)) - Decimal(str(expenses)),
+        "transaction_count": count,
+    }
+
+    # Calcul optionnel du mois précédent
+    if include_previous:
+        # Calculer le mois précédent
+        if month_num == 1:
+            prev_year, prev_month = year - 1, 12
+        else:
+            prev_year, prev_month = year, month_num - 1
+
+        prev_query = db.query(Document).filter(
+            Document.user_id == current_user.id,
+            extract("year", effective_date) == prev_year,
+            extract("month", effective_date) == prev_month
+        )
+
+        prev_expenses = prev_query.filter(Document.is_income == False).with_entities(
+            func.coalesce(func.sum(Document.total_amount), 0)
+        ).scalar()
+
+        prev_income = prev_query.filter(Document.is_income == True).with_entities(
+            func.coalesce(func.sum(Document.total_amount), 0)
+        ).scalar()
+
+        result["previous_expenses"] = Decimal(str(prev_expenses))
+        result["previous_income"] = Decimal(str(prev_income))
+
+        # Calculer les pourcentages de variation
+        if float(prev_expenses) > 0:
+            result["expense_change_percent"] = round(
+                (float(expenses) - float(prev_expenses)) / float(prev_expenses) * 100, 1
+            )
+        else:
+            result["expense_change_percent"] = None
+
+        if float(prev_income) > 0:
+            result["income_change_percent"] = round(
+                (float(income) - float(prev_income)) / float(prev_income) * 100, 1
+            )
+        else:
+            result["income_change_percent"] = None
+
+    return result
 
 
 @router.get("/by-tag", response_model=List[TagSpending])
@@ -327,4 +426,260 @@ def get_top_items(
             purchase_count=r.purchase_count
         )
         for r in results
+    ]
+
+
+@router.get("/top-merchants", response_model=List[TopMerchant])
+def get_top_merchants(
+    month: Optional[str] = Query(None, pattern=r"^\d{4}-\d{2}$"),
+    limit: int = Query(10, ge=1, le=50),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Marchands avec le plus de dépenses.
+
+    Retourne pour chaque marchand:
+    - Le montant total dépensé
+    - Le nombre de visites (transactions)
+    """
+    effective_date = get_effective_date()
+
+    query = db.query(
+        Document.merchant,
+        func.sum(Document.total_amount).label("total_spent"),
+        func.count(Document.id).label("visit_count")
+    ).filter(
+        Document.user_id == current_user.id,
+        Document.is_income == False,
+        Document.merchant.isnot(None),
+        Document.merchant != ""
+    )
+
+    if month:
+        year, month_num = map(int, month.split("-"))
+        query = query.filter(
+            extract("year", effective_date) == year,
+            extract("month", effective_date) == month_num
+        )
+
+    results = query.group_by(
+        Document.merchant
+    ).order_by(
+        func.sum(Document.total_amount).desc()
+    ).limit(limit).all()
+
+    return [
+        TopMerchant(
+            merchant=r.merchant,
+            total_spent=Decimal(str(r.total_spent or 0)),
+            visit_count=r.visit_count
+        )
+        for r in results
+    ]
+
+
+@router.get("/recurring-breakdown", response_model=RecurringBreakdown)
+def get_recurring_breakdown(
+    month: Optional[str] = Query(None, pattern=r"^\d{4}-\d{2}$"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Répartition des dépenses récurrentes vs ponctuelles.
+
+    Retourne:
+    - Total récurrent et ponctuel
+    - Nombre de transactions dans chaque catégorie
+    - Pourcentage de récurrent
+    """
+    if not month:
+        today = date.today()
+        month = today.strftime("%Y-%m")
+
+    year, month_num = map(int, month.split("-"))
+    effective_date = get_effective_date()
+
+    base_query = db.query(Document).filter(
+        Document.user_id == current_user.id,
+        Document.is_income == False,
+        extract("year", effective_date) == year,
+        extract("month", effective_date) == month_num
+    )
+
+    # Récurrent
+    recurring_result = base_query.filter(Document.is_recurring == True).with_entities(
+        func.coalesce(func.sum(Document.total_amount), 0).label("total"),
+        func.count(Document.id).label("count")
+    ).first()
+
+    # Ponctuel
+    one_time_result = base_query.filter(Document.is_recurring == False).with_entities(
+        func.coalesce(func.sum(Document.total_amount), 0).label("total"),
+        func.count(Document.id).label("count")
+    ).first()
+
+    recurring_total = Decimal(str(recurring_result.total if recurring_result else 0))
+    one_time_total = Decimal(str(one_time_result.total if one_time_result else 0))
+    total = recurring_total + one_time_total
+
+    return RecurringBreakdown(
+        recurring_total=recurring_total,
+        one_time_total=one_time_total,
+        recurring_count=recurring_result.count if recurring_result else 0,
+        one_time_count=one_time_result.count if one_time_result else 0,
+        recurring_percentage=round(float(recurring_total / total * 100), 1) if total > 0 else 0
+    )
+
+
+@router.get("/tag-evolution", response_model=List[TagEvolutionMonth])
+def get_tag_evolution(
+    months: int = Query(6, ge=1, le=12, description="Nombre de mois à récupérer"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Évolution des dépenses par tag sur N mois.
+
+    Utile pour le graphique en aires empilées.
+    """
+    effective_date = get_effective_date()
+
+    # Récupérer les dépenses par mois et par tag
+    results = db.query(
+        func.to_char(effective_date, 'YYYY-MM').label("month"),
+        Tag.id.label("tag_id"),
+        Tag.name.label("tag_name"),
+        Tag.color.label("tag_color"),
+        func.coalesce(func.sum(Document.total_amount), 0).label("amount")
+    ).join(
+        DocumentTag, Tag.id == DocumentTag.tag_id
+    ).join(
+        Document, DocumentTag.document_id == Document.id
+    ).filter(
+        Tag.user_id == current_user.id,
+        Document.is_income == False
+    ).group_by(
+        func.to_char(effective_date, 'YYYY-MM'),
+        Tag.id,
+        Tag.name,
+        Tag.color
+    ).order_by(
+        func.to_char(effective_date, 'YYYY-MM').desc()
+    ).all()
+
+    # Organiser par mois
+    months_data = {}
+    for r in results:
+        if r.month not in months_data:
+            months_data[r.month] = []
+        months_data[r.month].append(TagEvolutionEntry(
+            tag_id=r.tag_id,
+            tag_name=r.tag_name,
+            tag_color=r.tag_color,
+            amount=Decimal(str(r.amount))
+        ))
+
+    # Trier et limiter aux N derniers mois
+    sorted_months = sorted(months_data.keys(), reverse=True)[:months]
+
+    return [
+        TagEvolutionMonth(month=m, tags=months_data[m])
+        for m in reversed(sorted_months)
+    ]
+
+
+@router.get("/by-day-of-week", response_model=List[DayOfWeekSpending])
+def get_spending_by_day_of_week(
+    month: Optional[str] = Query(None, pattern=r"^\d{4}-\d{2}$"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Dépenses par jour de la semaine.
+
+    Retourne les totaux pour chaque jour (0=Lundi à 6=Dimanche).
+    """
+    effective_date = get_effective_date()
+
+    # EXTRACT DOW: 0=Sunday, 1=Monday, ..., 6=Saturday en PostgreSQL
+    # On convertit en 0=Lundi, ..., 6=Dimanche
+    dow_expr = (extract("dow", effective_date) + 6) % 7
+
+    query = db.query(
+        dow_expr.label("day"),
+        func.sum(Document.total_amount).label("total"),
+        func.count(Document.id).label("count")
+    ).filter(
+        Document.user_id == current_user.id,
+        Document.is_income == False
+    )
+
+    if month:
+        year, month_num = map(int, month.split("-"))
+        query = query.filter(
+            extract("year", effective_date) == year,
+            extract("month", effective_date) == month_num
+        )
+
+    results = query.group_by(dow_expr).order_by(dow_expr).all()
+
+    # Noms des jours en français
+    day_names = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+
+    # Créer un dict pour accès rapide
+    results_dict = {int(r.day): r for r in results}
+
+    # Retourner tous les jours (même si 0)
+    return [
+        DayOfWeekSpending(
+            day=i,
+            day_name=day_names[i],
+            total=Decimal(str(results_dict[i].total if i in results_dict else 0)),
+            count=results_dict[i].count if i in results_dict else 0
+        )
+        for i in range(7)
+    ]
+
+
+@router.get("/top-transactions", response_model=List[TopTransaction])
+def get_top_transactions(
+    month: Optional[str] = Query(None, pattern=r"^\d{4}-\d{2}$"),
+    limit: int = Query(5, ge=1, le=20),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Plus grandes transactions individuelles (dépenses).
+
+    Retourne les documents avec les plus gros montants.
+    """
+    effective_date = get_effective_date()
+
+    query = db.query(Document).filter(
+        Document.user_id == current_user.id,
+        Document.is_income == False,
+        Document.total_amount.isnot(None)
+    )
+
+    if month:
+        year, month_num = map(int, month.split("-"))
+        query = query.filter(
+            extract("year", effective_date) == year,
+            extract("month", effective_date) == month_num
+        )
+
+    results = query.order_by(
+        Document.total_amount.desc()
+    ).limit(limit).all()
+
+    return [
+        TopTransaction(
+            id=doc.id,
+            merchant=doc.merchant,
+            total_amount=Decimal(str(doc.total_amount)),
+            date=doc.date.isoformat() if doc.date else None,
+            doc_type=doc.doc_type
+        )
+        for doc in results
     ]

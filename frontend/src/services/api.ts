@@ -35,9 +35,15 @@ import {
   BudgetTemplateCreate,
   BudgetTemplateApplyResult,
   StatsSummary,
+  StatsSummaryWithComparison,
   StatsByTag,
   MonthlyStats,
   TopItem,
+  TopMerchant,
+  RecurringBreakdown,
+  TagEvolutionMonth,
+  DayOfWeekSpending,
+  TopTransaction,
   SyncStatus,
   SyncConfigStatus,
   SyncResult,
@@ -565,10 +571,14 @@ export const budgetTemplates = {
 export const stats = {
   /**
    * Récupère le résumé du mois (dépenses, revenus, solde)
+   * @param month - Mois au format YYYY-MM
+   * @param includePrevious - Inclure la comparaison avec le mois précédent
    */
-  getSummary: async (month?: string): Promise<StatsSummary> => {
-    const params = month ? { month } : {};
-    const response = await apiClient.get<StatsSummary>('/stats/summary', { params });
+  getSummary: async (month?: string, includePrevious: boolean = false): Promise<StatsSummaryWithComparison> => {
+    const params: Record<string, any> = {};
+    if (month) params.month = month;
+    if (includePrevious) params.include_previous = true;
+    const response = await apiClient.get<StatsSummaryWithComparison>('/stats/summary', { params });
     return response.data;
   },
 
@@ -594,6 +604,48 @@ export const stats = {
    */
   getTopItems: async (params?: { month?: string; limit?: number }): Promise<TopItem[]> => {
     const response = await apiClient.get<TopItem[]>('/stats/top-items', { params });
+    return response.data;
+  },
+
+  /**
+   * Récupère les marchands avec le plus de dépenses
+   */
+  getTopMerchants: async (params?: { month?: string; limit?: number }): Promise<TopMerchant[]> => {
+    const response = await apiClient.get<TopMerchant[]>('/stats/top-merchants', { params });
+    return response.data;
+  },
+
+  /**
+   * Récupère la répartition récurrent vs ponctuel
+   */
+  getRecurringBreakdown: async (month?: string): Promise<RecurringBreakdown> => {
+    const params = month ? { month } : {};
+    const response = await apiClient.get<RecurringBreakdown>('/stats/recurring-breakdown', { params });
+    return response.data;
+  },
+
+  /**
+   * Récupère l'évolution des dépenses par tag sur N mois
+   */
+  getTagEvolution: async (months: number = 6): Promise<TagEvolutionMonth[]> => {
+    const response = await apiClient.get<TagEvolutionMonth[]>('/stats/tag-evolution', { params: { months } });
+    return response.data;
+  },
+
+  /**
+   * Récupère les dépenses par jour de la semaine
+   */
+  getByDayOfWeek: async (month?: string): Promise<DayOfWeekSpending[]> => {
+    const params = month ? { month } : {};
+    const response = await apiClient.get<DayOfWeekSpending[]>('/stats/by-day-of-week', { params });
+    return response.data;
+  },
+
+  /**
+   * Récupère les plus grandes transactions
+   */
+  getTopTransactions: async (params?: { month?: string; limit?: number }): Promise<TopTransaction[]> => {
+    const response = await apiClient.get<TopTransaction[]>('/stats/top-transactions', { params });
     return response.data;
   },
 };

@@ -345,6 +345,54 @@ export interface TopItem {
   purchase_count: number;
 }
 
+export interface TopMerchant {
+  merchant: string;
+  total_spent: number;
+  visit_count: number;
+}
+
+export interface RecurringBreakdown {
+  recurring_total: number;
+  one_time_total: number;
+  recurring_count: number;
+  one_time_count: number;
+  recurring_percentage: number;
+}
+
+export interface TagEvolutionEntry {
+  tag_id: number;
+  tag_name: string;
+  tag_color: string;
+  amount: number;
+}
+
+export interface TagEvolutionMonth {
+  month: string;
+  tags: TagEvolutionEntry[];
+}
+
+export interface DayOfWeekSpending {
+  day: number;
+  day_name: string;
+  total: number;
+  count: number;
+}
+
+export interface TopTransaction {
+  id: number;
+  merchant: string | null;
+  total_amount: number;
+  date: string | null;
+  doc_type: string | null;
+}
+
+export interface StatsSummaryWithComparison extends StatsSummary {
+  previous_expenses?: number;
+  previous_income?: number;
+  expense_change_percent?: number | null;
+  income_change_percent?: number | null;
+}
+
 // ============================================
 // Types de synchronisation NAS
 // ============================================
