@@ -14,11 +14,16 @@ Liste les documents de l'utilisateur connecté.
 
 | Paramètre | Type | Description |
 |-----------|------|-------------|
+| search | string | Recherche textuelle (marchand, lieu, nom du fichier) |
+| ocr_search | string | Recherche textuelle dans le contenu OCR |
+| min_amount | float | Montant total minimum |
+| max_amount | float | Montant total maximum |
+| tag_ids | string | IDs de tags séparés par des virgules |
+| min_confidence | float | Score de confiance OCR minimum (0-100) |
 | skip | int | Offset pour pagination (défaut: 0) |
 | limit | int | Nombre max de résultats (défaut: 100) |
 | start_date | date | Filtrer à partir de cette date |
 | end_date | date | Filtrer jusqu'à cette date |
-| tag_id | int | Filtrer par tag |
 | is_income | bool | Filtrer revenus/dépenses |
 | doc_type | string | Filtrer par type (receipt, invoice...) |
 

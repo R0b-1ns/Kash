@@ -158,6 +158,19 @@ const RecurringPage: React.FC = () => {
     }
   };
 
+  const getAnnualAmount = (amount: number, frequency: string): number => {
+    switch (frequency) {
+      case 'monthly':
+        return amount * 12;
+      case 'quarterly':
+        return amount * 4;
+      case 'yearly':
+        return amount;
+      default:
+        return amount * 12;
+    }
+  };
+
   const monthLabel = format(new Date(selectedMonth + '-01'), 'MMMM yyyy', { locale: fr });
 
   return (
@@ -220,7 +233,7 @@ const RecurringPage: React.FC = () => {
       ) : summary ? (
         <>
           {/* Cartes de résumé */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Total mensuel */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <div className="flex items-center gap-3">
@@ -228,9 +241,24 @@ const RecurringPage: React.FC = () => {
                   <CreditCard className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500">Charges fixes / mois</p>
+                  <p className="text-sm text-slate-500">Charges / mois</p>
                   <p className="text-2xl font-bold text-slate-800">
                     {formatAmount(summary.total_monthly)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Total annuel estimé */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-indigo-100 rounded-lg">
+                  <Calendar className="w-6 h-6 text-indigo-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500">Estimé / an</p>
+                  <p className="text-2xl font-bold text-slate-800">
+                    {formatAmount(summary.total_monthly * 12)}
                   </p>
                 </div>
               </div>
@@ -370,9 +398,14 @@ const RecurringPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
-                      <p className="text-lg font-bold text-slate-800">
-                        {formatAmount(template.total_amount, template.currency)}
-                      </p>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-slate-800">
+                          {formatAmount(template.total_amount, template.currency)}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {formatAmount(getAnnualAmount(template.total_amount, template.frequency), template.currency)}/an
+                        </p>
+                      </div>
 
                       <button
                         onClick={() => handleToggle(template.id)}

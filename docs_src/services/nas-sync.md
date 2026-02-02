@@ -71,7 +71,7 @@ NAS_LOCAL_PATH=/Volumes/NAS/finance
 NAS_MOUNT_PATH=/app/nas_backup
 ```
 
-### 3. docker-compose.yml
+### 3. docker compose.yml
 
 ```yaml
 backend:

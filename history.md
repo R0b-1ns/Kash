@@ -48,7 +48,7 @@
 ## Phase 1 - Infrastructure Docker + BDD (TERMINÉE)
 
 ### Fichiers créés
-- `docker-compose.yml` - Orchestration des services (backend, frontend, postgres, ollama)
+- `docker compose.yml` - Orchestration des services (backend, frontend, postgres, ollama)
 - `.env` / `.env.example` - Variables d'environnement
 - `.gitignore` - Fichiers à ignorer
 
@@ -358,7 +358,7 @@ NAS_MOUNT_PATH=/app/nas_backup
 *   **Backend:** Suppression de `paddleocr` et `paddlepaddle` de `requirements.txt` pour les installer uniquement via le Dockerfile, assurant une installation propre.
 *   **Backend Dockerfile:** Nouvelle stratégie d'installation. Installation des dépendances de `requirements.txt` en premier, puis réinstallation forcée de `paddleocr` et `paddlepaddle` en dernier pour résoudre les conflits de `numpy` et `opencv`.
 *   **Backend Dockerfile:** Annulation de la dernière stratégie d'installation après échec de résolution du conflit `numpy`/`opencv`.
-*   **Architecture:** Implémentation du microservice OCR. Création du dossier `ocr_service/` avec son `Dockerfile`, `requirements.txt` et `app.py`. Modification de `backend/app/services/ocr_service.py` pour appeler le microservice via HTTP. Mise à jour de `backend/app/core/config.py` avec `OCR_SERVICE_URL`. Mise à jour de `docker-compose.yml` pour inclure le nouveau service et mettre à jour les dépendances du backend.
+*   **Architecture:** Implémentation du microservice OCR. Création du dossier `ocr_service/` avec son `Dockerfile`, `requirements.txt` et `app.py`. Modification de `backend/app/services/ocr_service.py` pour appeler le microservice via HTTP. Mise à jour de `backend/app/core/config.py` avec `OCR_SERVICE_URL`. Mise à jour de `docker compose.yml` pour inclure le nouveau service et mettre à jour les dépendances du backend.
 *   **Backend:** Démarrage réussi de l'application après la refactorisation en microservice OCR. La `RecursionError` et l'`ImportError` ont été résolues.
 *   **Environnement:** Ajout de `OCR_SERVICE_URL` au fichier `.env`.
 *   **Database:** Les migrations Alembic ont été appliquées avec succès.
@@ -367,7 +367,7 @@ NAS_MOUNT_PATH=/app/nas_backup
 *   **Backend Debug:** Nettoyage du code de débogage pour l'affichage des routes dans `main.py`.
 *   **Frontend Debug:** Le frontend fait une requête vers `http://localhost:8000/auth/login` au lieu de `http://localhost:8000/api/v1/auth/login`. Malgré la bonne configuration dans `api.ts` et `.env`, le problème semble venir d'un cache de Vite ou d'une mauvaise lecture de la variable d'environnement `VITE_API_URL` par le serveur de développement.
 *   **Frontend Debug:** Ajout d'un `console.log` dans `frontend/src/services/api.ts` pour vérifier la valeur de `API_BASE_URL` utilisée par Axios.
-*   **Frontend Configuration:** Correction de `docker-compose.yml` pour que `VITE_API_URL` du frontend utilise la variable d'environnement du fichier `.env` (``), résolvant le problème de routage.
+*   **Frontend Configuration:** Correction de `docker compose.yml` pour que `VITE_API_URL` du frontend utilise la variable d'environnement du fichier `.env` (``), résolvant le problème de routage.
 *   **Frontend Debug:** Le `console.log` a été retiré de `frontend/src/services/api.ts` après vérification de la configuration.
 *   **Backend:** L'erreur CORS est identifiée comme masquant une erreur 500 due à une syntaxe `func.case` incorrecte dans `api/routes/stats.py`.
 *   **Backend Fix:** Correction de la syntaxe `func.case` en `case` dans `api/routes/stats.py` pour résoudre la `TypeError` de SQLAlchemy et l'erreur 500.
@@ -512,3 +512,17 @@ NAS_MOUNT_PATH=/app/nas_backup
     - Ajout des nouveaux paramètres de requête à `docs_src/api/documents.md`.
     - Mention des nouveaux composants frontend dans `docs_src/architecture/frontend.md`.
 *   **Génération de site:** Le site statique de la documentation (`docs/`) a été régénéré avec succès.
+
+---
+
+## 2026-02-01 - Uniformisation des commandes Docker
+
+*   **Documentation:** Remplacement de toutes les occurrences de `docker-compose` par `docker compose` dans les fichiers de documentation (`README.md`, `CLAUDE.md`, `GEMINI.md`, `history.md`, et tous les fichiers `docs_src/**/*.md`).
+*   **Génération de site:** Le site statique de la documentation (`docs/`) a été régénéré pour refléter ces changements.
+
+---
+
+## 2026-02-01 - Export PDF et Rapports
+
+*   **Frontend API Service:** Ajout des fonctions `monthlyPDF`, `annualPDF`, et `exportChart` au service `api.ts`. La logique de téléchargement de blob a été refactorisée dans une fonction d'aide pour éviter la duplication de code.
+*   **Frontend UI:** Mise à jour de la page `SettingsPage.tsx` pour inclure les nouvelles sections d'interface utilisateur pour l'exportation de rapports PDF mensuels et annuels, ainsi que l'exportation de graphiques individuels au format PNG. De nouveaux états et gestionnaires d'événements ont été ajoutés pour prendre en charge cette fonctionnalité.

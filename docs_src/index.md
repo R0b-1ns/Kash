@@ -34,7 +34,7 @@ cd gestionnaireDeFinance
 cp .env.example .env
 
 # Lancer avec Docker
-docker-compose up -d
+docker compose up -d
 
 # Accéder à l'application
 open http://localhost:3000

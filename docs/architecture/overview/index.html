@@ -631,6 +631,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#communication-entre-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Communication entre services
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Communication entre services">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend-ocr-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend ↔ OCR Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-ollama" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend ↔ Ollama
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-nas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend ↔ NAS
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#flux-de-donnees" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -719,6 +769,34 @@
     <span class="md-ellipsis">
       
         Protection des données
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#variables-denvironnement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Variables d'environnement
       
     </span>
   </a>
@@ -1281,6 +1359,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#communication-entre-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Communication entre services
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Communication entre services">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend-ocr-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend ↔ OCR Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-ollama" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend ↔ Ollama
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-nas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend ↔ NAS
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#flux-de-donnees" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1380,6 +1508,34 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#variables-denvironnement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Variables d'environnement
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1399,51 +1555,50 @@
 
 <h1 id="vue-densemble-de-larchitecture">Vue d'ensemble de l'architecture<a class="headerlink" href="#vue-densemble-de-larchitecture" title="Permanent link">&para;</a></h1>
 <h2 id="architecture-globale">Architecture globale<a class="headerlink" href="#architecture-globale" title="Permanent link">&para;</a></h2>
-<p>Finance Manager est une application web moderne avec une architecture découplée :</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────────────────────┐
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│                         FRONTEND                                 │
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│  ┌─────────────────────────────────────────────────────────┐    │
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│  │                    React 18 + Vite                       │    │
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐       │    │
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│  │  │Dashboard│ │Documents│ │  Tags   │ │ Budgets │       │    │
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘       │    │
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│  │                      │                                   │    │
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│  │                ┌─────▼─────┐                            │    │
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│  │                │  API.ts   │  Axios + JWT               │    │
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│  │                └───────────┘                            │    │
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│  └─────────────────────┬───────────────────────────────────┘    │
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>└─────────────────────────┼───────────────────────────────────────┘
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>                          │ REST API
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>┌─────────────────────────▼───────────────────────────────────────┐
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│                         BACKEND                                  │
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│  ┌─────────────────────────────────────────────────────────┐    │
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│  │                    FastAPI                               │    │
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│  │  ┌─────────────────────────────────────────────────┐    │    │
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│  │  │                   Routes API                     │    │    │
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│  │  │  /auth  /documents  /tags  /budgets  /stats     │    │    │
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│  │  │  /export  /sync  /currencies                     │    │    │
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│  │  └───────────────────┬─────────────────────────────┘    │    │
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│  │                      │                                   │    │
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│  │  ┌───────────────────▼─────────────────────────────┐    │    │
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>│  │  │                  Services                        │    │    │
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│  │  │  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐       │    │    │
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>│  │  │  │ OCR │ │ AI  │ │Export│ │Sync │ │Curr.│       │    │    │
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>│  │  │  └──┬──┘ └──┬──┘ └─────┘ └──┬──┘ └─────┘       │    │    │
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>│  │  └─────┼───────┼───────────────┼────────────────────┘    │    │
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>│  │        │       │               │                         │    │
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│  │  ┌─────▼──┐ ┌──▼────┐   ┌──────▼──────┐                 │    │
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>│  │  │Paddle  │ │Ollama │   │    rsync    │                 │    │
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>│  │  │  OCR   │ │Mistral│   │             │                 │    │
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>│  │  └────────┘ └───────┘   └──────┬──────┘                 │    │
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>│  └─────────────────────────────────┼────────────────────────┘    │
-<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>└─────────────────────────────────────┼────────────────────────────┘
-<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>                                      │
-<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>          ┌───────────────────────────┼───────────────────────────┐
-<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>          │                           │                           │
-<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>    ┌─────▼─────┐              ┌──────▼──────┐                   │
-<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>    │PostgreSQL │              │     NAS     │                   │
-<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>    │   BDD     │              │  (Ugreen)   │                   │
-<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>    └───────────┘              └─────────────┘                   │
+<p>Finance Manager est une application web moderne avec une <strong>architecture microservices</strong> :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│                              FRONTEND                                    │
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│  ┌────────────────────────────────────────────────────────────────┐     │
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│  │                      React 18 + Vite                            │     │
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐  │     │
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│  │  │Dashboard│ │Documents│ │  Tags   │ │ Budgets │ │Settings │  │     │
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └─────────┘  │     │
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│  │                           │                                     │     │
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│  │                     ┌─────▼─────┐                              │     │
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│  │                     │  API.ts   │  Axios + JWT                 │     │
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│  │                     └───────────┘                              │     │
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│  └──────────────────────────┬─────────────────────────────────────┘     │
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>└─────────────────────────────┼───────────────────────────────────────────┘
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>                              │ REST API (:3000 → :8000)
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>┌─────────────────────────────▼───────────────────────────────────────────┐
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│                              BACKEND                                     │
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│  ┌────────────────────────────────────────────────────────────────┐     │
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│  │                      FastAPI (:8000)                            │     │
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│  │  ┌─────────────────────────────────────────────────────────┐   │     │
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│  │  │                     Routes API                           │   │     │
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│  │  │  /auth  /documents  /tags  /budgets  /stats  /sync      │   │     │
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│  │  └────────────────────────┬────────────────────────────────┘   │     │
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│  │                           │                                     │     │
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│  │  ┌────────────────────────▼────────────────────────────────┐   │     │
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│  │  │                      Services                            │   │     │
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>│  │  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   │   │     │
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│  │  │  │OCR Client│ │AI Service│ │  Export  │ │ NAS Sync │   │   │     │
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>│  │  │  │  (HTTP)  │ │  (HTTP)  │ │   (CSV)  │ │  (SMB)   │   │   │     │
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>│  │  │  └────┬─────┘ └────┬─────┘ └──────────┘ └────┬─────┘   │   │     │
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>│  │  └───────┼────────────┼──────────────────────────┼─────────┘   │     │
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>│  └──────────┼────────────┼──────────────────────────┼─────────────┘     │
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>└─────────────┼────────────┼──────────────────────────┼───────────────────┘
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>              │            │                          │
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>              │ HTTP :5001 │ HTTP :11434              │ Copie fichiers
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>              ▼            ▼                          ▼
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>┌─────────────────┐ ┌─────────────────┐    ┌─────────────────────────────┐
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>│  OCR SERVICE    │ │     OLLAMA      │    │      STOCKAGE               │
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>│  ┌───────────┐  │ │  ┌───────────┐  │    │  ┌─────────┐ ┌───────────┐ │
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>│  │ PaddleOCR │  │ │  │  Mistral  │  │    │  │PostgreSQL│ │    NAS    │ │
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>│  │  (Flask)  │  │ │  │    7B     │  │    │  │   :5432  │ │  (SMB)    │ │
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>│  └───────────┘  │ │  └───────────┘  │    │  └─────────┘ └───────────┘ │
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>│     :5001       │ │     :11434      │    │                             │
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>└─────────────────┘ └─────────────────┘    └─────────────────────────────┘
 </code></pre></div>
 <h2 id="services-docker">Services Docker<a class="headerlink" href="#services-docker" title="Permanent link">&para;</a></h2>
 <table>
@@ -1451,6 +1606,7 @@
 <tr>
 <th>Service</th>
 <th>Port</th>
+<th>Image</th>
 <th>Description</th>
 </tr>
 </thead>
@@ -1458,104 +1614,139 @@
 <tr>
 <td><code>frontend</code></td>
 <td>3000</td>
-<td>Application React</td>
+<td>Node 20</td>
+<td>Application React + Vite</td>
 </tr>
 <tr>
 <td><code>backend</code></td>
 <td>8000</td>
+<td>Python 3.11</td>
 <td>API FastAPI</td>
 </tr>
 <tr>
 <td><code>postgres</code></td>
 <td>5432</td>
+<td>postgres:15-alpine</td>
 <td>Base de données</td>
 </tr>
 <tr>
 <td><code>ollama</code></td>
 <td>11434</td>
-<td>Serveur LLM</td>
+<td>ollama/ollama</td>
+<td>Serveur LLM (Mistral)</td>
+</tr>
+<tr>
+<td><code>ocr-service</code></td>
+<td>5001</td>
+<td>Python 3.11</td>
+<td>Microservice OCR (PaddleOCR)</td>
 </tr>
 </tbody>
 </table>
+<h2 id="communication-entre-services">Communication entre services<a class="headerlink" href="#communication-entre-services" title="Permanent link">&para;</a></h2>
+<h3 id="backend-ocr-service">Backend ↔ OCR Service<a class="headerlink" href="#backend-ocr-service" title="Permanent link">&para;</a></h3>
+<p>Le backend communique avec le microservice OCR via HTTP :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># backend/app/services/ocr_service.py</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">extract_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRResult</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ocr_service_url</span><span class="si">}</span><span class="s2">/ocr&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;file_path&quot;</span><span class="p">:</span> <span class="n">file_path</span><span class="p">}</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="p">)</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="k">return</span> <span class="n">OCRResult</span><span class="p">(</span><span class="o">**</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+</code></pre></div>
+<h3 id="backend-ollama">Backend ↔ Ollama<a class="headerlink" href="#backend-ollama" title="Permanent link">&para;</a></h3>
+<p>Le backend communique avec Ollama via son API REST :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># backend/app/services/ai_service.py</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="si">}</span><span class="s2">/api/generate&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;mistral&quot;</span><span class="p">,</span> <span class="s2">&quot;prompt&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="p">)</span>
+</code></pre></div>
+<h3 id="backend-nas">Backend ↔ NAS<a class="headerlink" href="#backend-nas" title="Permanent link">&para;</a></h3>
+<p>La synchronisation utilise un montage SMB (pas de SSH/rsync) :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># backend/app/services/nas_sync_service.py</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># Simple copie de fichiers vers le montage SMB</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">document</span><span class="o">.</span><span class="n">file_path</span><span class="p">,</span> <span class="n">dest_path</span><span class="p">)</span>
+</code></pre></div>
 <h2 id="flux-de-donnees">Flux de données<a class="headerlink" href="#flux-de-donnees" title="Permanent link">&para;</a></h2>
 <h3 id="upload-dun-document">Upload d'un document<a class="headerlink" href="#upload-dun-document" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>sequenceDiagram
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    participant U as Utilisateur
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    participant F as Frontend
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    participant B as Backend
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    participant O as OCR
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    participant A as AI
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    participant D as Database
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    U-&gt;&gt;F: Upload fichier
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    F-&gt;&gt;B: POST /documents/upload
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    B-&gt;&gt;D: Créer Document (pending)
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    B-&gt;&gt;O: Extraire texte
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    O--&gt;&gt;B: Texte brut
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    B-&gt;&gt;A: Analyser texte
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    A--&gt;&gt;B: Données structurées
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    B-&gt;&gt;D: Mettre à jour Document
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>    B-&gt;&gt;D: Créer Items
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>    B--&gt;&gt;F: Document complet
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>    F--&gt;&gt;U: Afficher résultat
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>sequenceDiagram
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    participant U as Utilisateur
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    participant F as Frontend
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    participant B as Backend
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    participant OCR as OCR Service
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    participant AI as Ollama
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    participant D as PostgreSQL
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    U-&gt;&gt;F: Upload fichier
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    F-&gt;&gt;B: POST /documents/upload
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    B-&gt;&gt;D: Créer Document
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>    B-&gt;&gt;OCR: POST /ocr (file_path)
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>    OCR--&gt;&gt;B: {text, confidence}
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>    B-&gt;&gt;D: Sauvegarder texte OCR
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>    B-&gt;&gt;AI: POST /api/generate (prompt + texte)
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>    AI--&gt;&gt;B: JSON structuré
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>    B-&gt;&gt;D: Mettre à jour Document + créer Items
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>    B--&gt;&gt;F: Document complet
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>    F--&gt;&gt;U: Afficher résultat
 </code></pre></div>
 <h3 id="synchronisation-nas">Synchronisation NAS<a class="headerlink" href="#synchronisation-nas" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>sequenceDiagram
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    participant U as Utilisateur
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    participant B as Backend
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    participant S as Sync Service
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    participant N as NAS
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    participant D as Database
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    U-&gt;&gt;B: POST /sync/run
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    B-&gt;&gt;D: Récupérer documents non sync
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    loop Pour chaque document
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>        B-&gt;&gt;S: sync_file(document)
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>        S-&gt;&gt;N: rsync fichier
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>        N--&gt;&gt;S: OK
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>        S-&gt;&gt;D: synced_to_nas = true
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    end
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>    B--&gt;&gt;U: Résultats
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>sequenceDiagram
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    participant U as Utilisateur
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    participant B as Backend
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    participant NAS as Montage SMB
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    U-&gt;&gt;B: POST /sync/run
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    B-&gt;&gt;B: Récupérer documents non sync
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    loop Pour chaque document
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>        B-&gt;&gt;NAS: shutil.copy2(src, dest)
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>        Note over NAS: Structure: année/mois/type/
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>        B-&gt;&gt;B: synced_to_nas = true
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>    end
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    B--&gt;&gt;U: {synced: N, failed: M}
 </code></pre></div>
 <h2 id="modele-de-donnees">Modèle de données<a class="headerlink" href="#modele-de-donnees" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>┌──────────────┐       ┌──────────────┐       ┌──────────────┐
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>│     User     │       │   Document   │       │     Item     │
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>├──────────────┤       ├──────────────┤       ├──────────────┤
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>│ id           │──┐    │ id           │──┐    │ id           │
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>│ email        │  │    │ user_id      │  │    │ document_id  │
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>│ password_hash│  └───&gt;│ file_path    │  └───&gt;│ name         │
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>│ name         │       │ date         │       │ quantity     │
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>│ created_at   │       │ merchant     │       │ unit_price   │
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>└──────────────┘       │ total_amount │       │ total_price  │
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>                       │ currency     │       │ category     │
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>                       │ is_income    │       └──────────────┘
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>                       │ synced_to_nas│
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>                       └──────┬───────┘
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>                              │
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>                              │ M:N
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>                              ▼
-<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>┌──────────────┐       ┌──────────────┐
-<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>│     Tag      │&lt;──────│ DocumentTag  │
-<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>├──────────────┤       ├──────────────┤
-<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>│ id           │       │ document_id  │
-<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>│ user_id      │       │ tag_id       │
-<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>│ name         │       └──────────────┘
-<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>│ color        │
-<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>│ icon         │       ┌──────────────┐
-<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>└──────────────┘       │    Budget    │
-<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>       │               ├──────────────┤
-<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>       └──────────────&gt;│ id           │
-<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>                       │ tag_id       │
-<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>                       │ month        │
-<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>                       │ limit_amount │
-<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a>                       └──────────────┘
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>┌──────────────┐       ┌──────────────┐       ┌──────────────┐
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>│     User     │       │   Document   │       │     Item     │
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>├──────────────┤       ├──────────────┤       ├──────────────┤
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>│ id           │──┐    │ id           │──┐    │ id           │
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>│ email        │  │    │ user_id      │  │    │ document_id  │
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>│ password_hash│  └───&gt;│ file_path    │  └───&gt;│ name         │
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>│ name         │       │ date         │       │ quantity     │
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>│ created_at   │       │ merchant     │       │ unit_price   │
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>└──────────────┘       │ total_amount │       │ total_price  │
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>                       │ currency     │       │ category     │
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>                       │ is_income    │       └──────────────┘
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>                       │ ocr_raw_text │
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>                       │ ocr_confidence│
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>                       │ synced_to_nas│
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>                       └──────┬───────┘
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>                              │
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>                              │ M:N
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>                              ▼
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>┌──────────────┐       ┌──────────────┐
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>│     Tag      │&lt;──────│ DocumentTag  │
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>├──────────────┤       ├──────────────┤
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>│ id           │       │ document_id  │
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>│ user_id      │       │ tag_id       │
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>│ name         │       └──────────────┘
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a>│ color        │
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a>│ icon         │       ┌──────────────┐
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a>└──────────────┘       │    Budget    │
+<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a>       │               ├──────────────┤
+<a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a>       └──────────────&gt;│ id           │
+<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a>                       │ user_id      │
+<a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a>                       │ tag_id       │
+<a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a>                       │ month        │
+<a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a>                       │ limit_amount │
+<a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a>                       └──────────────┘
 </code></pre></div>
 <h2 id="securite">Sécurité<a class="headerlink" href="#securite" title="Permanent link">&para;</a></h2>
 <h3 id="authentification">Authentification<a class="headerlink" href="#authentification" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>JWT</strong> (JSON Web Tokens) avec algorithme HS256</li>
 <li>Tokens valides 7 jours par défaut</li>
-<li>Refresh automatique côté frontend</li>
+<li>Stockage dans localStorage côté frontend</li>
 </ul>
 <h3 id="autorisation">Autorisation<a class="headerlink" href="#autorisation" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1569,6 +1760,23 @@
 <li>Validation des entrées avec <strong>Pydantic</strong></li>
 <li>Échappement SQL avec <strong>SQLAlchemy</strong></li>
 </ul>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<h3 id="variables-denvironnement">Variables d'environnement<a class="headerlink" href="#variables-denvironnement" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Sécurité</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nv">SECRET_KEY</span><span class="o">=</span>your-super-secret-key
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Base de données</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="nv">DATABASE_URL</span><span class="o">=</span>postgresql://finance:finance@postgres:5432/finance_db
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="c1"># Services internes</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="nv">OLLAMA_HOST</span><span class="o">=</span>http://ollama:11434
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="nv">OLLAMA_MODEL</span><span class="o">=</span>mistral
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="nv">OCR_SERVICE_URL</span><span class="o">=</span>http://ocr-service:5001
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="c1"># NAS (montage SMB)</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="nv">NAS_LOCAL_PATH</span><span class="o">=</span>/Volumes/NAS/finance
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="nv">NAS_MOUNT_PATH</span><span class="o">=</span>/app/nas_backup
+</code></pre></div>
 
 
 

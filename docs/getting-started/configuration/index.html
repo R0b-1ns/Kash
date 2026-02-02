@@ -571,10 +571,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#configuration-ssh" class="md-nav__link">
+  <a href="#montage-smb-sur-macos" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration SSH
+        Montage SMB sur macOS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Docker
       
     </span>
   </a>
@@ -586,6 +597,17 @@
     <span class="md-ellipsis">
       
         Structure des dossiers NAS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#montage-automatique-optionnel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Montage automatique (optionnel)
       
     </span>
   </a>
@@ -1383,10 +1405,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#configuration-ssh" class="md-nav__link">
+  <a href="#montage-smb-sur-macos" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration SSH
+        Montage SMB sur macOS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Docker
       
     </span>
   </a>
@@ -1398,6 +1431,17 @@
     <span class="md-ellipsis">
       
         Structure des dossiers NAS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#montage-automatique-optionnel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Montage automatique (optionnel)
       
     </span>
   </a>
@@ -1578,41 +1622,56 @@
 <a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="c1"># Synchronisation NAS (optionnel)</span>
 <a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="c1"># ===========================================</span>
 <a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="c1"># Adresse IP ou hostname du NAS</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="nv">NAS_HOST</span><span class="o">=</span><span class="m">192</span>.168.1.100
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="c1"># Chemin du montage SMB sur le Mac hôte</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="nv">NAS_LOCAL_PATH</span><span class="o">=</span>/Volumes/NAS/finance
 <a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="c1"># Utilisateur SSH sur le NAS</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="nv">NAS_USER</span><span class="o">=</span>your-nas-user
-<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>
-<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="c1"># Chemin de destination sur le NAS</span>
-<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="nv">NAS_PATH</span><span class="o">=</span>/volume1/factures
-<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>
-<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="c1"># Intervalle de sync automatique (minutes)</span>
-<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="nv">SYNC_INTERVAL_MINUTES</span><span class="o">=</span><span class="m">30</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="c1"># Chemin dans le container Docker (monté via volume)</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="nv">NAS_MOUNT_PATH</span><span class="o">=</span>/app/nas_backup
 </code></pre></div>
 <h2 id="configuration-du-nas">Configuration du NAS<a class="headerlink" href="#configuration-du-nas" title="Permanent link">&para;</a></h2>
 <h3 id="prerequis">Prérequis<a class="headerlink" href="#prerequis" title="Permanent link">&para;</a></h3>
 <ol>
-<li><strong>SSH activé</strong> sur votre NAS</li>
-<li><strong>Clé SSH</strong> configurée pour l'authentification sans mot de passe</li>
-<li><strong>rsync</strong> installé sur le NAS</li>
+<li><strong>Partage SMB/CIFS</strong> activé sur votre NAS</li>
+<li><strong>Utilisateur dédié</strong> avec droits d'écriture sur le dossier finance</li>
 </ol>
-<h3 id="configuration-ssh">Configuration SSH<a class="headerlink" href="#configuration-ssh" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Générer une clé SSH (si pas déjà fait)</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>ssh-keygen<span class="w"> </span>-t<span class="w"> </span>ed25519<span class="w"> </span>-C<span class="w"> </span><span class="s2">&quot;finance-manager&quot;</span>
+<h3 id="montage-smb-sur-macos">Montage SMB sur macOS<a class="headerlink" href="#montage-smb-sur-macos" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Créer le point de montage</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/Volumes/NAS
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Copier la clé sur le NAS</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>ssh-copy-id<span class="w"> </span>your-user@192.168.1.100
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Monter le partage SMB</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>mount<span class="w"> </span>-t<span class="w"> </span>smbfs<span class="w"> </span>//utilisateur:motdepasse@IP-NAS/partage<span class="w"> </span>/Volumes/NAS
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Tester la connexion</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>ssh<span class="w"> </span>your-user@192.168.1.100<span class="w"> </span><span class="s2">&quot;echo OK&quot;</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Ou via Finder : Cmd+K → smb://IP-NAS/partage</span>
+</code></pre></div>
+<h3 id="configuration-docker">Configuration Docker<a class="headerlink" href="#configuration-docker" title="Permanent link">&para;</a></h3>
+<p>Le montage SMB doit être accessible par Docker. Dans <code>docker compose.yml</code> :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">backend</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">volumes</span><span class="p">:</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${NAS_LOCAL_PATH:-./nas_backup}:/app/nas_backup</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">environment</span><span class="p">:</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NAS_MOUNT_PATH=${NAS_MOUNT_PATH:-}</span>
 </code></pre></div>
 <h3 id="structure-des-dossiers-nas">Structure des dossiers NAS<a class="headerlink" href="#structure-des-dossiers-nas" title="Permanent link">&para;</a></h3>
-<p>Les fichiers sont synchronisés avec leur nom unique généré :</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>/volume1/factures/
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>├── 2024-01-15_abc123_ticket-supermarche.jpg
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>├── 2024-01-20_def456_facture-electricite.pdf
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>└── ...
+<p>Les fichiers sont organisés par <strong>année/mois/type</strong> :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>/Volumes/NAS/finance/
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├── 2024/
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>│   ├── 01/
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>│   │   ├── factures/
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>│   │   │   └── abc123.pdf
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>│   │   ├── tickets/
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>│   │   │   └── def456.jpg
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>│   │   └── salaires/
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>│   │       └── ghi789.pdf
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>│   └── 02/
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>│       └── ...
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>├── 2025/
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>│   └── ...
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>└── 2026/
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>    └── ...
+</code></pre></div>
+<h3 id="montage-automatique-optionnel">Montage automatique (optionnel)<a class="headerlink" href="#montage-automatique-optionnel" title="Permanent link">&para;</a></h3>
+<p>Pour monter automatiquement au démarrage du Mac, ajoutez dans <code>/etc/fstab</code> :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>//user:pass@nas-ip/share /Volumes/NAS smbfs 0 0
 </code></pre></div>
 <h2 id="configuration-des-budgets">Configuration des budgets<a class="headerlink" href="#configuration-des-budgets" title="Permanent link">&para;</a></h2>
 <h3 id="creation-dun-budget">Création d'un budget<a class="headerlink" href="#creation-dun-budget" title="Permanent link">&para;</a></h3>
@@ -1655,22 +1714,22 @@
 </table>
 <h2 id="configuration-frontend">Configuration frontend<a class="headerlink" href="#configuration-frontend" title="Permanent link">&para;</a></h2>
 <h3 id="fichier-frontendenv">Fichier <code>frontend/.env</code><a class="headerlink" href="#fichier-frontendenv" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># URL de l&#39;API backend</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nv">VITE_API_URL</span><span class="o">=</span>http://localhost:8000/api/v1
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># URL de l&#39;API backend</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nv">VITE_API_URL</span><span class="o">=</span>http://localhost:8000/api/v1
 </code></pre></div>
 <h3 id="build-de-production">Build de production<a class="headerlink" href="#build-de-production" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">cd</span><span class="w"> </span>frontend
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>npm<span class="w"> </span>run<span class="w"> </span>build
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nb">cd</span><span class="w"> </span>frontend
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>npm<span class="w"> </span>run<span class="w"> </span>build
 </code></pre></div>
 <p>Les fichiers statiques sont générés dans <code>frontend/dist/</code>.</p>
 <h2 id="personnalisation">Personnalisation<a class="headerlink" href="#personnalisation" title="Permanent link">&para;</a></h2>
 <h3 id="modifier-les-devises-par-defaut">Modifier les devises par défaut<a class="headerlink" href="#modifier-les-devises-par-defaut" title="Permanent link">&para;</a></h3>
 <p>Éditez la migration <code>backend/alembic/versions/001_initial_schema.py</code> avant la première exécution pour modifier les devises :</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">currencies</span> <span class="o">=</span> <span class="p">[</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    <span class="p">{</span><span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;EUR&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Euro&quot;</span><span class="p">,</span> <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;€&quot;</span><span class="p">,</span> <span class="s2">&quot;rate_to_eur&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="p">{</span><span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;USD&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Dollar US&quot;</span><span class="p">,</span> <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;$&quot;</span><span class="p">,</span> <span class="s2">&quot;rate_to_eur&quot;</span><span class="p">:</span> <span class="mf">0.92</span><span class="p">},</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="c1"># Ajoutez vos devises ici</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">currencies</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>    <span class="p">{</span><span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;EUR&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Euro&quot;</span><span class="p">,</span> <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;€&quot;</span><span class="p">,</span> <span class="s2">&quot;rate_to_eur&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    <span class="p">{</span><span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;USD&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Dollar US&quot;</span><span class="p">,</span> <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;$&quot;</span><span class="p">,</span> <span class="s2">&quot;rate_to_eur&quot;</span><span class="p">:</span> <span class="mf">0.92</span><span class="p">},</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="c1"># Ajoutez vos devises ici</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="p">]</span>
 </code></pre></div>
 <h3 id="modifier-le-prompt-ia">Modifier le prompt IA<a class="headerlink" href="#modifier-le-prompt-ia" title="Permanent link">&para;</a></h3>
 <p>Le prompt d'extraction est dans <code>backend/app/services/ai_service.py</code>. Vous pouvez l'adapter pour améliorer l'extraction selon vos types de documents.</p>

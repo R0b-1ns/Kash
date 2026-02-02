@@ -26,7 +26,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        docker-compose                           │
+│                        docker compose                           │
 ├──────────┬──────────┬──────────┬──────────┬────────────────────┤
 │ frontend │ backend  │ postgres │  ollama  │    ocr-service     │
 │  :3000   │  :8000   │  :5432   │  :11434  │       :5001        │
@@ -115,7 +115,7 @@ gestionnaireDeFinance/
 │   └── Dockerfile
 ├── ollama/
 │   └── entrypoint.sh                # Auto-téléchargement du modèle
-├── docker-compose.yml
+├── docker compose.yml
 ├── .env.example
 ├── CLAUDE.md                        # Ce fichier
 ├── AMELIORATIONS.md                 # Roadmap des améliorations futures
@@ -126,21 +126,21 @@ gestionnaireDeFinance/
 
 ```bash
 # Lancer l'application
-docker-compose up -d
+docker compose up -d
 
 # Voir les logs
-docker-compose logs -f backend
-docker-compose logs -f ocr-service
-docker-compose logs -f ollama
+docker compose logs -f backend
+docker compose logs -f ocr-service
+docker compose logs -f ollama
 
 # Migrations BDD
-docker-compose exec backend alembic upgrade head
+docker compose exec backend alembic upgrade head
 
 # Rebuild après changements
-docker-compose up -d --build
+docker compose up -d --build
 
 # Redémarrer un service
-docker-compose restart backend
+docker compose restart backend
 ```
 
 ## Configuration (.env)

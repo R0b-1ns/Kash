@@ -438,6 +438,13 @@ export interface ExportParams {
   include_items?: boolean;
 }
 
+export type ChartType = 'pie' | 'bar' | 'line' | 'donut' | 'area';
+
+export interface ExportChartParams {
+  chart_type: ChartType;
+  month?: string;
+}
+
 // ============================================
 // Types d'API génériques
 // ============================================

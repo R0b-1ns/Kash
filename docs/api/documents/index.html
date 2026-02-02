@@ -1424,6 +1424,36 @@
 </thead>
 <tbody>
 <tr>
+<td>search</td>
+<td>string</td>
+<td>Recherche textuelle (marchand, lieu, nom du fichier)</td>
+</tr>
+<tr>
+<td>ocr_search</td>
+<td>string</td>
+<td>Recherche textuelle dans le contenu OCR</td>
+</tr>
+<tr>
+<td>min_amount</td>
+<td>float</td>
+<td>Montant total minimum</td>
+</tr>
+<tr>
+<td>max_amount</td>
+<td>float</td>
+<td>Montant total maximum</td>
+</tr>
+<tr>
+<td>tag_ids</td>
+<td>string</td>
+<td>IDs de tags séparés par des virgules</td>
+</tr>
+<tr>
+<td>min_confidence</td>
+<td>float</td>
+<td>Score de confiance OCR minimum (0-100)</td>
+</tr>
+<tr>
 <td>skip</td>
 <td>int</td>
 <td>Offset pour pagination (défaut: 0)</td>
@@ -1442,11 +1472,6 @@
 <td>end_date</td>
 <td>date</td>
 <td>Filtrer jusqu'à cette date</td>
-</tr>
-<tr>
-<td>tag_id</td>
-<td>int</td>
-<td>Filtrer par tag</td>
 </tr>
 <tr>
 <td>is_income</td>

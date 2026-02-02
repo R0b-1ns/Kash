@@ -197,7 +197,7 @@ class DocumentProcessor:
 
 | Méthode | Endpoint | Description |
 |---------|----------|-------------|
-| GET | `/` | Liste documents |
+| GET | `/` | Liste documents (avec recherche avancée et filtres) |
 | POST | `/upload` | Upload fichier |
 | GET | `/{id}` | Détail document |
 | PUT | `/{id}` | Modifier document |

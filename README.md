@@ -66,10 +66,10 @@ cp .env.example .env
 # Éditer .env avec vos paramètres
 
 # Lancer l'application
-docker-compose up -d
+docker compose up -d
 
 # Appliquer les migrations
-docker-compose exec backend alembic upgrade head
+docker compose exec backend alembic upgrade head
 ```
 
 L'application est accessible sur :
@@ -129,18 +129,18 @@ La documentation technique est disponible dans `docs_src/` :
 
 ```bash
 # Logs en temps réel
-docker-compose logs -f backend
+docker compose logs -f backend
 
 # Reconstruire après modifications
-docker-compose up -d --build
+docker compose up -d --build
 
 # Arrêter l'application
-docker-compose down
+docker compose down
 
 # Réinitialiser la base de données
-docker-compose down -v
-docker-compose up -d
-docker-compose exec backend alembic upgrade head
+docker compose down -v
+docker compose up -d
+docker compose exec backend alembic upgrade head
 ```
 
 ## Structure du projet
@@ -164,7 +164,7 @@ kash/
 │   └── package.json
 ├── ocr_service/             # Microservice OCR
 ├── docs_src/                # Documentation
-├── docker-compose.yml
+├── docker compose.yml
 └── .env.example
 ```
 

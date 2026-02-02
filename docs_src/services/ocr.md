@@ -192,7 +192,7 @@ EXPOSE 5001
 CMD ["python", "app.py"]
 ```
 
-### docker-compose.yml
+### docker compose.yml
 
 ```yaml
 ocr-service:
@@ -237,7 +237,7 @@ ocr-service:
 
 | Erreur | Cause | Solution |
 |--------|-------|----------|
-| Connection refused | Service non démarré | `docker-compose up ocr-service` |
+| Connection refused | Service non démarré | `docker compose up ocr-service` |
 | File not found | Chemin invalide | Vérifier le montage des volumes |
 | Timeout | Fichier trop gros | Augmenter le timeout (défaut: 60s) |
 | Low confidence | Image floue | Améliorer la qualité de scan |

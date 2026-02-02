@@ -66,7 +66,7 @@ mount -t smbfs //utilisateur:motdepasse@IP-NAS/partage /Volumes/NAS
 
 ### Configuration Docker
 
-Le montage SMB doit être accessible par Docker. Dans `docker-compose.yml` :
+Le montage SMB doit être accessible par Docker. Dans `docker compose.yml` :
 
 ```yaml
 backend:

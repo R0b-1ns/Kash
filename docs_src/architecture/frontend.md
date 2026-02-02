@@ -24,10 +24,12 @@ frontend/src/
 ├── services/
 │   └── api.ts               # Client Axios + endpoints
 ├── hooks/
-│   └── useAuth.tsx          # Context d'authentification
+│   ├── useAuth.tsx          # Context d'authentification
+│   └── useDebounce.ts       # Hook pour le debouncing
 ├── components/
 │   ├── Layout.tsx           # Layout avec sidebar
 │   ├── ProtectedRoute.tsx   # Garde de route
+│   ├── DocumentFilters.tsx  # Panneau de filtres pour les documents
 │   └── dashboard/           # Composants du dashboard
 │       ├── StatCard.tsx
 │       ├── MonthlyChart.tsx

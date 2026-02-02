@@ -49,6 +49,7 @@ import {
   SyncResult,
   SyncRunResult,
   ExportParams,
+  ChartType,
   ManualEntryCreate,
   RecurringSummary,
   RecurringGenerateResult,
@@ -700,14 +701,41 @@ export const sync = {
 // API d'export
 // ============================================
 
+// ============================================
+// API d'export
+// ============================================
+
+/**
+ * Fonction d'aide pour télécharger un blob depuis une réponse fetch
+ */
+const _downloadBlob = async (response: Response, defaultFilename: string) => {
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ detail: 'Erreur inconnue lors de l\'export' }));
+    throw new Error(errorData.detail || 'Erreur lors de l\'export');
+  }
+
+  const blob = await response.blob();
+  const downloadUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = downloadUrl;
+
+  const contentDisposition = response.headers.get('Content-Disposition');
+  const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
+  link.download = filenameMatch ? filenameMatch[1] : defaultFilename;
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(downloadUrl);
+};
+
+
 export const exportApi = {
   /**
    * Exporte les documents en CSV
-   * Retourne l'URL pour télécharger le fichier
    */
   documentsCSV: async (params?: ExportParams): Promise<void> => {
     const queryParams = new URLSearchParams();
-
     if (params?.start_date) queryParams.append('start_date', params.start_date);
     if (params?.end_date) queryParams.append('end_date', params.end_date);
     if (params?.include_items) queryParams.append('include_items', 'true');
@@ -715,33 +743,14 @@ export const exportApi = {
       params.tag_ids.forEach(id => queryParams.append('tag_ids', id.toString()));
     }
 
-    // Télécharger le fichier directement
     const token = localStorage.getItem(TOKEN_KEY);
     const url = `${API_BASE_URL}/export/documents/csv?${queryParams.toString()}`;
 
     const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     });
-
-    if (!response.ok) throw new Error('Erreur lors de l\'export');
-
-    // Créer le téléchargement
-    const blob = await response.blob();
-    const downloadUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-
-    // Récupérer le nom du fichier depuis les headers
-    const contentDisposition = response.headers.get('Content-Disposition');
-    const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
-    link.download = filenameMatch ? filenameMatch[1] : 'documents.csv';
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(downloadUrl);
+    
+    await _downloadBlob(response, 'documents.csv');
   },
 
   /**
@@ -752,24 +761,56 @@ export const exportApi = {
     const url = `${API_BASE_URL}/export/monthly/csv?year=${year}&month=${month}`;
 
     const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    
+    await _downloadBlob(response, `resume_${year}-${month.toString().padStart(2, '0')}.csv`);
+  },
+
+  /**
+   * Télécharge le rapport PDF mensuel
+   */
+  monthlyPDF: async (year: number, month: number): Promise<void> => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const url = `${API_BASE_URL}/export/monthly/pdf?year=${year}&month=${month}`;
+    
+    const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
     });
 
-    if (!response.ok) throw new Error('Erreur lors de l\'export');
+    await _downloadBlob(response, `bilan_${year}-${month.toString().padStart(2, '0')}.pdf`);
+  },
 
-    // Créer le téléchargement
-    const blob = await response.blob();
-    const downloadUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = `resume_${year}-${month.toString().padStart(2, '0')}.csv`;
+  /**
+   * Télécharge le rapport PDF annuel
+   */
+  annualPDF: async (year: number): Promise<void> => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const url = `${API_BASE_URL}/export/annual/pdf?year=${year}`;
 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(downloadUrl);
+    const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+
+    await _downloadBlob(response, `bilan_annuel_${year}.pdf`);
+  },
+
+  /**
+   * Exporte un graphique en PNG
+   */
+  exportChart: async (chartType: ChartType, month?: string): Promise<void> => {
+    const queryParams = new URLSearchParams();
+    if (month) queryParams.append('month', month);
+
+    const token = localStorage.getItem(TOKEN_KEY);
+    const url = `${API_BASE_URL}/export/chart/${chartType}?${queryParams.toString()}`;
+
+    const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const defaultFilename = month ? `graphique_${chartType}_${month}.png` : `graphique_${chartType}.png`;
+    await _downloadBlob(response, defaultFilename);
   },
 };
 

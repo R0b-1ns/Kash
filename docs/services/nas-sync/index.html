@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#service-nas-sync" class="md-skip">
+        <a href="#service-nas-sync-smb" class="md-skip">
           Aller au contenu
         </a>
       
@@ -1093,6 +1093,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#fichier-source" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1104,10 +1115,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#fonctionnalites" class="md-nav__link">
+  <a href="#avantages-par-rapport-a-sshrsync" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fonctionnalités
+        Avantages par rapport à SSH/rsync
       
     </span>
   </a>
@@ -1115,22 +1126,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-requise" class="md-nav__link">
+  <a href="#configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration requise
+        Configuration
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration requise">
+    <nav class="md-nav" aria-label="Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#variables-denvironnement" class="md-nav__link">
+  <a href="#1-monter-le-partage-smb-sur-le-mac" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Variables d'environnement
+        1. Monter le partage SMB sur le Mac
       
     </span>
   </a>
@@ -1138,10 +1149,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#prerequis-nas" class="md-nav__link">
+  <a href="#2-variables-denvironnement-env" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Prérequis NAS
+        2. Variables d'environnement (.env)
       
     </span>
   </a>
@@ -1149,10 +1160,38 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#configuration-de-la-cle-ssh" class="md-nav__link">
+  <a href="#3-docker-composeyml" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration de la clé SSH
+        3. docker compose.yml
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#structure-des-fichiers-sur-le-nas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structure des fichiers sur le NAS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Structure des fichiers sur le NAS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mapping-des-types-de-documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mapping des types de documents
       
     </span>
   </a>
@@ -1177,10 +1216,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#nassyncerror" class="md-nav__link">
+  <a href="#nassyncservice" class="md-nav__link">
     <span class="md-ellipsis">
       
-        NASSyncError
+        NASSyncService
       
     </span>
   </a>
@@ -1188,10 +1227,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#nassyncservice" class="md-nav__link">
+  <a href="#methodes-internes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        NASSyncService
+        Méthodes internes
       
     </span>
   </a>
@@ -1215,44 +1254,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#commande-rsync" class="md-nav__link">
+  <a href="#api-endpoints" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Commande rsync
+        API Endpoints
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#mise-a-jour-en-base" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Mise à jour en base
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#gestion-des-erreurs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Gestion des erreurs
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Gestion des erreurs">
+    <nav class="md-nav" aria-label="API Endpoints">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#erreurs-courantes" class="md-nav__link">
+  <a href="#get-syncstatus" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Erreurs courantes
+        GET /sync/status
       
     </span>
   </a>
@@ -1260,10 +1277,43 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#timeout" class="md-nav__link">
+  <a href="#get-syncconfig" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Timeout
+        GET /sync/config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-synctest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /sync/test
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-syncrun" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /sync/run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-syncdocumentid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /sync/document/{id}
       
     </span>
   </a>
@@ -1276,10 +1326,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#statistiques" class="md-nav__link">
+  <a href="#gestion-des-erreurs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Statistiques
+        Gestion des erreurs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mise-a-jour-en-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mise à jour en base
       
     </span>
   </a>
@@ -1299,10 +1360,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#securite" class="md-nav__link">
+  <a href="#montage-automatique-macos" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sécurité
+        Montage automatique (macOS)
       
     </span>
   </a>
@@ -1310,10 +1371,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#performance" class="md-nav__link">
+  <a href="#securite" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Performance
+        Sécurité
       
     </span>
   </a>
@@ -1379,6 +1440,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#fichier-source" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1390,10 +1462,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#fonctionnalites" class="md-nav__link">
+  <a href="#avantages-par-rapport-a-sshrsync" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fonctionnalités
+        Avantages par rapport à SSH/rsync
       
     </span>
   </a>
@@ -1401,22 +1473,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-requise" class="md-nav__link">
+  <a href="#configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration requise
+        Configuration
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration requise">
+    <nav class="md-nav" aria-label="Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#variables-denvironnement" class="md-nav__link">
+  <a href="#1-monter-le-partage-smb-sur-le-mac" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Variables d'environnement
+        1. Monter le partage SMB sur le Mac
       
     </span>
   </a>
@@ -1424,10 +1496,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#prerequis-nas" class="md-nav__link">
+  <a href="#2-variables-denvironnement-env" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Prérequis NAS
+        2. Variables d'environnement (.env)
       
     </span>
   </a>
@@ -1435,10 +1507,38 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#configuration-de-la-cle-ssh" class="md-nav__link">
+  <a href="#3-docker-composeyml" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration de la clé SSH
+        3. docker compose.yml
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#structure-des-fichiers-sur-le-nas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structure des fichiers sur le NAS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Structure des fichiers sur le NAS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mapping-des-types-de-documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mapping des types de documents
       
     </span>
   </a>
@@ -1463,10 +1563,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#nassyncerror" class="md-nav__link">
+  <a href="#nassyncservice" class="md-nav__link">
     <span class="md-ellipsis">
       
-        NASSyncError
+        NASSyncService
       
     </span>
   </a>
@@ -1474,10 +1574,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#nassyncservice" class="md-nav__link">
+  <a href="#methodes-internes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        NASSyncService
+        Méthodes internes
       
     </span>
   </a>
@@ -1501,44 +1601,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#commande-rsync" class="md-nav__link">
+  <a href="#api-endpoints" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Commande rsync
+        API Endpoints
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#mise-a-jour-en-base" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Mise à jour en base
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#gestion-des-erreurs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Gestion des erreurs
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Gestion des erreurs">
+    <nav class="md-nav" aria-label="API Endpoints">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#erreurs-courantes" class="md-nav__link">
+  <a href="#get-syncstatus" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Erreurs courantes
+        GET /sync/status
       
     </span>
   </a>
@@ -1546,10 +1624,43 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#timeout" class="md-nav__link">
+  <a href="#get-syncconfig" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Timeout
+        GET /sync/config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-synctest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /sync/test
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-syncrun" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /sync/run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-syncdocumentid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /sync/document/{id}
       
     </span>
   </a>
@@ -1562,10 +1673,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#statistiques" class="md-nav__link">
+  <a href="#gestion-des-erreurs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Statistiques
+        Gestion des erreurs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mise-a-jour-en-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mise à jour en base
       
     </span>
   </a>
@@ -1585,10 +1707,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#securite" class="md-nav__link">
+  <a href="#montage-automatique-macos" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sécurité
+        Montage automatique (macOS)
       
     </span>
   </a>
@@ -1596,10 +1718,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#performance" class="md-nav__link">
+  <a href="#securite" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Performance
+        Sécurité
       
     </span>
   </a>
@@ -1639,148 +1761,263 @@
 
 
 
-<h1 id="service-nas-sync">Service NAS Sync<a class="headerlink" href="#service-nas-sync" title="Permanent link">&para;</a></h1>
-<p>Le service de synchronisation NAS transfère les fichiers vers un NAS distant via rsync.</p>
+<h1 id="service-nas-sync-smb">Service NAS Sync (SMB)<a class="headerlink" href="#service-nas-sync-smb" title="Permanent link">&para;</a></h1>
+<p>Le service de synchronisation NAS transfère les fichiers vers un NAS via un <strong>montage SMB/CIFS</strong>.</p>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────────────────┐
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│                         BACKEND                              │
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│  ┌───────────────────────────────────────────────────────┐  │
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│  │              nas_sync_service.py                       │  │
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│  │                                                        │  │
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│  │  def sync_file(document):                             │  │
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│  │      dest = get_destination_path(document)            │  │
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│  │      os.makedirs(dest_dir, exist_ok=True)             │  │
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│  │      shutil.copy2(src, dest)  # Simple copie!         │  │
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│  └────────────────────────┬──────────────────────────────┘  │
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>└───────────────────────────┼─────────────────────────────────┘
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>                            │ Copie fichier local
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>                            ▼
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>┌─────────────────────────────────────────────────────────────┐
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│                    MONTAGE SMB                               │
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  ┌───────────────────────────────────────────────────────┐  │
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│  │  /app/nas_backup (dans le container)                   │  │
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│  │       │                                                │  │
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│  │       └── monté depuis /Volumes/NAS/finance (Mac)     │  │
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│  └───────────────────────────────────────────────────────┘  │
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│                           │                                  │
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│                    ┌──────▼──────┐                          │
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│                    │  NAS Ugreen │                          │
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│                    │    (SMB)    │                          │
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│                    └─────────────┘                          │
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
 <h2 id="fichier-source">Fichier source<a class="headerlink" href="#fichier-source" title="Permanent link">&para;</a></h2>
 <p><code>backend/app/services/nas_sync_service.py</code></p>
-<h2 id="fonctionnalites">Fonctionnalités<a class="headerlink" href="#fonctionnalites" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Test de connexion SSH</li>
-<li>Synchronisation fichier par fichier</li>
-<li>Synchronisation batch</li>
-<li>Suivi du statut en base de données</li>
-</ul>
-<h2 id="configuration-requise">Configuration requise<a class="headerlink" href="#configuration-requise" title="Permanent link">&para;</a></h2>
-<h3 id="variables-denvironnement">Variables d'environnement<a class="headerlink" href="#variables-denvironnement" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Adresse IP ou hostname du NAS</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nv">NAS_HOST</span><span class="o">=</span><span class="m">192</span>.168.1.100
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Utilisateur SSH</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nv">NAS_USER</span><span class="o">=</span>admin
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Chemin de destination</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="nv">NAS_PATH</span><span class="o">=</span>/volume1/factures
-</code></pre></div>
-<h3 id="prerequis-nas">Prérequis NAS<a class="headerlink" href="#prerequis-nas" title="Permanent link">&para;</a></h3>
-<ol>
-<li><strong>SSH activé</strong> sur le NAS</li>
-<li><strong>rsync installé</strong> (généralement inclus)</li>
-<li><strong>Clé SSH configurée</strong> pour authentification sans mot de passe</li>
-</ol>
-<h3 id="configuration-de-la-cle-ssh">Configuration de la clé SSH<a class="headerlink" href="#configuration-de-la-cle-ssh" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Générer une clé (si nécessaire)</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>ssh-keygen<span class="w"> </span>-t<span class="w"> </span>ed25519<span class="w"> </span>-C<span class="w"> </span><span class="s2">&quot;finance-manager&quot;</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Copier sur le NAS</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>ssh-copy-id<span class="w"> </span>admin@192.168.1.100
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Tester</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>ssh<span class="w"> </span>admin@192.168.1.100<span class="w"> </span><span class="s2">&quot;echo OK&quot;</span>
-</code></pre></div>
-<h2 id="classes">Classes<a class="headerlink" href="#classes" title="Permanent link">&para;</a></h2>
-<h3 id="nassyncerror">NASSyncError<a class="headerlink" href="#nassyncerror" title="Permanent link">&para;</a></h3>
-<p>Exception personnalisée pour les erreurs de synchronisation.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">NASSyncError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">details</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="n">message</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">details</span> <span class="o">=</span> <span class="n">details</span>
-</code></pre></div>
-<h3 id="nassyncservice">NASSyncService<a class="headerlink" href="#nassyncservice" title="Permanent link">&para;</a></h3>
-<p>Service principal de synchronisation.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">NASSyncService</span><span class="p">:</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_configured</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Vérifie si le NAS est configuré.&quot;&quot;&quot;</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_config_status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retourne le statut de la configuration.&quot;&quot;&quot;</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Teste la connexion SSH.&quot;&quot;&quot;</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sync_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">document</span><span class="p">:</span> <span class="n">Document</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Synchronise un fichier spécifique.&quot;&quot;&quot;</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sync_all_pending</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Synchronise tous les fichiers en attente.&quot;&quot;&quot;</span>
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>
-<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_sync_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retourne les statistiques de synchronisation.&quot;&quot;&quot;</span>
-</code></pre></div>
-<h2 id="utilisation">Utilisation<a class="headerlink" href="#utilisation" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">app.services.nas_sync_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_nas_sync_service</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># Créer le service</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">sync_service</span> <span class="o">=</span> <span class="n">get_nas_sync_service</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1"># Vérifier la configuration</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">sync_service</span><span class="o">.</span><span class="n">is_configured</span><span class="p">():</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;NAS non configuré&quot;</span><span class="p">)</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="k">return</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="c1"># Tester la connexion</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="n">sync_service</span><span class="o">.</span><span class="n">test_connection</span><span class="p">()</span>
-<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
-<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Erreur: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>    <span class="k">return</span>
-<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>
-<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="c1"># Synchroniser un document</span>
-<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="n">document</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Document</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="n">sync_service</span><span class="o">.</span><span class="n">sync_file</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
-<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>
-<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="c1"># Synchroniser tous les documents en attente</span>
-<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="n">results</span> <span class="o">=</span> <span class="n">sync_service</span><span class="o">.</span><span class="n">sync_all_pending</span><span class="p">(</span><span class="n">user_id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Synchronisés: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;synced&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Échecs: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;failed&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</code></pre></div>
-<h2 id="commande-rsync">Commande rsync<a class="headerlink" href="#commande-rsync" title="Permanent link">&para;</a></h2>
-<p>La synchronisation utilise rsync avec les options suivantes :</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>rsync<span class="w"> </span>-avz<span class="w"> </span>--progress<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>-e<span class="w"> </span><span class="s2">&quot;ssh -o BatchMode=yes -o ConnectTimeout=30&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>/app/uploads/document.jpg<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span>user@nas:/volume1/factures/document.jpg
-</code></pre></div>
+<h2 id="avantages-par-rapport-a-sshrsync">Avantages par rapport à SSH/rsync<a class="headerlink" href="#avantages-par-rapport-a-sshrsync" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Option</th>
-<th>Description</th>
+<th>Critère</th>
+<th>SSH/rsync (ancien)</th>
+<th>SMB (nouveau)</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>-a</td>
-<td>Mode archive (préserve métadonnées)</td>
+<td>Configuration</td>
+<td>Complexe (clés SSH)</td>
+<td>Simple (montage)</td>
 </tr>
 <tr>
-<td>-v</td>
-<td>Mode verbose</td>
+<td>Authentification</td>
+<td>Clé SSH</td>
+<td>Identifiants SMB natifs</td>
 </tr>
 <tr>
-<td>-z</td>
-<td>Compression pendant le transfert</td>
+<td>Performance</td>
+<td>Bonne</td>
+<td>Bonne</td>
 </tr>
 <tr>
-<td>--progress</td>
-<td>Affiche la progression</td>
+<td>Compatibilité NAS</td>
+<td>Variable</td>
+<td>Universelle</td>
 </tr>
 <tr>
-<td>BatchMode=yes</td>
-<td>Pas de prompt interactif</td>
-</tr>
-<tr>
-<td>ConnectTimeout=30</td>
-<td>Timeout de connexion 30s</td>
+<td>Code Python</td>
+<td>subprocess + rsync</td>
+<td>shutil.copy2</td>
 </tr>
 </tbody>
 </table>
-<h2 id="mise-a-jour-en-base">Mise à jour en base<a class="headerlink" href="#mise-a-jour-en-base" title="Permanent link">&para;</a></h2>
-<p>Après synchronisation réussie :</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">document</span><span class="o">.</span><span class="n">synced_to_nas</span> <span class="o">=</span> <span class="kc">True</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">document</span><span class="o">.</span><span class="n">synced_at</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<h3 id="1-monter-le-partage-smb-sur-le-mac">1. Monter le partage SMB sur le Mac<a class="headerlink" href="#1-monter-le-partage-smb-sur-le-mac" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Créer le point de montage</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/Volumes/NAS
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Monter le partage SMB</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>mount<span class="w"> </span>-t<span class="w"> </span>smbfs<span class="w"> </span>//utilisateur:motdepasse@IP-NAS/partage<span class="w"> </span>/Volumes/NAS
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Ou via Finder : Cmd+K → smb://IP-NAS/partage</span>
+</code></pre></div>
+<h3 id="2-variables-denvironnement-env">2. Variables d'environnement (.env)<a class="headerlink" href="#2-variables-denvironnement-env" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Chemin sur le Mac (montage SMB)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nv">NAS_LOCAL_PATH</span><span class="o">=</span>/Volumes/NAS/finance
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Chemin dans le container Docker</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nv">NAS_MOUNT_PATH</span><span class="o">=</span>/app/nas_backup
+</code></pre></div>
+<h3 id="3-docker-composeyml">3. docker compose.yml<a class="headerlink" href="#3-docker-composeyml" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">backend</span><span class="p">:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">volumes</span><span class="p">:</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${NAS_LOCAL_PATH:-./nas_backup}:/app/nas_backup</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">environment</span><span class="p">:</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NAS_MOUNT_PATH=${NAS_MOUNT_PATH:-}</span>
+</code></pre></div>
+<h2 id="structure-des-fichiers-sur-le-nas">Structure des fichiers sur le NAS<a class="headerlink" href="#structure-des-fichiers-sur-le-nas" title="Permanent link">&para;</a></h2>
+<p>Les fichiers sont organisés par <strong>année/mois/type</strong> :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>/Volumes/NAS/finance/
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>├── 2024/
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>│   ├── 01/
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>│   │   ├── factures/
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>│   │   │   └── abc123.pdf
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>│   │   ├── tickets/
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>│   │   │   └── def456.jpg
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>│   │   └── salaires/
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>│   │       └── ghi789.pdf
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>│   ├── 02/
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>│   │   └── ...
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>│   └── ...
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>├── 2025/
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>│   └── ...
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>└── 2026/
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>    └── 01/
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>        ├── factures/
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>        └── tickets/
+</code></pre></div>
+<h3 id="mapping-des-types-de-documents">Mapping des types de documents<a class="headerlink" href="#mapping-des-types-de-documents" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Type (BDD)</th>
+<th>Dossier NAS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>receipt</td>
+<td>tickets</td>
+</tr>
+<tr>
+<td>invoice</td>
+<td>factures</td>
+</tr>
+<tr>
+<td>payslip</td>
+<td>salaires</td>
+</tr>
+<tr>
+<td>other</td>
+<td>autres</td>
+</tr>
+</tbody>
+</table>
+<h2 id="classes">Classes<a class="headerlink" href="#classes" title="Permanent link">&para;</a></h2>
+<h3 id="nassyncservice">NASSyncService<a class="headerlink" href="#nassyncservice" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">NASSyncService</span><span class="p">:</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_configured</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Vérifie si le montage NAS est accessible.&quot;&quot;&quot;</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_config_status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retourne le statut de la configuration.&quot;&quot;&quot;</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Teste l&#39;accès en écriture au montage.&quot;&quot;&quot;</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sync_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">document</span><span class="p">:</span> <span class="n">Document</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Synchronise un fichier spécifique.&quot;&quot;&quot;</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sync_all_pending</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Synchronise tous les fichiers en attente.&quot;&quot;&quot;</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_sync_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retourne les statistiques de synchronisation.&quot;&quot;&quot;</span>
+</code></pre></div>
+<h3 id="methodes-internes">Méthodes internes<a class="headerlink" href="#methodes-internes" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_get_doc_type_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doc_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convertit le type de document en nom de dossier.&quot;&quot;&quot;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    <span class="n">type_mapping</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>        <span class="s2">&quot;receipt&quot;</span><span class="p">:</span> <span class="s2">&quot;tickets&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>        <span class="s2">&quot;invoice&quot;</span><span class="p">:</span> <span class="s2">&quot;factures&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>        <span class="s2">&quot;payslip&quot;</span><span class="p">:</span> <span class="s2">&quot;salaires&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>        <span class="s2">&quot;other&quot;</span><span class="p">:</span> <span class="s2">&quot;autres&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="p">}</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="k">return</span> <span class="n">type_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">doc_type</span><span class="p">,</span> <span class="s2">&quot;autres&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="k">def</span><span class="w"> </span><span class="nf">_get_destination_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">document</span><span class="p">:</span> <span class="n">Document</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Construit le chemin: {nas}/{année}/{mois}/{type}/{fichier}&quot;&quot;&quot;</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>    <span class="n">doc_date</span> <span class="o">=</span> <span class="n">document</span><span class="o">.</span><span class="n">date</span> <span class="ow">or</span> <span class="n">document</span><span class="o">.</span><span class="n">created_at</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>    <span class="n">year</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">doc_date</span><span class="o">.</span><span class="n">year</span><span class="p">)</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>    <span class="n">month</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">doc_date</span><span class="o">.</span><span class="n">month</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>    <span class="n">type_folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_doc_type_folder</span><span class="p">(</span><span class="n">document</span><span class="o">.</span><span class="n">doc_type</span><span class="p">)</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">document</span><span class="o">.</span><span class="n">file_path</span><span class="p">)</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nas_mount_path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">type_folder</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="utilisation">Utilisation<a class="headerlink" href="#utilisation" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">app.services.nas_sync_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_nas_sync_service</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># Créer le service</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">sync_service</span> <span class="o">=</span> <span class="n">get_nas_sync_service</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="c1"># Vérifier la configuration</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">sync_service</span><span class="o">.</span><span class="n">is_configured</span><span class="p">():</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Montage NAS non accessible&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    <span class="k">return</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="c1"># Tester l&#39;accès</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="n">sync_service</span><span class="o">.</span><span class="n">test_connection</span><span class="p">()</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Erreur: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>    <span class="k">return</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="c1"># Synchroniser un document</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="n">document</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Document</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="n">sync_service</span><span class="o">.</span><span class="n">sync_file</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="c1"># Synchroniser tous les documents en attente</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="n">results</span> <span class="o">=</span> <span class="n">sync_service</span><span class="o">.</span><span class="n">sync_all_pending</span><span class="p">(</span><span class="n">user_id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Synchronisés: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;synced&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Échecs: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;failed&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="api-endpoints">API Endpoints<a class="headerlink" href="#api-endpoints" title="Permanent link">&para;</a></h2>
+<h3 id="get-syncstatus">GET /sync/status<a class="headerlink" href="#get-syncstatus" title="Permanent link">&para;</a></h3>
+<p>Statistiques de synchronisation.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">{</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">&quot;total_documents&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nt">&quot;synced&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">142</span><span class="p">,</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="nt">&quot;pending&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="nt">&quot;sync_percentage&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">94.7</span><span class="p">,</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="nt">&quot;last_sync&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-15T14:30:00&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="nt">&quot;nas_configured&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="get-syncconfig">GET /sync/config<a class="headerlink" href="#get-syncconfig" title="Permanent link">&para;</a></h3>
+<p>Statut de la configuration.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p">{</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">&quot;configured&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nt">&quot;nas_host&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="nt">&quot;nas_user&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="nt">&quot;nas_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SMB Mount&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">  </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/app/nas_backup&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">  </span><span class="nt">&quot;path_exists&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">  </span><span class="nt">&quot;path_writable&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="post-synctest">POST /sync/test<a class="headerlink" href="#post-synctest" title="Permanent link">&para;</a></h3>
+<p>Tester l'accès au montage.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="p">{</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nt">&quot;success&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Montage NAS accessible en lecture/écriture&quot;</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="post-syncrun">POST /sync/run<a class="headerlink" href="#post-syncrun" title="Permanent link">&para;</a></h3>
+<p>Lancer la synchronisation de tous les documents en attente.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="p">{</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="nt">&quot;total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span><span class="nt">&quot;synced&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span><span class="nt">&quot;failed&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span><span class="nt">&quot;errors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Document 42: Permission refusée&quot;</span><span class="p">]</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="post-syncdocumentid">POST /sync/document/{id}<a class="headerlink" href="#post-syncdocumentid" title="Permanent link">&para;</a></h3>
+<p>Synchroniser un document spécifique.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="p">{</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">&quot;success&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Synchronisé vers /app/nas_backup/2024/01/factures/abc.pdf&quot;</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="p">}</span>
 </code></pre></div>
 <h2 id="gestion-des-erreurs">Gestion des erreurs<a class="headerlink" href="#gestion-des-erreurs" title="Permanent link">&para;</a></h2>
-<h3 id="erreurs-courantes">Erreurs courantes<a class="headerlink" href="#erreurs-courantes" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -1791,63 +2028,50 @@
 </thead>
 <tbody>
 <tr>
-<td>Permission denied</td>
-<td>Clé SSH non configurée</td>
-<td>Configurer ssh-copy-id</td>
+<td>NAS non configuré</td>
+<td>NAS_MOUNT_PATH vide</td>
+<td>Définir la variable dans .env</td>
 </tr>
 <tr>
-<td>Connection refused</td>
-<td>SSH non activé</td>
-<td>Activer SSH sur le NAS</td>
+<td>Chemin inexistant</td>
+<td>Montage non fait</td>
+<td>Monter le partage SMB sur le Mac</td>
 </tr>
 <tr>
-<td>Connection timeout</td>
-<td>NAS inaccessible</td>
-<td>Vérifier le réseau</td>
+<td>Permission refusée</td>
+<td>Droits insuffisants</td>
+<td>Vérifier les permissions SMB</td>
 </tr>
 <tr>
-<td>No such file</td>
-<td>Chemin invalide</td>
-<td>Vérifier NAS_PATH</td>
+<td>Espace disque</td>
+<td>NAS plein</td>
+<td>Libérer de l'espace</td>
 </tr>
 </tbody>
 </table>
-<h3 id="timeout">Timeout<a class="headerlink" href="#timeout" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Connexion SSH : 30 secondes</li>
-<li>Transfert par fichier : 5 minutes</li>
-</ul>
-<h2 id="statistiques">Statistiques<a class="headerlink" href="#statistiques" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">stats</span> <span class="o">=</span> <span class="n">sync_service</span><span class="o">.</span><span class="n">get_sync_stats</span><span class="p">(</span><span class="n">user_id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># Exemple de retour</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="p">{</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="s2">&quot;total_documents&quot;</span><span class="p">:</span> <span class="mi">150</span><span class="p">,</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="s2">&quot;synced&quot;</span><span class="p">:</span> <span class="mi">142</span><span class="p">,</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="s2">&quot;pending&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="s2">&quot;sync_percentage&quot;</span><span class="p">:</span> <span class="mf">94.7</span><span class="p">,</span>
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    <span class="s2">&quot;last_sync&quot;</span><span class="p">:</span> <span class="s2">&quot;2024-01-15T14:30:00&quot;</span><span class="p">,</span>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>    <span class="s2">&quot;nas_configured&quot;</span><span class="p">:</span> <span class="kc">True</span>
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="p">}</span>
+<h2 id="mise-a-jour-en-base">Mise à jour en base<a class="headerlink" href="#mise-a-jour-en-base" title="Permanent link">&para;</a></h2>
+<p>Après synchronisation réussie :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">document</span><span class="o">.</span><span class="n">synced_to_nas</span> <span class="o">=</span> <span class="kc">True</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="n">document</span><span class="o">.</span><span class="n">synced_at</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 </code></pre></div>
 <h2 id="bonnes-pratiques">Bonnes pratiques<a class="headerlink" href="#bonnes-pratiques" title="Permanent link">&para;</a></h2>
+<h3 id="montage-automatique-macos">Montage automatique (macOS)<a class="headerlink" href="#montage-automatique-macos" title="Permanent link">&para;</a></h3>
+<p>Pour monter automatiquement au démarrage, ajouter dans <code>/etc/fstab</code> :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>//user:pass@nas-ip/share /Volumes/NAS smbfs 0 0
+</code></pre></div>
+<p>Ou utiliser l'app "Automator" pour un script au login.</p>
 <h3 id="securite">Sécurité<a class="headerlink" href="#securite" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Utiliser une clé SSH dédiée</li>
-<li>Limiter les permissions sur le NAS</li>
+<li>Créer un utilisateur SMB dédié sur le NAS</li>
+<li>Limiter les permissions au dossier finance uniquement</li>
 <li>Ne pas exposer le NAS sur Internet</li>
-</ul>
-<h3 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Synchroniser régulièrement (éviter les gros batchs)</li>
-<li>Utiliser une connexion réseau stable</li>
-<li>Prévoir suffisamment d'espace sur le NAS</li>
 </ul>
 <h3 id="fiabilite">Fiabilité<a class="headerlink" href="#fiabilite" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Vérifier les logs en cas d'échec</li>
-<li>Implémenter des retries automatiques (à venir)</li>
+<li>Vérifier que le montage est actif avant de lancer Docker</li>
 <li>Monitorer l'espace disque NAS</li>
+<li>Sauvegarder régulièrement le NAS</li>
 </ul>
 
 

@@ -17,7 +17,7 @@ I am an expert in web development and Docker infrastructure. My primary goal is 
 The application is a containerized, three-tier web application designed for personal finance management.
 
 ### 1. High-Level Stack
-*   **Containerization:** Docker Compose (`docker-compose.yml`) orchestrates all services.
+*   **Containerization:** Docker Compose (`docker compose.yml`) orchestrates all services.
 *   **Services:** `frontend`, `backend`, `db` (PostgreSQL), `ollama`.
 *   **Configuration:** Managed via `.env` files.
 
@@ -61,7 +61,7 @@ The application is a containerized, three-tier web application designed for pers
 *   **NAS Sync:** `nas_sync_service.py` uses `rsync` to back up document files to a network-attached storage.
 
 ### 6. Key Commands
-*   **Start Application:** `docker-compose up -d`
-*   **Apply Migrations:** `docker-compose exec backend alembic upgrade head`
-*   **Rebuild Services:** `docker-compose up -d --build`
-*   **View Logs:** `docker-compose logs -f <service_name>`
+*   **Start Application:** `docker compose up -d`
+*   **Apply Migrations:** `docker compose exec backend alembic upgrade head`
+*   **Rebuild Services:** `docker compose up -d --build`
+*   **View Logs:** `docker compose logs -f <service_name>`
