@@ -52,8 +52,10 @@ Kash centralise vos factures, tickets de caisse et fiches de paie. Il extrait au
 
 ### Prérequis
 
-- Docker Desktop (Mac M1/M2 compatible)
-- 8 Go RAM minimum (Ollama + PaddleOCR)
+- Un PC standard est suffisant pour faire tourner l'application.
+- Une carte graphique (GPU) est recommandée pour l'accélération matérielle des modèles d'IA (Ollama).
+- Docker Desktop.
+- 8 Go de RAM minimum.
 
 ### Démarrage rapide
 
@@ -153,7 +155,7 @@ kash/
 │   │   ├── core/            # Config, sécurité, BDD
 │   │   ├── models/          # Modèles SQLAlchemy
 │   │   ├── schemas/         # Schémas Pydantic
-│   │   └── services/        # OCR, IA, Export, Sync
+│   │   └── services/        # OCR, IA, Export, Sync, PDF
 │   └── alembic/             # Migrations
 ├── frontend/
 │   ├── src/
@@ -170,11 +172,10 @@ kash/
 
 ## Améliorations prévues
 
-Voir [AMELIORATIONS.md](AMELIORATIONS.md) pour la roadmap :
-- Visionneuse PDF/images intégrée
-- Gestion des articles (modifier/supprimer)
-- Documents récurrents (abonnements)
-- Entrées financières manuelles
+- Intégration de notifications pour les alertes de budget via :
+  - Email
+  - Discord
+  - Telegram
 
 ## Licence
 
