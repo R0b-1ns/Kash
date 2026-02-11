@@ -21,7 +21,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from sqlalchemy import func, extract, case, cast, Date
+from sqlalchemy import func, extract, case, cast, Date, or_
 
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
@@ -507,14 +507,19 @@ def get_recurring_breakdown(
         extract("month", effective_date) == month_num
     )
 
-    # Récurrent
-    recurring_result = base_query.filter(Document.is_recurring == True).with_entities(
+    # Récurrent : templates (is_recurring=True) + dépenses générées par abonnements (recurring_parent_id != NULL)
+    recurring_result = base_query.filter(
+        or_(Document.is_recurring == True, Document.recurring_parent_id.isnot(None))
+    ).with_entities(
         func.coalesce(func.sum(Document.total_amount), 0).label("total"),
         func.count(Document.id).label("count")
     ).first()
 
-    # Ponctuel
-    one_time_result = base_query.filter(Document.is_recurring == False).with_entities(
+    # Ponctuel : uniquement les dépenses sans lien avec un abonnement
+    one_time_result = base_query.filter(
+        Document.is_recurring == False,
+        Document.recurring_parent_id.is_(None)
+    ).with_entities(
         func.coalesce(func.sum(Document.total_amount), 0).label("total"),
         func.count(Document.id).label("count")
     ).first()

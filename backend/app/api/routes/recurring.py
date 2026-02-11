@@ -128,24 +128,26 @@ def get_recurring_summary(
         Document.recurring_parent_id.is_(None)
     ).all()
 
-    # Calculer le total mensuel (seulement les mensuels, ou divisé pour quarterly/yearly)
+    # Calculer le total mensuel (seulement les dépenses, pas les revenus)
     total_monthly = 0
     template_infos = []
 
     for doc in templates:
         amount = float(doc.total_amount) if doc.total_amount else 0
 
-        # Ajuster selon la fréquence pour avoir un équivalent mensuel
-        if doc.recurring_frequency == "monthly":
-            monthly_amount = amount
-        elif doc.recurring_frequency == "quarterly":
-            monthly_amount = amount / 3
-        elif doc.recurring_frequency == "yearly":
-            monthly_amount = amount / 12
-        else:
-            monthly_amount = amount
+        # Ne compter que les dépenses dans le total mensuel
+        if not doc.is_income:
+            # Ajuster selon la fréquence pour avoir un équivalent mensuel
+            if doc.recurring_frequency == "monthly":
+                monthly_amount = amount
+            elif doc.recurring_frequency == "quarterly":
+                monthly_amount = amount / 3
+            elif doc.recurring_frequency == "yearly":
+                monthly_amount = amount / 12
+            else:
+                monthly_amount = amount
 
-        total_monthly += monthly_amount
+            total_monthly += monthly_amount
 
         # Dernière génération pour ce template
         last_generated = db.query(Document).filter(
