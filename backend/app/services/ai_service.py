@@ -319,14 +319,20 @@ class AIService:
         try:
             data = json.loads(json_str)
         except json.JSONDecodeError as e:
-            logger.error(f"JSON invalide. Erreur: {str(e)}")
-            logger.error(f"JSON extrait:\n{json_str}")
-            logger.error(f"Réponse brute complète:\n{raw_response}")
-            return ExtractionResult(
-                success=False,
-                error=f"JSON invalide: {str(e)}",
-                raw_response=raw_response
-            )
+            logger.warning(f"JSON invalide, tentative de réparation des guillemets... Erreur: {str(e)}")
+            fixed_json = self._fix_unescaped_quotes(json_str)
+            try:
+                data = json.loads(fixed_json)
+                logger.info("JSON réparé avec succès après correction des guillemets non échappés")
+            except json.JSONDecodeError as e2:
+                logger.error(f"JSON toujours invalide après réparation. Erreur: {str(e2)}")
+                logger.error(f"JSON extrait:\n{json_str}")
+                logger.error(f"Réponse brute complète:\n{raw_response}")
+                return ExtractionResult(
+                    success=False,
+                    error=f"JSON invalide: {str(e2)}",
+                    raw_response=raw_response
+                )
 
         # Construire le résultat
         result = ExtractionResult(
@@ -363,6 +369,51 @@ class AIService:
             result.suggested_tags = [tag for tag in suggested_tags if isinstance(tag, str)]
 
         return result
+
+    def _fix_unescaped_quotes(self, json_str: str) -> str:
+        """
+        Tente de réparer les guillemets non échappés dans les valeurs JSON.
+
+        Quand le LLM génère du JSON avec des noms de produits contenant
+        des pouces (10,9") ou des tailles (Air 11"), les guillemets
+        non échappés cassent le parsing. Cette méthode les échappe.
+        """
+        result = []
+        i = 0
+        in_string = False
+
+        while i < len(json_str):
+            char = json_str[i]
+
+            if char == '\\' and in_string:
+                # Caractère échappé, garder tel quel
+                result.append(char)
+                i += 1
+                if i < len(json_str):
+                    result.append(json_str[i])
+                    i += 1
+                continue
+
+            if char == '"':
+                if not in_string:
+                    in_string = True
+                    result.append(char)
+                else:
+                    # Vérifier si c'est un guillemet structurel ou un guillemet dans la valeur
+                    rest = json_str[i + 1:].lstrip()
+                    if not rest or rest[0] in (':', ',', '}', ']'):
+                        # Guillemet structurel (fermeture de la chaîne)
+                        in_string = False
+                        result.append(char)
+                    else:
+                        # Guillemet non échappé dans la valeur → on l'échappe
+                        result.append('\\"')
+            else:
+                result.append(char)
+
+            i += 1
+
+        return ''.join(result)
 
     def _remove_comments(self, json_str: str) -> str:
         """
